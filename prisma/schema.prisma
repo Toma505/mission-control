@@ -1,0 +1,167 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Agent {
+  id           String   @id @default(cuid())
+  name         String
+  tagline      String
+  description  String
+  status       AgentStatus @default(IDLE)
+  avatar       String?
+  capabilities String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  tasks        Task[]   @relation("AssignedTasks")
+  activities   Activity[]
+}
+
+model Task {
+  id          String      @id @default(cuid())
+  title       String
+  description String
+  status      TaskStatus  @default(BACKLOGGED)
+  progress    Int         @default(0) // 0-100
+  priority    Priority    @default(MEDIUM)
+  tags        String[]
+  dueDate     DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  completedAt DateTime?
+  
+  assignedAgents Agent[]  @relation("AssignedTasks")
+  activities     Activity[]
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  title       String
+  description String?
+  entityId    String?
+  entityType  EntityType?
+  status      ActivityStatus @default(IN_PROGRESS)
+  metadata    Json?
+  timestamp   DateTime     @default(now())
+  
+  agent       Agent?   @relation(fields: [agentId], references: [id])
+  agentId     String?
+  task        Task?    @relation(fields: [taskId], references: [id])
+  taskId      String?
+}
+
+model Commit {
+  id              String   @id @default(cuid())
+  message         String
+  author          String
+  timestamp       DateTime @default(now())
+  relatedTaskId   String?
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  name        String
+  type        String
+  size        Int
+  path        String
+  uploadedBy  String
+  uploadedAt  DateTime @default(now())
+  tags        String[]
+}
+
+model Client {
+  id           String   @id @default(cuid())
+  name         String
+  status       ClientStatus @default(ACTIVE)
+  lastActivity DateTime?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model CronJob {
+  id       String   @id @default(cuid())
+  name     String
+  schedule String   // cron expression
+  status   CronStatus @default(ACTIVE)
+  lastRun  DateTime?
+  nextRun  DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SystemStatus {
+  id           String   @id @default(cuid())
+  overall      SystemHealth @default(ACTIVE)
+  message      String
+  lastChecked  DateTime @default(now())
+  agentsActive Int      @default(0)
+  tasksInProgress Int   @default(0)
+  systemLoad   Float    @default(0)
+}
+
+// Enums
+enum AgentStatus {
+  ACTIVE
+  IDLE
+  BUSY
+}
+
+enum TaskStatus {
+  ACTIVE
+  IN_PROGRESS
+  COMPLETED
+  BACKLOGGED
+  PLANNING
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ActivityType {
+  TASK_UPDATE
+  AGENT_ACTION
+  SYSTEM_EVENT
+  COMMIT
+  POLICY_CHANGE
+}
+
+enum ActivityStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum EntityType {
+  TASK
+  AGENT
+  DOCUMENT
+  CLIENT
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum CronStatus {
+  ACTIVE
+  PAUSED
+}
+
+enum SystemHealth {
+  ACTIVE
+  IDLE
+  MAINTENANCE
+}
