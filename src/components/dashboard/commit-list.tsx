@@ -34,7 +34,7 @@ export function CommitList({ commits }: CommitListProps) {
       <CardContent className="space-y-2">
         {commits.map((commit) => (
           <div key={commit.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-background-elevated transition-colors">
-            <div className="w-8 h-8 rounded-full bg-accent-primary/10 flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-accent-primary/10 shadow-md shadow-accent-primary/20 flex items-center justify-center flex-shrink-0">
               <GitCommit className="w-4 h-4 text-accent-primary" />
             </div>
             <div className="flex-1 min-w-0">

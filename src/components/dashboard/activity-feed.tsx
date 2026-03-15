@@ -50,8 +50,8 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
         {activities.map((activity) => (
           <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-background-elevated transition-colors">
             <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-              activity.status === 'COMPLETED' ? 'bg-status-active' :
-              activity.status === 'IN_PROGRESS' ? 'bg-status-progress' :
+              activity.status === 'COMPLETED' ? 'bg-status-active animate-pulse' :
+              activity.status === 'IN_PROGRESS' ? 'bg-status-progress animate-pulse' :
               activity.status === 'FAILED' ? 'bg-status-error' : 'bg-status-idle'
             }`} />
             <div className="flex-1 min-w-0">

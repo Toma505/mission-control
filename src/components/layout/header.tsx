@@ -24,12 +24,12 @@ export function Header() {
         </div>
 
         {/* Notifications */}
-        <button className="w-9 h-9 rounded-lg bg-background-elevated border border-border flex items-center justify-center hover:bg-background-card transition-colors">
+        <button className="w-9 h-9 rounded-lg bg-background-elevated border border-border flex items-center justify-center hover:bg-background-card hover:scale-105 transition-all">
           <Bell className="w-4 h-4 text-text-secondary" />
         </button>
 
         {/* Profile */}
-        <button className="w-9 h-9 rounded-lg bg-accent-primary flex items-center justify-center text-white font-semibold text-sm hover:bg-accent-primary/90 transition-colors">
+        <button className="w-9 h-9 rounded-lg bg-accent-primary flex items-center justify-center text-white font-semibold text-sm hover:bg-accent-primary/90 hover:scale-105 transition-all">
           JA
         </button>
       </div>

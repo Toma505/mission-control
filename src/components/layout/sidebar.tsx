@@ -59,10 +59,10 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border-l-2',
                 isActive
-                  ? 'bg-accent-primary text-white'
-                  : 'text-text-secondary hover:bg-background-elevated hover:text-text-primary'
+                  ? 'bg-accent-primary text-white border-accent-primary'
+                  : 'text-text-secondary border-transparent hover:bg-background-elevated hover:text-text-primary hover:border-accent-primary'
               )}
             >
               <item.icon className="w-5 h-5" />

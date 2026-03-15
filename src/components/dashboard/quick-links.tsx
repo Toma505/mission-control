@@ -24,7 +24,7 @@ export function QuickLinks() {
             >
               <link.icon className={`w-6 h-6 mb-2 ${link.color}`} />
               <p className="text-sm font-medium text-text-primary mb-1">{link.name}</p>
-              <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-accent-primary transition-colors" />
+              <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-accent-primary group-hover:translate-x-1 transition-all" />
             </Link>
           ))}
         </div>

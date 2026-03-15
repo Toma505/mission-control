@@ -11,8 +11,8 @@ interface StatusCardProps {
 
 export function StatusCard({ icon: Icon, title, value, subtitle, iconColor = 'text-accent-primary' }: StatusCardProps) {
   return (
-    <Card className="flex items-start gap-4">
-      <div className={`p-3 rounded-lg bg-background-elevated ${iconColor}`}>
+    <Card className="flex items-start gap-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-accent-primary/10 hover:border-accent-primary/30 cursor-pointer">
+      <div className={`p-3 rounded-lg bg-background-elevated shadow-lg shadow-accent-primary/15 ${iconColor}`}>
         <Icon className="w-6 h-6" />
       </div>
       <div className="flex-1">
