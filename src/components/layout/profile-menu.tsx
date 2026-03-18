@@ -15,6 +15,7 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import { AboutDiagnosticsModal } from './about-diagnostics-modal'
+import { OPEN_DIAGNOSTICS_EVENT } from './desktop-events'
 
 type ElectronAPI = {
   checkLicense?: () => Promise<{ valid: boolean; email: string | null }>
@@ -120,6 +121,16 @@ export function ProfileMenu() {
       window.removeEventListener('keydown', handleEscape)
     }
   }, [open])
+
+  useEffect(() => {
+    const openDiagnostics = () => {
+      setOpen(false)
+      setAboutOpen(true)
+    }
+
+    window.addEventListener(OPEN_DIAGNOSTICS_EVENT, openDiagnostics)
+    return () => window.removeEventListener(OPEN_DIAGNOSTICS_EVENT, openDiagnostics)
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -228,119 +239,119 @@ export function ProfileMenu() {
       />
 
       <div className="relative electron-no-drag" ref={menuRef}>
-      <button
-        onClick={() => setOpen(prev => !prev)}
-        className={`flex items-center gap-1 rounded-full pl-0 pr-1 h-7 transition-all duration-200 ${
-          open ? 'bg-white/[0.08]' : 'hover:bg-white/[0.06]'
-        }`}
-        title="Mission Control menu"
-        aria-label="Mission Control menu"
-        aria-expanded={open}
-      >
-        <span className="w-7 h-7 rounded-full bg-gradient-to-br from-zinc-500 to-zinc-600 flex items-center justify-center text-white font-medium text-[10px] shadow-md shadow-black/15">
-          T
-        </span>
-        <ChevronDown className={`w-3.5 h-3.5 text-[var(--text-muted)] transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
+        <button
+          onClick={() => setOpen(prev => !prev)}
+          className={`flex items-center gap-1 rounded-full pl-0 pr-1 h-7 transition-all duration-200 ${
+            open ? 'bg-white/[0.08]' : 'hover:bg-white/[0.06]'
+          }`}
+          title="Mission Control menu"
+          aria-label="Mission Control menu"
+          aria-expanded={open}
+        >
+          <span className="w-7 h-7 rounded-full bg-gradient-to-br from-zinc-500 to-zinc-600 flex items-center justify-center text-white font-medium text-[10px] shadow-md shadow-black/15">
+            T
+          </span>
+          <ChevronDown className={`w-3.5 h-3.5 text-[var(--text-muted)] transition-transform ${open ? 'rotate-180' : ''}`} />
+        </button>
 
-      {open && (
-        <div className="absolute right-0 top-10 z-50 w-[320px] overflow-hidden rounded-2xl border border-white/[0.08] bg-[var(--background-card)] shadow-2xl shadow-black/40">
-          <div className="border-b border-white/[0.06] px-4 py-4">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-500 to-zinc-700 flex items-center justify-center text-white font-semibold text-xs shadow-md shadow-black/20">
-                T
+        {open && (
+          <div className="absolute right-0 top-10 z-50 w-[320px] overflow-hidden rounded-2xl border border-white/[0.08] bg-[var(--background-card)] shadow-2xl shadow-black/40">
+            <div className="border-b border-white/[0.06] px-4 py-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-500 to-zinc-700 flex items-center justify-center text-white font-semibold text-xs shadow-md shadow-black/20">
+                  T
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">Mission Control Desktop</p>
+                  <p className="truncate text-[11px] text-[var(--text-muted)]">{formatHost(connectionInfo.openclawUrl)}</p>
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-[var(--text-primary)]">Mission Control Desktop</p>
-                <p className="truncate text-[11px] text-[var(--text-muted)]">{formatHost(connectionInfo.openclawUrl)}</p>
+
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <InfoCard
+                  label="Mode"
+                  value={modeInfo.connected ? `${modeInfo.mode} mode` : 'Offline'}
+                  tone={modeInfo.connected ? 'success' : 'muted'}
+                />
+                <InfoCard
+                  label="License"
+                  value={licenseInfo.valid ? 'Active' : 'Not activated'}
+                  tone={licenseInfo.valid ? 'success' : 'muted'}
+                />
               </div>
+
+              <p className="mt-3 truncate text-[11px] text-[var(--text-muted)]">
+                {modeInfo.connected ? formatModelName(modeInfo.currentModel) : 'Connect your OpenClaw instance to unlock live features.'}
+              </p>
             </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <InfoCard
-                label="Mode"
-                value={modeInfo.connected ? `${modeInfo.mode} mode` : 'Offline'}
-                tone={modeInfo.connected ? 'success' : 'muted'}
+            <div className="p-2">
+              <MenuButton
+                icon={<Plug className="w-4 h-4" />}
+                label="Connection Settings"
+                description="Reconfigure your OpenClaw URL and credentials"
+                onClick={() => openRoute('/setup?reconfigure=true')}
               />
-              <InfoCard
+              <MenuButton
+                icon={<KeyRound className="w-4 h-4" />}
                 label="License"
-                value={licenseInfo.valid ? 'Active' : 'Not activated'}
-                tone={licenseInfo.valid ? 'success' : 'muted'}
+                description={licenseInfo.valid && licenseInfo.email ? licenseInfo.email : 'View or activate your desktop license'}
+                onClick={() => openRoute('/activate')}
+              />
+              <MenuButton
+                icon={<Info className="w-4 h-4" />}
+                label="About & Diagnostics"
+                description="Version details, local paths, and support tools"
+                onClick={() => {
+                  setOpen(false)
+                  setAboutOpen(true)
+                }}
+              />
+              <MenuButton
+                icon={updateBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
+                label="Check for Updates"
+                description="Look for the latest Mission Control desktop build"
+                onClick={checkForUpdates}
               />
             </div>
 
-            <p className="mt-3 truncate text-[11px] text-[var(--text-muted)]">
-              {modeInfo.connected ? formatModelName(modeInfo.currentModel) : 'Connect your OpenClaw instance to unlock live features.'}
-            </p>
-          </div>
+            <div className="border-y border-white/[0.06] px-4 py-3 space-y-3">
+              <ToggleRow
+                label="Start on Login"
+                description="Launch Mission Control when you sign in"
+                checked={autoLaunchEnabled}
+                busy={busyToggle === 'autoLaunch'}
+                onChange={setAutoLaunch}
+              />
+              <ToggleRow
+                label="Close to Tray"
+                description={closeToTrayEnabled ? 'Closing the window keeps Mission Control running in the tray' : 'Closing the window fully quits Mission Control'}
+                checked={closeToTrayEnabled}
+                busy={busyToggle === 'closeToTray'}
+                onChange={setCloseToTray}
+              />
+            </div>
 
-          <div className="p-2">
-            <MenuButton
-              icon={<Plug className="w-4 h-4" />}
-              label="Connection Settings"
-              description="Reconfigure your OpenClaw URL and credentials"
-              onClick={() => openRoute('/setup?reconfigure=true')}
-            />
-            <MenuButton
-              icon={<KeyRound className="w-4 h-4" />}
-              label="License"
-              description={licenseInfo.valid && licenseInfo.email ? licenseInfo.email : 'View or activate your desktop license'}
-              onClick={() => openRoute('/activate')}
-            />
-            <MenuButton
-              icon={<Info className="w-4 h-4" />}
-              label="About & Diagnostics"
-              description="Version details, local paths, and support tools"
-              onClick={() => {
-                setOpen(false)
-                setAboutOpen(true)
-              }}
-            />
-            <MenuButton
-              icon={updateBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
-              label="Check for Updates"
-              description="Look for the latest Mission Control desktop build"
-              onClick={checkForUpdates}
-            />
-          </div>
+            <div className="p-2">
+              <MenuButton
+                icon={<LogOut className="w-4 h-4" />}
+                label="Quit Mission Control"
+                description="Fully close the desktop app"
+                danger
+                onClick={quitMissionControl}
+              />
+            </div>
 
-          <div className="border-y border-white/[0.06] px-4 py-3 space-y-3">
-            <ToggleRow
-              label="Start on Login"
-              description="Launch Mission Control when you sign in"
-              checked={autoLaunchEnabled}
-              busy={busyToggle === 'autoLaunch'}
-              onChange={setAutoLaunch}
-            />
-            <ToggleRow
-              label="Close to Tray"
-              description={closeToTrayEnabled ? 'Closing the window keeps Mission Control running in the tray' : 'Closing the window fully quits Mission Control'}
-              checked={closeToTrayEnabled}
-              busy={busyToggle === 'closeToTray'}
-              onChange={setCloseToTray}
-            />
-          </div>
-
-          <div className="p-2">
-            <MenuButton
-              icon={<LogOut className="w-4 h-4" />}
-              label="Quit Mission Control"
-              description="Fully close the desktop app"
-              danger
-              onClick={quitMissionControl}
-            />
-          </div>
-
-          <div className="border-t border-white/[0.06] px-4 py-3">
-            <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)]">
-              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">
-                {message || 'Desktop behavior changes are saved for this device.'}
-              </span>
+            <div className="border-t border-white/[0.06] px-4 py-3">
+              <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)]">
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">
+                  {message || 'Desktop behavior changes are saved for this device.'}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
     </>
   )

@@ -8,18 +8,42 @@ import { PreferencesModal } from './preferences-modal'
 import { ProfileMenu } from './profile-menu'
 import { WindowControls } from './window-controls'
 import { BackButton } from './back-button'
+import { OPEN_PREFERENCES_EVENT } from './desktop-events'
+
+type ElectronAPI = {
+  getPlatform?: () => Promise<string>
+}
 
 export function Header() {
   const [prefsOpen, setPrefsOpen] = useState(false)
+  const [shortcutLabel, setShortcutLabel] = useState('Ctrl+K')
+  const [shortcutEvent, setShortcutEvent] = useState<{ ctrlKey: boolean; metaKey: boolean }>({
+    ctrlKey: true,
+    metaKey: false,
+  })
 
   useEffect(() => {
     const handler = () => setPrefsOpen(true)
-    window.addEventListener('open-preferences', handler)
-    return () => window.removeEventListener('open-preferences', handler)
+    window.addEventListener(OPEN_PREFERENCES_EVENT, handler)
+    return () => window.removeEventListener(OPEN_PREFERENCES_EVENT, handler)
+  }, [])
+
+  useEffect(() => {
+    const electronAPI = (window as Window & { electronAPI?: ElectronAPI }).electronAPI
+    if (!electronAPI?.getPlatform) return
+
+    electronAPI.getPlatform()
+      .then((platform) => {
+        if (platform === 'darwin') {
+          setShortcutLabel('Cmd+K')
+          setShortcutEvent({ ctrlKey: false, metaKey: true })
+        }
+      })
+      .catch(() => {})
   }, [])
 
   function openPalette() {
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ...shortcutEvent }))
   }
 
   return (
@@ -46,7 +70,7 @@ export function Header() {
             <Search className="w-3.5 h-3.5 shrink-0" />
             <span className="flex-1 text-left">Search...</span>
             <kbd className="px-1.5 py-0.5 rounded text-[10px] font-medium text-[var(--text-muted)]/40 bg-white/[0.04] border border-white/[0.06]">
-              Ctrl+K
+              {shortcutLabel}
             </kbd>
           </button>
 

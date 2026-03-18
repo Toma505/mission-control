@@ -267,6 +267,31 @@ Closed the three remaining launch blockers from the hardening backlog: offline d
 - RefreshControl uses `useTransition` so UI stays interactive during refresh
 - CSV error messages are specific enough to guide user recovery
 
+## Pre-Release Polish: Desktop Shell & Recovery Surfaces (Round 3B)
+
+### What was done
+Focused on the packaged desktop feel: notifications now help users recover instead of just alerting, the command palette can reach real desktop/support actions, and the shell now exposes the same diagnostics and preferences entry points consistently.
+
+### Files touched
+| File | Change |
+|------|--------|
+| `src/components/layout/notifications.tsx` | Rebuilt notifications as action-oriented recovery cards with refresh, persistent read/dismiss state, deep links to connection/costs/workshop, and desktop update actions (`Download Update`, `Restart to Install`, `Open Diagnostics`) |
+| `src/components/layout/command-palette.tsx` | Added desktop actions for connection settings, license, diagnostics, update checks, and quit; action failures now surface inline instead of failing silently |
+| `src/components/layout/header.tsx` | Search shortcut is now platform-aware (`Ctrl+K` on Windows/Linux, `Cmd+K` on macOS) and uses a shared desktop event for preferences |
+| `src/components/layout/profile-menu.tsx` | Added global listener so `About & Diagnostics` can be opened from notifications and the command palette, not only from the avatar menu |
+| `src/components/layout/desktop-events.ts` | Added shared desktop-shell event names for preferences and diagnostics |
+
+### What was verified
+- `.\node_modules\.bin\tsc.cmd --noEmit` passes with zero errors
+- `npm run build` passes
+- `npm run dist:win` passes and produces `release/Mission Control Setup 1.0.0.exe`
+- No files in `src/app/api/*`, `src/app/setup/*`, `src/app/activate/*`, `src/middleware.ts`, `src/components/costs/*`, `website/*`, or `public/*` were touched in this round
+
+### What remains (desktop shell lane)
+- The new notification and command-palette recovery actions were typechecked and packaged, but not visually exercised end-to-end in the installed app from the shell
+- The shell still has no dedicated in-app release notes/update history surface beyond updater dialogs and diagnostics
+- Desktop support still depends on a placeholder `MC_LICENSE_SECRET` until production secret handling is finalized
+
 ## Open Questions
 1. Should `win.signAndEditExecutable: false` remain only as a local-build workaround, or should Windows packaging move to a proper signing-capable setup immediately?
 2. Should `asarUnpack` be used for just the standalone server instead of `asar: false`?
@@ -280,7 +305,7 @@ Closed the three remaining launch blockers from the hardening backlog: offline d
 ## Next Steps
 1. Decide whether to keep or replace the local Windows `signAndEditExecutable: false` workaround before release builds
 2. Revisit `asar` vs `asarUnpack` to reduce package size
-3. Add action-oriented desktop notifications so errors and warnings can deep-link directly to setup, connection settings, or diagnostics
+3. Visually verify the new desktop recovery actions in the installed build (notifications, command palette diagnostics, updater actions)
 4. Create dashboard screenshot and OG image for the landing page
 5. Set up payment integration (LemonSqueezy/Stripe) for license key fulfillment
 6. Deploy landing page to production (Vercel/Netlify)
