@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plug, CheckCircle2, XCircle, Loader2, Eye, EyeOff, ArrowRight, Zap, Shield, ExternalLink } from 'lucide-react'
 import { FramelessPageChrome } from '@/components/layout/frameless-page-chrome'
+import { BackButton } from '@/components/layout/back-button'
 
 interface TestResults {
   openclaw: { ok: boolean; error: string; version: string }
@@ -22,13 +23,19 @@ export default function SetupPage() {
   const [testResults, setTestResults] = useState<TestResults | null>(null)
   const [alreadyConfigured, setAlreadyConfigured] = useState(false)
   const [step, setStep] = useState(1) // 1 = welcome, 2 = configure
+  const [hasHistory, setHasHistory] = useState(false)
+  const [isReconfiguring, setIsReconfiguring] = useState(false)
 
   // Check if already configured
   useEffect(() => {
+    const reconfiguring = window.location.search.includes('reconfigure')
+    setIsReconfiguring(reconfiguring)
+    setHasHistory(window.history.length > 1)
+
     fetch('/api/connection')
       .then(r => r.json())
       .then(data => {
-        if (data.configured && !window.location.search.includes('reconfigure')) {
+        if (data.configured && !reconfiguring) {
           setAlreadyConfigured(true)
           router.push('/')
         }
@@ -80,6 +87,26 @@ export default function SetupPage() {
   const canTest = openclawUrl.length > 0 && setupPassword.length > 0
   const canSave = testResults?.openclaw.ok
 
+  function goBack() {
+    if (isReconfiguring) {
+      if (hasHistory) {
+        router.back()
+      } else {
+        router.push('/')
+      }
+      return
+    }
+
+    if (step > 1) {
+      setStep(step - 1)
+      return
+    }
+
+    if (hasHistory) {
+      router.back()
+    }
+  }
+
   if (alreadyConfigured) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
@@ -92,6 +119,13 @@ export default function SetupPage() {
     <div className="min-h-screen relative flex items-center justify-center p-6 pt-16" style={{ background: 'var(--background)' }}>
       <FramelessPageChrome />
       <div className="w-full max-w-lg space-y-8">
+        <div className="flex justify-start">
+          <BackButton
+            fallbackHref={isReconfiguring ? '/' : undefined}
+            onBack={goBack}
+            disabled={!isReconfiguring && step === 1 && !hasHistory}
+          />
+        </div>
 
         {/* Step 1: Welcome */}
         {step === 1 && (
@@ -253,13 +287,6 @@ export default function SetupPage() {
 
               {/* Buttons */}
               <div className="flex gap-3 pt-2">
-                <button
-                  onClick={() => setStep(1)}
-                  className="px-4 py-2.5 rounded-lg glass-inset text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
-                >
-                  Back
-                </button>
-
                 <button
                   onClick={testConnection}
                   disabled={!canTest || testing}

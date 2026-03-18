@@ -7,6 +7,7 @@ import { CommandPalette } from './command-palette'
 import { PreferencesModal } from './preferences-modal'
 import { ProfileMenu } from './profile-menu'
 import { WindowControls } from './window-controls'
+import { BackButton } from './back-button'
 
 export function Header() {
   const [prefsOpen, setPrefsOpen] = useState(false)
@@ -31,8 +32,9 @@ export function Header() {
           <span className="text-[13px] font-medium text-[var(--text-muted)]/60 tracking-normal select-none">Mission Control</span>
         </div>
 
-        {/* Spacer */}
-        <div />
+        <div className="electron-no-drag">
+          <BackButton fallbackHref="/" variant="header" />
+        </div>
 
         {/* Right-side actions */}
         <div className="flex items-center gap-2 electron-no-drag">

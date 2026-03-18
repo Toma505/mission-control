@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Key, Loader2, CheckCircle2, AlertCircle, Zap } from 'lucide-react'
+import { Key, Loader2, CheckCircle2, AlertCircle, Zap } from 'lucide-react'
 import { FramelessPageChrome } from '@/components/layout/frameless-page-chrome'
+import { BackButton } from '@/components/layout/back-button'
 
 declare global {
   interface Window {
@@ -66,15 +67,6 @@ export default function ActivatePage() {
     setActivating(false)
   }
 
-  function goBack() {
-    if (window.history.length > 1) {
-      router.back()
-      return
-    }
-
-    router.push('/')
-  }
-
   if (checking) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
@@ -88,13 +80,7 @@ export default function ActivatePage() {
       <FramelessPageChrome />
       <div className="w-full max-w-md space-y-8">
         <div className="flex justify-start">
-          <button
-            onClick={goBack}
-            className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-white/[0.04] transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </button>
+          <BackButton fallbackHref="/" />
         </div>
 
         {/* Branding */}
