@@ -83,22 +83,6 @@
       },
       {
         "@type": "Question",
-        "name": "How much does Mission Control cost?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Mission Control uses a one-time purchase model. The Personal plan is $29 (1 instance, 1 machine), the Pro plan is $59 (unlimited instances, 3 machines, pipeline tracking), and the Team plan is $149 (unlimited everything, 10 machines, lifetime updates). All plans include a 7-day free trial and 1 year of updates. After the first year, updates can be renewed for $19/year."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Is Mission Control open source?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Mission Control is a commercial desktop application built with Next.js and Electron. It connects to your OpenClaw instance via its setup API. All data stays on your local machine — credentials are stored locally and communication goes directly between your computer and your OpenClaw server."
-        }
-      },
-      {
-        "@type": "Question",
         "name": "Can I connect multiple OpenClaw instances to Mission Control?",
         "acceptedAnswer": {
           "@type": "Answer",
@@ -127,6 +111,22 @@
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Yes. Mission Control integrates with OpenRouter to track your API credits and spending in real time. When your daily spend approaches your budget limit, it can automatically switch your OpenClaw agent to cheaper models like DeepSeek V3 ($0.20 per million tokens) instead of expensive models like Claude Sonnet ($3 per million tokens). You can also import OpenRouter CSV billing data for detailed cost analytics."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need to install Node.js or use a terminal?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Mission Control is a standalone desktop app. Download the installer, double-click, and you're running. No terminal, no Node.js, no developer setup required."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is my OpenClaw data secure with Mission Control?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Mission Control runs entirely on your local machine. Your credentials are stored locally and never sent to any third party. All communication goes directly between your computer and your OpenClaw server."
         }
       }
     ]
@@ -1138,6 +1138,14 @@
       <details class="faq-item reveal">
         <summary>Is my OpenClaw data secure?</summary>
         <p>Mission Control runs entirely on your local machine. Your credentials are stored locally (never sent to us), and all communication goes directly between your computer and your OpenClaw server. We have zero access to your data.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>How does Mission Control compare to Langfuse or Helicone?</summary>
+        <p>Unlike cloud-based observability tools like Langfuse and Helicone, Mission Control is a local desktop app — no data leaves your machine. It also goes beyond monitoring: it can actively control your OpenClaw agent by switching AI models, setting budget limits, and auto-throttling costs. Cloud tools typically require code integration and charge based on usage volume.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>Does Mission Control work with OpenRouter?</summary>
+        <p>Yes. Mission Control integrates with OpenRouter to track your API credits and spending in real time. When your daily spend approaches your budget limit, it automatically switches your agent to cheaper models like DeepSeek V3 ($0.20/MTok vs Sonnet's $3/MTok). You can also import OpenRouter CSV billing data for detailed cost analytics.</p>
       </details>
     </div>
   </div>
