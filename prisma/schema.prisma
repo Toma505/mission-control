@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 model Agent {
@@ -14,13 +14,13 @@ model Agent {
   name         String
   tagline      String
   description  String
-  status       AgentStatus @default(IDLE)
+  status       String   @default("IDLE")
   avatar       String?
-  capabilities String[]
+  capabilities String   @default("[]") // JSON array
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  
-  tasks        Task[]   @relation("AssignedTasks")
+
+  tasks        TaskAgent[]
   activities   Activity[]
 }
 
@@ -28,30 +28,41 @@ model Task {
   id          String      @id @default(cuid())
   title       String
   description String
-  status      TaskStatus  @default(BACKLOGGED)
-  progress    Int         @default(0) // 0-100
-  priority    Priority    @default(MEDIUM)
-  tags        String[]
+  status      String      @default("BACKLOGGED")
+  progress    Int         @default(0)
+  priority    String      @default("MEDIUM")
+  tags        String      @default("[]") // JSON array
   dueDate     DateTime?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   completedAt DateTime?
-  
-  assignedAgents Agent[]  @relation("AssignedTasks")
+
+  assignedAgents TaskAgent[]
   activities     Activity[]
 }
 
+// Join table for many-to-many Agent <-> Task
+model TaskAgent {
+  id      String @id @default(cuid())
+  agent   Agent  @relation(fields: [agentId], references: [id])
+  agentId String
+  task    Task   @relation(fields: [taskId], references: [id])
+  taskId  String
+
+  @@unique([agentId, taskId])
+}
+
 model Activity {
-  id          String       @id @default(cuid())
-  type        ActivityType
+  id          String   @id @default(cuid())
+  type        String
   title       String
   description String?
   entityId    String?
-  entityType  EntityType?
-  status      ActivityStatus @default(IN_PROGRESS)
-  metadata    Json?
-  timestamp   DateTime     @default(now())
-  
+  entityType  String?
+  status      String   @default("IN_PROGRESS")
+  metadata    String?  // JSON string
+  timestamp   DateTime @default(now())
+
   agent       Agent?   @relation(fields: [agentId], references: [id])
   agentId     String?
   task        Task?    @relation(fields: [taskId], references: [id])
@@ -74,15 +85,15 @@ model Document {
   path        String
   uploadedBy  String
   uploadedAt  DateTime @default(now())
-  tags        String[]
+  tags        String   @default("[]") // JSON array
 }
 
 model Client {
   id           String   @id @default(cuid())
   name         String
-  status       ClientStatus @default(ACTIVE)
+  status       String   @default("ACTIVE")
   lastActivity DateTime?
-  metadata     Json?
+  metadata     String?  // JSON string
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -90,8 +101,8 @@ model Client {
 model CronJob {
   id       String   @id @default(cuid())
   name     String
-  schedule String   // cron expression
-  status   CronStatus @default(ACTIVE)
+  schedule String
+  status   String   @default("ACTIVE")
   lastRun  DateTime?
   nextRun  DateTime
   createdAt DateTime @default(now())
@@ -100,68 +111,10 @@ model CronJob {
 
 model SystemStatus {
   id           String   @id @default(cuid())
-  overall      SystemHealth @default(ACTIVE)
+  overall      String   @default("ACTIVE")
   message      String
   lastChecked  DateTime @default(now())
   agentsActive Int      @default(0)
   tasksInProgress Int   @default(0)
   systemLoad   Float    @default(0)
-}
-
-// Enums
-enum AgentStatus {
-  ACTIVE
-  IDLE
-  BUSY
-}
-
-enum TaskStatus {
-  ACTIVE
-  IN_PROGRESS
-  COMPLETED
-  BACKLOGGED
-  PLANNING
-}
-
-enum Priority {
-  LOW
-  MEDIUM
-  HIGH
-}
-
-enum ActivityType {
-  TASK_UPDATE
-  AGENT_ACTION
-  SYSTEM_EVENT
-  COMMIT
-  POLICY_CHANGE
-}
-
-enum ActivityStatus {
-  IN_PROGRESS
-  COMPLETED
-  FAILED
-}
-
-enum EntityType {
-  TASK
-  AGENT
-  DOCUMENT
-  CLIENT
-}
-
-enum ClientStatus {
-  ACTIVE
-  INACTIVE
-}
-
-enum CronStatus {
-  ACTIVE
-  PAUSED
-}
-
-enum SystemHealth {
-  ACTIVE
-  IDLE
-  MAINTENANCE
 }

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useEffect, useState } from 'react'
 import {
   LayoutDashboard,
   BookOpen,
@@ -13,74 +14,150 @@ import {
   Briefcase,
   Clock,
   BarChart3,
+  Wrench,
+  DollarSign,
+  Shield,
+  Clapperboard,
   Settings,
+  ChevronDown,
 } from 'lucide-react'
 
-const navigation = [
+const mainNav = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Journal', href: '/journal', icon: BookOpen },
-  { name: 'Documents', href: '/documents', icon: FileText },
+  { name: 'Operations', href: '/operations', icon: Clapperboard },
   { name: 'Agents', href: '/agents', icon: Users },
-  { name: 'Intelligence', href: '/intelligence', icon: Brain },
-  { name: 'Weekly Recaps', href: '/weekly-recaps', icon: Calendar },
-  { name: 'Clients', href: '/clients', icon: Briefcase },
-  { name: 'Cron Jobs', href: '/cron-jobs', icon: Clock },
-  { name: 'API Usage', href: '/api-usage', icon: BarChart3 },
-  { name: 'Workshop', href: '/workshop', icon: Settings },
+  { name: 'Skills', href: '/skills', icon: Shield },
 ]
 
-export function Sidebar() {
+const monitorNav = [
+  { name: 'Costs', href: '/costs', icon: DollarSign },
+  { name: 'API Usage', href: '/api-usage', icon: BarChart3 },
+  { name: 'Journal', href: '/journal', icon: BookOpen },
+]
+
+const workspaceNav = [
+  { name: 'Documents', href: '/documents', icon: FileText },
+  { name: 'Intelligence', href: '/intelligence', icon: Brain },
+  { name: 'Workshop', href: '/workshop', icon: Wrench },
+  { name: 'Clients', href: '/clients', icon: Briefcase },
+  { name: 'Cron Jobs', href: '/cron-jobs', icon: Clock },
+]
+
+function NavSection({ label, items }: { label: string; items: typeof mainNav }) {
   const pathname = usePathname()
 
   return (
-    <aside className="w-64 bg-background-secondary border-r border-border flex flex-col">
-      {/* Logo */}
-      <div className="p-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-primary to-accent-secondary flex items-center justify-center">
-            <LayoutDashboard className="w-6 h-6 text-white" />
+    <div className="mb-3">
+      <p className="px-3 text-[10px] font-medium text-text-muted/50 uppercase tracking-[0.12em] mb-1.5">
+        {label}
+      </p>
+      {items.map((item) => {
+        const isActive = pathname === item.href
+        return (
+          <Link
+            key={item.name}
+            href={item.href}
+            className={cn(
+              'flex items-center gap-2.5 px-3 py-[7px] rounded-[10px] text-[13px] font-medium transition-all duration-200',
+              isActive
+                ? 'bg-[var(--accent-primary,#3b82f6)]/10 text-[var(--text-primary)] shadow-[inset_0_0_0_1px_var(--glass-border)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--glass-border)] hover:text-[var(--text-primary)]'
+            )}
+          >
+            <item.icon className={cn(
+              "w-[18px] h-[18px]",
+              isActive ? "text-[var(--accent-primary,#3b82f6)]" : "text-[var(--text-muted)]"
+            )} />
+            {item.name}
+          </Link>
+        )
+      })}
+    </div>
+  )
+}
+
+export function Sidebar() {
+  const [status, setStatus] = useState<{ connected: boolean; mode: string; model: string }>({
+    connected: false,
+    mode: 'unknown',
+    model: '',
+  })
+
+  useEffect(() => {
+    fetch('/api/mode')
+      .then(r => r.json())
+      .then(data => {
+        setStatus({
+          connected: data.connected,
+          mode: data.mode || 'unknown',
+          model: data.currentModel?.split('/').pop() || '',
+        })
+      })
+      .catch(() => {})
+
+    const interval = setInterval(() => {
+      fetch('/api/mode')
+        .then(r => r.json())
+        .then(data => {
+          setStatus({
+            connected: data.connected,
+            mode: data.mode || 'unknown',
+            model: data.currentModel?.split('/').pop() || '',
+          })
+        })
+        .catch(() => {})
+    }, 30_000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const modeColors: Record<string, string> = {
+    best: 'bg-amber-400',
+    standard: 'bg-sky-400',
+    budget: 'bg-emerald-400',
+    auto: 'bg-violet-400',
+  }
+
+  return (
+    <aside className="w-64 flex flex-col glass-sidebar">
+      {/* Logo & Status */}
+      <div className="p-5 pb-4 electron-drag">
+        <div className="flex items-center gap-3 electron-no-drag">
+          <div className="w-10 h-10 rounded-[12px] bg-gradient-to-br from-zinc-600 to-zinc-700 flex items-center justify-center shadow-lg shadow-black/20">
+            <LayoutDashboard className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-text-primary">Mission Control</h1>
-            <p className="text-xs text-text-muted">v1.0</p>
+            <h1 className="text-[15px] font-semibold text-text-primary tracking-tight">Mission Control</h1>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <div className={cn(
+                "w-[6px] h-[6px] rounded-full",
+                status.connected ? modeColors[status.mode] || 'bg-emerald-400' : 'bg-red-400'
+              )} />
+              <span className="text-[11px] text-text-muted capitalize">
+                {status.connected ? `${status.mode} mode` : 'Offline'}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 space-y-1">
-        <p className="px-3 text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
-          Navigation
-        </p>
-        {navigation.map((item) => {
-          const isActive = pathname === item.href
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border-l-2',
-                isActive
-                  ? 'bg-accent-primary text-white border-accent-primary'
-                  : 'text-text-secondary border-transparent hover:bg-background-elevated hover:text-text-primary hover:border-accent-primary'
-              )}
-            >
-              <item.icon className="w-5 h-5" />
-              {item.name}
-            </Link>
-          )
-        })}
+      {/* Navigation sections */}
+      <nav className="flex-1 px-3 overflow-y-auto">
+        <NavSection label="Core" items={mainNav} />
+        <NavSection label="Monitor" items={monitorNav} />
+        <NavSection label="Workspace" items={workspaceNav} />
       </nav>
 
       {/* User Profile */}
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-[var(--glass-border)]">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-accent-secondary flex items-center justify-center text-white font-semibold text-sm">
-            JA
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-zinc-500 to-zinc-600 flex items-center justify-center text-white font-medium text-xs shadow-md shadow-black/15">
+            T
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-text-primary">Jarvis</p>
-            <p className="text-xs text-text-muted">AI Assistant</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-medium text-text-primary">Tomas</p>
+            <p className="text-[11px] text-text-muted">
+              {status.connected ? status.model : 'Disconnected'}
+            </p>
           </div>
         </div>
       </div>

@@ -1,9 +1,20 @@
 import { PrismaClient } from '@prisma/client'
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
+  _prisma: PrismaClient | undefined
 }
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient()
+function getPrisma(): PrismaClient {
+  if (globalForPrisma._prisma) return globalForPrisma._prisma
+  const client = new PrismaClient()
+  if (process.env.NODE_ENV !== 'production') globalForPrisma._prisma = client
+  return client
+}
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// Lazy proxy — PrismaClient won't be instantiated until first property access at runtime.
+// This avoids the Prisma 7 build-time crash where the SQLite WASM engine isn't available.
+export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    return (getPrisma() as unknown as Record<string | symbol, unknown>)[prop]
+  },
+})

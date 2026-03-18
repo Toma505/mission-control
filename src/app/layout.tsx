@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AppShell } from "@/components/layout/app-shell";
+import { SettingsProvider } from "@/contexts/settings-context";
 
 export const metadata: Metadata = {
   title: "Mission Control",
@@ -13,9 +13,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body className="antialiased">
-        <AppShell>{children}</AppShell>
+        <SettingsProvider>
+          {children}
+        </SettingsProvider>
       </body>
     </html>
   );

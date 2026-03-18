@@ -1,38 +1,98 @@
 "use client"
 
-import { Search, Bell, User } from 'lucide-react'
+import { Search, Minus, Square, X, Settings } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Notifications } from './notifications'
+import { CommandPalette } from './command-palette'
+import { PreferencesModal } from './preferences-modal'
 
 export function Header() {
-  return (
-    <header className="h-16 border-b border-border bg-background-secondary px-6 flex items-center justify-between">
-      {/* Page Title - will be dynamic later */}
-      <div>
-        <h2 className="text-2xl font-bold text-text-primary">Mission Control</h2>
-        <p className="text-sm text-text-secondary">Real-time overview of all systems</p>
-      </div>
+  const [prefsOpen, setPrefsOpen] = useState(false)
 
-      {/* Search and Actions */}
-      <div className="flex items-center gap-4">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-          <input
-            type="text"
-            placeholder="Search tasks..."
-            className="pl-10 pr-4 py-2 bg-background-elevated border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary w-64"
-          />
+  useEffect(() => {
+    const handler = () => setPrefsOpen(true)
+    window.addEventListener('open-preferences', handler)
+    return () => window.removeEventListener('open-preferences', handler)
+  }, [])
+
+  const handleMinimize = () => {
+    if (typeof window !== 'undefined' && (window as any).electronAPI?.minimize) {
+      (window as any).electronAPI.minimize()
+    }
+  }
+  const handleMaximize = () => {
+    if (typeof window !== 'undefined' && (window as any).electronAPI?.maximize) {
+      (window as any).electronAPI.maximize()
+    }
+  }
+  const handleClose = () => {
+    if (typeof window !== 'undefined' && (window as any).electronAPI?.close) {
+      (window as any).electronAPI.close()
+    }
+  }
+
+  function openPalette() {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))
+  }
+
+  return (
+    <>
+      <CommandPalette />
+      <PreferencesModal open={prefsOpen} onClose={() => setPrefsOpen(false)} />
+      <header className="h-12 px-6 flex items-center justify-between relative shrink-0 electron-drag">
+        {/* Centered app name */}
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <span className="text-[13px] font-medium text-[var(--text-muted)]/60 tracking-normal select-none">Mission Control</span>
         </div>
 
-        {/* Notifications */}
-        <button className="w-9 h-9 rounded-lg bg-background-elevated border border-border flex items-center justify-center hover:bg-background-card hover:scale-105 transition-all">
-          <Bell className="w-4 h-4 text-text-secondary" />
-        </button>
+        {/* Spacer */}
+        <div />
 
-        {/* Profile */}
-        <button className="w-9 h-9 rounded-lg bg-accent-primary flex items-center justify-center text-white font-semibold text-sm hover:bg-accent-primary/90 hover:scale-105 transition-all">
-          JA
-        </button>
-      </div>
-    </header>
+        {/* Right-side actions */}
+        <div className="flex items-center gap-2 electron-no-drag">
+          {/* Search trigger */}
+          <button
+            onClick={openPalette}
+            className="flex items-center gap-2 pl-3 pr-2 py-1 glass-inset rounded-lg text-[13px] text-[var(--text-muted)]/50 hover:text-[var(--text-muted)]/70 hover:bg-white/[0.04] transition-all duration-200 w-48"
+          >
+            <Search className="w-3.5 h-3.5 shrink-0" />
+            <span className="flex-1 text-left">Search...</span>
+            <kbd className="px-1.5 py-0.5 rounded text-[10px] font-medium text-[var(--text-muted)]/40 bg-white/[0.04] border border-white/[0.06]">
+              Ctrl+K
+            </kbd>
+          </button>
+
+          {/* Notifications */}
+          <Notifications />
+
+          {/* Preferences */}
+          <button
+            onClick={() => setPrefsOpen(true)}
+            className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-white/[0.06] transition-all duration-200"
+            title="Preferences"
+          >
+            <Settings className="w-[15px] h-[15px] text-[var(--text-muted)]" />
+          </button>
+
+          {/* Profile */}
+          <button className="w-7 h-7 rounded-full bg-gradient-to-br from-zinc-500 to-zinc-600 flex items-center justify-center text-white font-medium text-[10px] hover:shadow-md hover:shadow-black/20 transition-all duration-200">
+            T
+          </button>
+
+          {/* Window controls */}
+          <div className="flex items-center ml-2 -mr-2">
+            <button onClick={handleMinimize} className="w-8 h-8 flex items-center justify-center hover:bg-white/[0.08] transition-colors rounded">
+              <Minus className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+            </button>
+            <button onClick={handleMaximize} className="w-8 h-8 flex items-center justify-center hover:bg-white/[0.08] transition-colors rounded">
+              <Square className="w-3 h-3 text-[var(--text-muted)]" />
+            </button>
+            <button onClick={handleClose} className="w-8 h-8 flex items-center justify-center hover:bg-red-500/80 transition-colors rounded group">
+              <X className="w-3.5 h-3.5 text-[var(--text-muted)] group-hover:text-white" />
+            </button>
+          </div>
+        </div>
+      </header>
+    </>
   )
 }

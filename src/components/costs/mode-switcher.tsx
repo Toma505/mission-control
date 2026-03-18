@@ -36,7 +36,7 @@ const MODE_UI: Record<ModeName, ModeConfig> = {
   },
   budget: {
     label: 'Budget',
-    description: 'GLM-5 → Kimi K2.5 → GPT-4.1 Mini',
+    description: 'Deepseek V3 → GPT-4.1 Nano → Gemini Flash',
     icon: <Zap className="w-5 h-5" />,
     color: 'text-emerald-400',
     bg: 'bg-emerald-400/10',
