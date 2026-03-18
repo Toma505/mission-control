@@ -35,6 +35,7 @@ The Windows packaging path remains verified end-to-end. Cross-platform packaging
 - [ ] Debian packaging now gets past metadata validation but still requires `fpm`, which is not available on this Windows host
 - [x] HMAC-SHA256 license key validation implemented in `electron/main.prod.js` (offline, cryptographic, machine-fingerprinted)
 - [x] Auto-updater implemented via `electron-updater` with GitHub Releases provider, native dialogs, and tray menu integration
+- [x] Desktop support surface added behind the profile menu avatar: About, runtime diagnostics, local path access, and clipboard export
 - [ ] Release signing still needs a proper Windows/macOS certificate setup
 
 Packaging fixes now in place:
@@ -70,6 +71,15 @@ Packaging fixes now in place:
 | `electron/preload.js` | Added updater IPC: `updaterCheck()`, `updaterDownload()`, `updaterInstall()`, `updaterStatus()`, `onUpdateStatus()` |
 | `scripts/generate-license.js` | CLI tool for generating and validating HMAC-signed license keys |
 | `src/app/activate/page.tsx` | Updated key format from 4-group to 5-group (`MC-XXXXX-XXXXX-XXXXX-XXXXX`) |
+
+### Desktop Support & Diagnostics
+| File | Change |
+|------|--------|
+| `src/components/layout/about-diagnostics-modal.tsx` | New desktop-only support modal with version/build details, runtime state, local paths, copy-to-clipboard diagnostics, and folder actions |
+| `src/components/layout/profile-menu.tsx` | Added `About & Diagnostics` entry to the avatar menu and wired the support modal into the desktop shell |
+| `electron/preload.js` | Exposed diagnostics and support IPC for runtime info, folder access, and clipboard copy |
+| `electron/main.prod.js` | Added packaged-app diagnostics payload, stable logs path, and support actions for opening data/log folders and copying diagnostics |
+| `electron/main.js` | Added dev-parity diagnostics/support IPC so the same profile-menu surface works outside packaged builds |
 
 ### Landing Page & SEO
 | File | Change |
@@ -115,6 +125,15 @@ release/Mission Control Setup 1.0.0.exe /S /D=%LOCALAPPDATA%\Programs\MissionCon
 # - port 3847 binds on 127.0.0.1
 # - GET / returns HTTP 307 with Location: /setup
 # - GET /setup contains "Welcome to Mission Control" and "Get Started"
+
+# Desktop diagnostics verification
+# - `npm run build` passed after adding the support modal and new Electron IPC
+# - `npm run dist:win` produced a fresh `Mission Control Setup 1.0.0.exe`
+# - Silent install completed to `%LOCALAPPDATA%\Programs\MissionControlTest`
+# - Installed `Mission Control.exe` launched successfully from the test install path
+# - `netstat -ano | findstr 3847` confirmed the packaged app listening on `127.0.0.1:3847`
+# - `curl.exe -I http://127.0.0.1:3847/` returned `HTTP/1.1 200 OK`
+# - Desktop diagnostics are now reachable from the top-right profile menu via `About & Diagnostics`
 
 # Cross-platform icon generation
 npm run prepare:icon
@@ -242,8 +261,9 @@ Second pass focused on deeper failure paths: IPC crashes, malformed request bodi
 ## Next Steps
 1. Decide whether to keep or replace the local Windows `signAndEditExecutable: false` workaround before release builds
 2. Revisit `asar` vs `asarUnpack` to reduce package size
-3. Create dashboard screenshot and OG image for the landing page
-4. Set up payment integration (LemonSqueezy/Stripe) for license key fulfillment
-5. Deploy landing page to production (Vercel/Netlify)
-6. Change `MC_LICENSE_SECRET` from placeholder before shipping
-7. Consider updating GitHub Actions versions before the Node 20 runner deprecation date noted in CI annotations
+3. Add action-oriented desktop notifications so errors and warnings can deep-link directly to setup, connection settings, or diagnostics
+4. Create dashboard screenshot and OG image for the landing page
+5. Set up payment integration (LemonSqueezy/Stripe) for license key fulfillment
+6. Deploy landing page to production (Vercel/Netlify)
+7. Change `MC_LICENSE_SECRET` from placeholder before shipping
+8. Consider updating GitHub Actions versions before the Node 20 runner deprecation date noted in CI annotations
