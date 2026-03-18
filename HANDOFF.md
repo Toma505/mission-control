@@ -28,6 +28,7 @@ The Windows packaging path remains verified end-to-end. This pass completed the 
 - [x] High-res Linux icon is now generated at `electron/icon.png` (`1024x1024`)
 - [x] `package.json` now points macOS packaging at `electron/icon.icns`
 - [x] Linux packaging metadata now includes an author email for Debian packages
+- [x] GitHub Actions workflow now exists to build Windows, macOS, and Linux artifacts on native runners
 - [ ] `npm run dist:mac` still cannot complete on Windows because Electron Builder only supports macOS output on macOS
 - [ ] `npm run dist:linux` still cannot complete the AppImage target on this Windows machine because AppImage creation requires symlink privileges not available in this environment
 - [ ] Debian packaging now gets past metadata validation but still requires `fpm`, which is not available on this Windows host
@@ -42,6 +43,7 @@ Packaging fixes now in place:
 - Updated `electron/generate-icon.js` to emit all required platform assets automatically: `256x256` Windows `.ico`, `1024x1024` Linux `.png`, and macOS `.icns`
 - Updated dist scripts to regenerate the icon set automatically
 - Updated top-level package metadata so Debian packaging has an author email
+- Added `.github/workflows/desktop-builds.yml` so Windows, macOS, and Linux builds can run on native GitHub-hosted runners with Linux `fpm` installed
 - Set `win.signAndEditExecutable: false` so local Windows builds do not fail on this machine's broken `winCodeSign` extraction path
 
 ## Files Changed
@@ -54,6 +56,7 @@ Packaging fixes now in place:
 | `electron/generate-icon.js` | Generates the full cross-platform icon set for Windows, macOS, and Linux |
 | `electron/icon.icns` | Generated macOS application icon |
 | `electron/icon.png` | Generated high-resolution Linux application icon |
+| `.github/workflows/desktop-builds.yml` | Builds desktop artifacts on native GitHub Actions runners and uploads the generated installers/packages |
 
 ### Existing Packaging Path Confirmed
 | File | Role |
@@ -123,6 +126,13 @@ npm run dist:linux
 # Result:
 # - packaging progressed past the previous missing-author-email error
 # - build then stopped because `fpm` is not installed on this Windows host
+
+# Native-runner build automation
+# - Added .github/workflows/desktop-builds.yml
+# - Windows job builds NSIS artifacts on windows-latest
+# - macOS job builds DMG artifacts on macos-latest
+# - Linux job installs fpm and builds AppImage + deb on ubuntu-latest
+# - Workflow uses `--publish never` so CI builds artifacts without requiring release publication
 ```
 
 ## Open Questions
@@ -135,8 +145,8 @@ npm run dist:linux
 
 ## Next Steps
 1. Decide whether to keep or replace the local Windows `signAndEditExecutable: false` workaround before release builds
-2. Run `npm run dist:mac` on a real macOS machine to produce and verify the DMG
-3. Run `npm run dist:linux` on Linux, or enable Windows symlink privileges plus install Linux packaging dependencies (`fpm`) if cross-building is still required
+2. Run the `Desktop Builds` GitHub Actions workflow via `workflow_dispatch` or a release tag to produce native Windows/macOS/Linux artifacts
+3. If local cross-building is still required, install WSL or another Linux environment plus `fpm`, and enable Windows symlink privileges for AppImage creation
 4. Revisit `asar` vs `asarUnpack` to reduce package size
 5. Add real license validation and fulfillment
 6. Add auto-updater and release/distribution plumbing
