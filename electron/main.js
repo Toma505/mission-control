@@ -3,12 +3,13 @@
  * Cross-platform: Windows, macOS, Linux.
  */
 
-const { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain } = require('electron')
+const { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain, dialog } = require('electron')
 const { spawn } = require('child_process')
 const path = require('path')
 const net = require('net')
 const fs = require('fs')
 const os = require('os')
+const AutoLaunch = require('auto-launch')
 
 // ─── Cross-platform user data path ──────────────────────────
 function getUserDataPath() {
@@ -31,6 +32,10 @@ let mainWindow = null
 let tray = null
 let nextProcess = null
 const PORT = 3000
+const DESKTOP_SETTINGS_FILE = path.join(userDataPath, 'desktop-settings.json')
+const DEFAULT_DESKTOP_SETTINGS = {
+  closeToTray: true,
+}
 
 function showMainWindow() {
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -41,6 +46,26 @@ function showMainWindow() {
   }
 
   createWindow()
+}
+
+function readDesktopSettings() {
+  try {
+    return {
+      ...DEFAULT_DESKTOP_SETTINGS,
+      ...JSON.parse(fs.readFileSync(DESKTOP_SETTINGS_FILE, 'utf-8')),
+    }
+  } catch {
+    return { ...DEFAULT_DESKTOP_SETTINGS }
+  }
+}
+
+function writeDesktopSettings(nextSettings) {
+  fs.writeFileSync(DESKTOP_SETTINGS_FILE, JSON.stringify(nextSettings, null, 2))
+  return nextSettings
+}
+
+function isCloseToTrayEnabled() {
+  return readDesktopSettings().closeToTray !== false
 }
 
 function getIconPath() {
@@ -83,7 +108,7 @@ function createWindow() {
   })
 
   mainWindow.on('close', (event) => {
-    if (!app.isQuitting) {
+    if (!app.isQuitting && isCloseToTrayEnabled()) {
       event.preventDefault()
       mainWindow.hide()
     }
@@ -94,7 +119,12 @@ function createWindow() {
   })
 }
 
-function createTray() {
+const autoLauncher = new AutoLaunch({
+  name: 'Mission Control',
+  isHidden: true,
+})
+
+async function createTray() {
   const iconPath = getIconPath()
   let trayIcon
 
@@ -106,16 +136,67 @@ function createTray() {
   }
 
   tray = new Tray(trayIcon)
+  tray.setToolTip('Mission Control')
+  tray.on('double-click', () => showMainWindow())
+  await refreshTrayMenu()
+}
+
+async function refreshTrayMenu() {
+  if (!tray) return
+
+  let autoLaunchEnabled = false
+  try { autoLaunchEnabled = await autoLauncher.isEnabled() } catch {}
 
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Open Mission Control', click: () => showMainWindow() },
     { type: 'separator' },
-    { label: 'Quit', click: () => { app.isQuitting = true; app.quit() }},
+    {
+      label: 'Start on Login',
+      type: 'checkbox',
+      checked: autoLaunchEnabled,
+      click: async (item) => {
+        try {
+          if (item.checked) await autoLauncher.enable()
+          else await autoLauncher.disable()
+        } catch {}
+        refreshTrayMenu()
+      },
+    },
+    {
+      label: 'Close to Tray',
+      type: 'checkbox',
+      checked: isCloseToTrayEnabled(),
+      click: (item) => {
+        try {
+          writeDesktopSettings({
+            ...readDesktopSettings(),
+            closeToTray: item.checked,
+          })
+        } catch {}
+        refreshTrayMenu()
+      },
+    },
+    {
+      label: 'Check for Updates...',
+      click: () => {
+        dialog.showMessageBox(mainWindow, {
+          type: 'info',
+          title: 'Updates',
+          message: 'Updates are disabled in development mode.',
+        })
+      },
+    },
+    { type: 'separator' },
+    {
+      label: 'Quit',
+      click: () => {
+        app.isQuitting = true
+        app.quit()
+      },
+    },
   ])
 
-  tray.setToolTip('Mission Control')
   tray.setContextMenu(contextMenu)
-  tray.on('double-click', () => showMainWindow())
 }
 
 function waitForServer(port, retries = 30) {
@@ -173,6 +254,42 @@ ipcMain.on('window-maximize', () => {
 })
 ipcMain.on('window-close', () => mainWindow?.close())
 ipcMain.handle('get-platform', () => process.platform)
+ipcMain.handle('quit-app', () => {
+  app.isQuitting = true
+  app.quit()
+  return { ok: true }
+})
+ipcMain.handle('get-auto-launch', async () => {
+  try { return await autoLauncher.isEnabled() }
+  catch { return false }
+})
+ipcMain.handle('set-auto-launch', async (_, enabled) => {
+  try {
+    if (enabled) await autoLauncher.enable()
+    else await autoLauncher.disable()
+    refreshTrayMenu()
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
+})
+ipcMain.handle('get-close-to-tray', () => isCloseToTrayEnabled())
+ipcMain.handle('set-close-to-tray', (_, enabled) => {
+  try {
+    writeDesktopSettings({
+      ...readDesktopSettings(),
+      closeToTray: !!enabled,
+    })
+    refreshTrayMenu()
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
+})
+ipcMain.handle('updater-check', () => ({ status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null }))
+ipcMain.handle('updater-download', () => ({ status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null }))
+ipcMain.handle('updater-install', () => ({ status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null }))
+ipcMain.handle('updater-status', () => ({ status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null }))
 
 app.on('ready', async () => {
   createTray()
@@ -194,7 +311,9 @@ app.on('ready', async () => {
 })
 
 app.on('window-all-closed', () => {
-  // Keep running in tray
+  if (app.isQuitting || !isCloseToTrayEnabled()) {
+    app.quit()
+  }
 })
 
 app.on('activate', () => {

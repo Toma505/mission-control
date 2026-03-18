@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { Notifications } from './notifications'
 import { CommandPalette } from './command-palette'
 import { PreferencesModal } from './preferences-modal'
+import { ProfileMenu } from './profile-menu'
 import { WindowControls } from './window-controls'
 
 export function Header() {
@@ -60,9 +61,7 @@ export function Header() {
           </button>
 
           {/* Profile */}
-          <button className="w-7 h-7 rounded-full bg-gradient-to-br from-zinc-500 to-zinc-600 flex items-center justify-center text-white font-medium text-[10px] hover:shadow-md hover:shadow-black/20 transition-all duration-200">
-            T
-          </button>
+          <ProfileMenu />
 
           {/* Window controls */}
           <WindowControls className="flex items-center ml-2 -mr-2" />

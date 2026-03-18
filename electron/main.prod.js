@@ -38,6 +38,10 @@ let splashWindow = null
 let tray = null
 let serverProcess = null
 const PORT = 3847
+const DESKTOP_SETTINGS_FILE = path.join(userDataPath, 'desktop-settings.json')
+const DEFAULT_DESKTOP_SETTINGS = {
+  closeToTray: true,
+}
 
 function showMainWindow() {
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -48,6 +52,26 @@ function showMainWindow() {
   }
 
   createWindow()
+}
+
+function readDesktopSettings() {
+  try {
+    return {
+      ...DEFAULT_DESKTOP_SETTINGS,
+      ...JSON.parse(fs.readFileSync(DESKTOP_SETTINGS_FILE, 'utf-8')),
+    }
+  } catch {
+    return { ...DEFAULT_DESKTOP_SETTINGS }
+  }
+}
+
+function writeDesktopSettings(nextSettings) {
+  fs.writeFileSync(DESKTOP_SETTINGS_FILE, JSON.stringify(nextSettings, null, 2))
+  return nextSettings
+}
+
+function isCloseToTrayEnabled() {
+  return readDesktopSettings().closeToTray !== false
 }
 
 // ─── Paths ──────────────────────────────────────────────────
@@ -183,6 +207,22 @@ ipcMain.handle('set-auto-launch', async (_, enabled) => {
   try {
     if (enabled) await autoLauncher.enable()
     else await autoLauncher.disable()
+    refreshTrayMenu()
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
+})
+
+ipcMain.handle('get-close-to-tray', () => isCloseToTrayEnabled())
+
+ipcMain.handle('set-close-to-tray', (_, enabled) => {
+  try {
+    writeDesktopSettings({
+      ...readDesktopSettings(),
+      closeToTray: !!enabled,
+    })
+    refreshTrayMenu()
     return { ok: true }
   } catch (err) {
     return { ok: false, error: err.message }
@@ -401,7 +441,7 @@ function createWindow() {
   })
 
   mainWindow.on('close', (event) => {
-    if (!app.isQuitting) {
+    if (!app.isQuitting && isCloseToTrayEnabled()) {
       event.preventDefault()
       mainWindow.hide()
     }
@@ -426,31 +466,64 @@ async function createTray() {
   }
 
   tray = new Tray(trayIcon)
+  tray.on('double-click', () => showMainWindow())
+  tray.setToolTip('Mission Control')
+  await refreshTrayMenu()
+}
 
-  // Check auto-launch state for the toggle
+async function refreshTrayMenu() {
+  if (!tray) return
+
   let autoLaunchEnabled = false
   try { autoLaunchEnabled = await autoLauncher.isEnabled() } catch {}
 
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Open Mission Control', click: () => showMainWindow() },
     { type: 'separator' },
-    { label: 'Start on Login', type: 'checkbox', checked: autoLaunchEnabled, click: async (item) => {
-      try {
-        if (item.checked) await autoLauncher.enable()
-        else await autoLauncher.disable()
-      } catch {}
-    }},
-    { label: 'Check for Updates...', click: () => {
-      if (app.isPackaged) autoUpdater.checkForUpdates()
-      else dialog.showMessageBox(mainWindow, { type: 'info', title: 'Updates', message: 'Updates are disabled in development mode.' })
-    }},
+    {
+      label: 'Start on Login',
+      type: 'checkbox',
+      checked: autoLaunchEnabled,
+      click: async (item) => {
+        try {
+          if (item.checked) await autoLauncher.enable()
+          else await autoLauncher.disable()
+        } catch {}
+        refreshTrayMenu()
+      },
+    },
+    {
+      label: 'Close to Tray',
+      type: 'checkbox',
+      checked: isCloseToTrayEnabled(),
+      click: (item) => {
+        try {
+          writeDesktopSettings({
+            ...readDesktopSettings(),
+            closeToTray: item.checked,
+          })
+        } catch {}
+        refreshTrayMenu()
+      },
+    },
+    {
+      label: 'Check for Updates...',
+      click: () => {
+        if (app.isPackaged) autoUpdater.checkForUpdates()
+        else dialog.showMessageBox(mainWindow, { type: 'info', title: 'Updates', message: 'Updates are disabled in development mode.' })
+      },
+    },
     { type: 'separator' },
-    { label: 'Quit', click: () => { app.isQuitting = true; app.quit() }},
+    {
+      label: 'Quit',
+      click: () => {
+        app.isQuitting = true
+        app.quit()
+      },
+    },
   ])
 
-  tray.setToolTip('Mission Control')
   tray.setContextMenu(contextMenu)
-  tray.on('double-click', () => showMainWindow())
 }
 
 // ─── Server ─────────────────────────────────────────────────
@@ -536,6 +609,11 @@ ipcMain.on('window-maximize', () => {
   else mainWindow?.maximize()
 })
 ipcMain.on('window-close', () => mainWindow?.close())
+ipcMain.handle('quit-app', () => {
+  app.isQuitting = true
+  app.quit()
+  return { ok: true }
+})
 
 // ─── App Lifecycle ──────────────────────────────────────────
 
@@ -577,7 +655,9 @@ app.on('ready', async () => {
 })
 
 app.on('window-all-closed', () => {
-  // Keep running in system tray on all platforms
+  if (app.isQuitting || !isCloseToTrayEnabled()) {
+    app.quit()
+  }
 })
 
 app.on('activate', () => {
