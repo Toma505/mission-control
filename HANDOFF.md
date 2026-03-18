@@ -11,11 +11,11 @@ Codex - macOS/Linux packaging prep completed; Windows-only host limitations isol
 
 ## Git State
 - Branch: `mission-control-v2`
-- Latest commit before this pass: `199bdf7`
-- Note: the worktree currently contains unrelated in-progress changes outside this packaging pass. Do not reset or checkout the repo.
+- Latest verified base commit: `0786c28`
+- Note: `npm run dist:mac` and `npm run dist:linux` were re-run on this clean branch head after the cross-platform icon and auto-updater commits landed.
 
 ## Status
-The Windows packaging path remains verified end-to-end. This pass completed the missing cross-platform icon assets and validated that the remaining macOS/Linux build failures on this Windows machine are host-environment limitations rather than missing repo configuration.
+The Windows packaging path remains verified end-to-end. This pass completed the missing cross-platform icon assets and validated that the remaining macOS/Linux build failures on this Windows machine are host-environment limitations rather than missing repo configuration. The same outcomes were re-verified on top of commit `0786c28`.
 
 - [x] Next.js `output: 'standalone'`
 - [x] Electron production main process forks `.next/standalone/server.js`
