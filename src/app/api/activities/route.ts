@@ -69,6 +69,9 @@ export async function GET() {
       getOpenClawConfig().catch(() => null),
     ])
 
+    // If all three calls returned empty, OpenClaw is unreachable
+    const reachable = !!(healthRaw || statusRaw || configData)
+
     const health = parseHealthOutput(healthRaw)
     const parsedStatus = parseStatusOutput(statusRaw)
     const sessions = parseSessionsFromStatus(statusRaw)
@@ -81,7 +84,7 @@ export async function GET() {
     }
 
     const agentModel = config?.agents?.defaults?.model?.primary || 'unknown'
-    const isOnline = health.discord.status === 'ok'
+    const isOnline = reachable && health.discord.status === 'ok'
 
     // Build real activities from sessions
     const activities = sessions.map((s, i) => {
@@ -102,8 +105,8 @@ export async function GET() {
     // Build status
     const status = {
       online: isOnline,
-      value: isOnline ? 'Online' : 'Offline',
-      subtitle: isOnline ? `${health.discord.botName} · ${health.discord.latency}` : 'Agent unreachable',
+      value: isOnline ? 'Online' : reachable ? 'Offline' : 'Unreachable',
+      subtitle: isOnline ? `${health.discord.botName} · ${health.discord.latency}` : reachable ? 'Agent offline' : 'Could not connect to OpenClaw',
       version: parsedStatus.version,
       update: parsedStatus.update,
       heartbeat: health.heartbeat || parsedStatus.heartbeat,
@@ -114,18 +117,18 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      connected: true,
+      connected: reachable,
       status,
       sessions,
       channels,
       activities,
       commits: [], // No mock commits — empty until real git integration
-      agent: {
+      agent: reachable ? {
         model: agentModel,
         heartbeat: health.heartbeat || parsedStatus.heartbeat,
         sessions: sessions.length,
         discord: health.discord,
-      },
+      } : null,
     })
   } catch (error) {
     let subtitle = 'Could not connect to OpenClaw'
