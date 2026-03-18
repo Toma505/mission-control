@@ -1,120 +1,102 @@
-# Mission Control — Handoff Document
+# Mission Control - Handoff Document
 
 ## Project Goal
-Package Mission Control (Next.js 16 + Electron desktop app) as a **consumer-grade downloadable product** for OpenClaw users. Double-click install, no terminal, no Node.js, no dev setup. Ship on Windows, macOS, and Linux.
+Package Mission Control (Next.js 16 + Electron desktop app) as a consumer-grade downloadable product for OpenClaw users. Double-click install, no terminal, no Node.js, no dev setup. Ship on Windows, macOS, and Linux.
 
 ## Current Owner
-Claude (Opus) — handing off to Codex for parallel work.
+Codex - Windows installer build and packaged runtime verification completed.
 
 ## Repo Location
-```
-C:\Users\tomas\mission-control
-```
+`C:\Users\tomas\mission-control`
 
 ## Git State
-- **Branch:** `main`
-- **Latest commit:** `b892804` — "Add AI mode switcher with benchmark-based model routing"
-- **Note:** There are many uncommitted changes from this session (standalone packaging, splash screen, cross-platform fixes, onboarding flow, etc.)
+- Branch: `mission-control-v2`
+- Latest commit: `f6ff931`
+- Note: `git status --short --untracked-files=all` returned clean at the end of this verification pass.
 
 ## Status
-The app works end-to-end in **dev mode**. The production packaging is architecturally complete but has **not been tested as a built installer yet**. Key infrastructure is in place:
+The Windows packaging path has now been tested end-to-end. `npm run dist:win` succeeds, the NSIS installer is produced, the installer can be run, and the installed app launches and serves the packaged Next.js app on `127.0.0.1:3847`.
 
-- [x] Next.js `output: 'standalone'` (47MB self-contained server)
-- [x] Electron `main.prod.js` runs standalone server via `fork()` (no npm/node needed)
-- [x] Splash screen while server boots
-- [x] Single-instance lock
-- [x] System tray with "Start on Login" toggle (auto-launch)
-- [x] First-run redirect to `/setup` via middleware
-- [x] 2-step setup wizard (Welcome → Connect → Test → Launch)
-- [x] License system (basic offline validation: `MC-XXXX-XXXX-XXXX`)
-- [x] Cross-platform user data paths (AppData / Library / .config)
-- [x] All data paths use `DATA_DIR` env var (works in both dev and packaged)
-- [x] Light mode text contrast fixed
-- [ ] **NOT YET TESTED:** `npm run dist:win` (building the actual installer)
-- [ ] **NOT YET DONE:** Proper `.icns` icon for macOS, high-res `.png` for Linux
-- [ ] **NOT YET DONE:** Server-side license validation
-- [ ] **NOT YET DONE:** Auto-updater (electron-updater)
-- [ ] **NOT YET DONE:** Code signing (Authenticode / Apple Developer ID)
+- [x] Next.js `output: 'standalone'`
+- [x] Electron production main process forks `.next/standalone/server.js`
+- [x] First-run redirect to `/setup`
+- [x] `npm run dist:win` builds `release/Mission Control Setup 1.0.0.exe`
+- [x] Silent installer test completed to `C:\Users\tomas\AppData\Local\Programs\MissionControlTest`
+- [x] Installed app launch verified: main window responds, packaged server binds `127.0.0.1:3847`, `/` returns `307` to `/setup`, `/setup` contains onboarding copy
+- [ ] Visual splash confirmation was not possible from shell-only verification
+- [ ] Proper `.icns` icon for macOS and high-res `.png` for Linux still need to be generated
+- [ ] Server-side license validation still not implemented
+- [ ] Auto-updater still not implemented
+- [ ] Release signing still needs a proper Windows/macOS certificate setup
 
-## Files Changed (this session, uncommitted)
+Windows-specific packaging fixes added during this pass:
+
+- Updated the Electron Builder Linux desktop config to the current schema: `desktop.entry.StartupWMClass`
+- Added `electron/prepare-standalone.js` to copy `public/` and `.next/static/` into `.next/standalone/` and replace standalone symlinks/junctions with real directories before packaging
+- Updated `electron/generate-icon.js` to emit a valid `256x256` Windows `.ico`
+- Updated dist scripts to regenerate the Windows icon automatically
+- Set `win.signAndEditExecutable: false` so local Windows builds do not fail on this machine's broken `winCodeSign` extraction path
+
+## Files Changed
 
 ### Core Packaging
 | File | Change |
 |------|--------|
-| `next.config.ts` | Added `output: 'standalone'` |
-| `electron/main.prod.js` | Full rewrite — standalone server via fork(), splash screen, auto-launch, single-instance, cross-platform paths |
-| `electron/main.js` | Cross-platform rewrite (user data paths, icons, npm.cmd vs npm, macOS titlebar) |
-| `electron/preload.js` | Added `getPlatform`, `getAutoLaunch`, `setAutoLaunch` IPC |
-| `package.json` | Slimmed build files (standalone only), added `asar: false`, Mac dmg arm64+x64, Linux deb target, `auto-launch` dependency |
+| `package.json` | Added standalone prep to build flow, icon generation to dist scripts, fixed Linux desktop schema, temporary `win.signAndEditExecutable: false` for local unsigned Windows builds |
+| `electron/prepare-standalone.js` | Copies `public/` and `.next/static/` into standalone output and dereferences standalone links/junctions for Windows packaging |
+| `electron/generate-icon.js` | Generates a proper `256x256` Windows icon instead of a `64x64` icon |
 
-### Data Layer
-| File | Change |
-|------|--------|
-| `src/lib/connection-config.ts` | Exported `DATA_DIR` constant, uses `MC_DATA_DIR` env var |
-| `src/app/api/budget/route.ts` | Uses `DATA_DIR` instead of `process.cwd()/data` |
-| `src/app/api/costs/route.ts` | Uses `DATA_DIR` |
-| `src/app/api/costs/upload/route.ts` | Uses `DATA_DIR` |
-| `src/app/api/costs/subscriptions/route.ts` | Uses `DATA_DIR` |
-
-### Onboarding & UX
-| File | Change |
-|------|--------|
-| `src/middleware.ts` | Added first-run redirect to `/setup` if not configured |
-| `src/app/setup/page.tsx` | Rewritten as 2-step wizard (Welcome → Configure) |
-
-### Theme / Light Mode
-| File | Change |
-|------|--------|
-| `src/contexts/settings-context.tsx` | Light theme: darker text-secondary (#334155), text-muted (#64748b), stronger borders |
-| `src/app/globals.css` | Removed broken `text-white` override, improved light mode glass/sidebar styles |
-| `src/app/(app)/skills/page.tsx` | SVG stroke uses `var(--glass-border)` instead of hardcoded rgba |
-
-### Bug Fix
-| File | Change |
-|------|--------|
-| `src/app/(app)/operations/page.tsx` | Fixed import path from `../api/operations/route` to `@/app/api/operations/route` |
-
-## Key Architecture Decisions
-
-1. **Standalone mode** — `output: 'standalone'` bundles server.js + minimal node_modules. Electron's built-in Node.js runs it via `fork()`. Users never see a terminal.
-
-2. **Data separation** — App code lives in the Electron bundle. User data (connection.json, budget.json, etc.) lives in platform-specific appdata via `MC_DATA_DIR`. First run copies defaults from bundle.
-
-3. **No asar** — `asar: false` in electron-builder config because the standalone server needs to be fork()'d from the filesystem. Could revisit with `asarUnpack` for just the server.
-
-4. **Server on port 3847** — Non-standard port to avoid conflicts with other dev servers. Electron loads `http://127.0.0.1:3847`.
-
-5. **Middleware dual-purpose** — Handles both setup redirect (unconfigured → /setup) and API security (localhost-only access).
+### Existing Packaging Path Confirmed
+| File | Role |
+|------|------|
+| `electron/main.prod.js` | Launches the packaged standalone server and the desktop shell |
+| `next.config.ts` | Keeps Next in `output: 'standalone'` mode |
+| `src/middleware.ts` | Redirects unconfigured users to `/setup` |
+| `src/app/setup/page.tsx` | Provides the onboarding flow verified during packaged runtime tests |
 
 ## Verification
 ```bash
 cd C:\Users\tomas\mission-control
 
-# Dev mode (works)
-npm run dev
-# Visit http://localhost:3000 — dashboard loads with live OpenClaw data
-
-# Build standalone (works)
+# Standalone build
 npm run build
-# Verify: .next/standalone/server.js exists (47MB bundle)
 
-# Package installer (NOT YET TESTED)
-npm run dist:win    # Windows .exe
-npm run dist:mac    # macOS .dmg
-npm run dist:linux  # Linux .AppImage + .deb
+# Verified after build:
+# - .next/standalone/server.js exists
+# - .next/standalone/public exists
+# - .next/standalone/.next/static exists
+# - standalone Prisma junctions were replaced with real directories
+
+# Windows installer build
+npm run dist:win
+
+# Produced:
+# - release/Mission Control Setup 1.0.0.exe
+# - release/Mission Control Setup 1.0.0.exe.blockmap
+
+# Silent installer test
+release/Mission Control Setup 1.0.0.exe /S /D=%LOCALAPPDATA%\Programs\MissionControlTest
+
+# Installed app runtime verification
+# - Mission Control.exe launches and main window responds
+# - packaged child process launches .next/standalone/server.js
+# - port 3847 binds on 127.0.0.1
+# - GET / returns HTTP 307 with Location: /setup
+# - GET /setup contains "Welcome to Mission Control" and "Get Started"
 ```
 
 ## Open Questions
-1. Should we use `asarUnpack` for just the standalone server instead of `asar: false`? Would reduce app size.
-2. License validation — keep offline-only or build a simple validation server?
-3. Auto-updater — GitHub Releases + electron-updater, or custom update server?
-4. Code signing — do we have Apple Developer ID / Windows Authenticode cert?
-5. Distribution — GitHub Releases, own website, or marketplace (e.g., Gumroad)?
+1. Should `win.signAndEditExecutable: false` remain only as a local-build workaround, or should Windows packaging move to a proper signing-capable setup immediately?
+2. Should `asarUnpack` be used for just the standalone server instead of `asar: false`?
+3. License validation: keep offline-only or build a simple validation server?
+4. Auto-updater: GitHub Releases plus `electron-updater`, or a custom update server?
+5. Do we already have Windows Authenticode and Apple Developer ID certificates?
+6. Distribution: GitHub Releases, own website, or something like Gumroad?
 
 ## Next Steps
-1. **Run `npm run dist:win`** and test the actual installer end-to-end
-2. Fix any issues that come up during the real build (missing files, path issues, etc.)
-3. Generate proper icon files (`.icns` for Mac, high-res `.png` for Linux)
-4. Test on macOS and Linux if possible
-5. Set up auto-updater
-6. Build a landing page for downloads
+1. Decide whether to keep or replace the local Windows `signAndEditExecutable: false` workaround before release builds
+2. Generate proper icon files for macOS and Linux
+3. Test `npm run dist:mac` and `npm run dist:linux`
+4. Revisit `asar` vs `asarUnpack` to reduce package size
+5. Add real license validation and fulfillment
+6. Add auto-updater and release/distribution plumbing
