@@ -22,7 +22,8 @@
     "dist": "npm run prepare:icon && npm run build && electron-builder",
     "dist:win": "npm run prepare:icon && npm run build && electron-builder --win",
     "dist:mac": "npm run prepare:icon && npm run build && electron-builder --mac",
-    "dist:linux": "npm run prepare:icon && npm run build && electron-builder --linux"
+    "dist:linux": "npm run prepare:icon && npm run build && electron-builder --linux",
+    "generate:keys": "node scripts/generate-license.js"
   },
   "build": {
     "appId": "com.openclaw.mission-control",

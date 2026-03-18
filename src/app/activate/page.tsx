@@ -38,14 +38,14 @@ export default function ActivatePage() {
     })
   }, [router])
 
-  // Auto-format license key: MC-XXXX-XXXX-XXXX
+  // Auto-format license key: MC-XXXXX-XXXXX-XXXXX-XXXXX
   function handleKeyChange(value: string) {
     const clean = value.toUpperCase().replace(/[^A-Z0-9-]/g, '')
-    // Auto-insert dashes
+    // Auto-insert dashes in groups of 5
     const parts = clean.replace(/^MC-?/, '').replace(/-/g, '')
     let formatted = 'MC-'
-    for (let i = 0; i < Math.min(parts.length, 12); i++) {
-      if (i > 0 && i % 4 === 0) formatted += '-'
+    for (let i = 0; i < Math.min(parts.length, 20); i++) {
+      if (i > 0 && i % 5 === 0) formatted += '-'
       formatted += parts[i]
     }
     setLicenseKey(formatted)
@@ -95,9 +95,9 @@ export default function ActivatePage() {
                 type="text"
                 value={licenseKey}
                 onChange={e => handleKeyChange(e.target.value)}
-                placeholder="MC-XXXX-XXXX-XXXX"
+                placeholder="MC-XXXXX-XXXXX-XXXXX-XXXXX"
                 className="w-full pl-10 pr-3 py-2.5 rounded-lg glass-inset text-text-primary text-sm font-mono placeholder:text-text-muted/50 focus:outline-none focus:ring-1"
-                maxLength={18}
+                maxLength={24}
               />
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function ActivatePage() {
 
           <button
             onClick={activate}
-            disabled={licenseKey.length < 18 || !email || activating}
+            disabled={licenseKey.length < 24 || !email || activating}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ background: 'var(--accent-primary)' }}
           >

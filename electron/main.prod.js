@@ -12,6 +12,7 @@ const path = require('path')
 const net = require('net')
 const fs = require('fs')
 const os = require('os')
+const crypto = require('crypto')
 const AutoLaunch = require('auto-launch')
 
 // ─── Cross-platform user data path ──────────────────────────
@@ -81,34 +82,74 @@ function ensureDataDir() {
   }
 }
 
-// ─── License ────────────────────────────────────────────────
+// ─── License (HMAC-signed keys) ─────────────────────────────
 
+const LICENSE_SECRET = process.env.MC_LICENSE_SECRET || 'mc-prod-secret-change-me-before-shipping'
+const BASE32 = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 const LICENSE_FILE = path.join(userDataPath, 'license.json')
+
+function toBase32(buffer, length) {
+  let result = ''
+  for (let i = 0; i < length; i++) {
+    result += BASE32[buffer[i] % BASE32.length]
+  }
+  return result
+}
 
 function readLicense() {
   try { return JSON.parse(fs.readFileSync(LICENSE_FILE, 'utf-8')) }
   catch { return null }
 }
 
-function saveLicense(key, email) {
-  fs.writeFileSync(LICENSE_FILE, JSON.stringify({ key, email, activatedAt: new Date().toISOString() }))
+function saveLicense(key, email, machineId) {
+  fs.writeFileSync(LICENSE_FILE, JSON.stringify({
+    key,
+    email,
+    machineId,
+    activatedAt: new Date().toISOString(),
+  }))
+}
+
+function getMachineId() {
+  // Stable machine fingerprint: hostname + username + platform
+  const raw = `${os.hostname()}:${os.userInfo().username}:${os.platform()}:${os.arch()}`
+  return crypto.createHash('sha256').update(raw).digest('hex').slice(0, 16)
 }
 
 function validateLicenseKey(key) {
   if (!key || typeof key !== 'string') return false
-  return /^MC-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(key.toUpperCase())
+
+  // Strip formatting: MC-XXXXX-XXXXX-XXXXX-XXXXX → MCXXXXXXXXXXXXXXXXXXXX
+  const clean = key.toUpperCase().replace(/[^A-Z0-9]/g, '')
+  if (!clean.startsWith('MC') || clean.length !== 22) return false
+
+  const payload = clean.slice(2)
+  const id = payload.slice(0, 8)
+  const sig = payload.slice(8, 20)
+
+  // Recompute HMAC and compare
+  const hmac = crypto.createHmac('sha256', LICENSE_SECRET).update(id).digest()
+  const expectedSig = toBase32(hmac, 12)
+
+  return sig === expectedSig
 }
 
 ipcMain.handle('check-license', () => {
   const license = readLicense()
-  return { valid: !!license, email: license?.email || null }
+  if (!license) return { valid: false, email: null }
+
+  // Re-validate the stored key (catches tampering)
+  const valid = validateLicenseKey(license.key)
+  return { valid, email: license.email || null }
 })
 
 ipcMain.handle('activate-license', (_, { key, email }) => {
   if (!validateLicenseKey(key)) {
-    return { ok: false, error: 'Invalid license key format. Expected: MC-XXXX-XXXX-XXXX' }
+    return { ok: false, error: 'Invalid license key. Please check and try again.' }
   }
-  saveLicense(key.toUpperCase(), email)
+
+  const machineId = getMachineId()
+  saveLicense(key.toUpperCase(), email, machineId)
   return { ok: true }
 })
 
