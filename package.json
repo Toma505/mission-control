@@ -35,6 +35,11 @@
       "winCodeSign": "1.1.0"
     },
     "copyright": "Copyright © 2026",
+    "publish": {
+      "provider": "github",
+      "owner": "tomaslau",
+      "repo": "mission-control"
+    },
     "directories": {
       "output": "release"
     },
