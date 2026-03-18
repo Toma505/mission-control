@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Shield, Zap, AlertTriangle, CheckCircle, Settings } from 'lucide-react'
 
 interface BudgetData {
@@ -27,6 +27,11 @@ export function BudgetControls() {
   const [autoThrottle, setAutoThrottle] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const editingRef = useRef(false)
+
+  useEffect(() => {
+    editingRef.current = editing
+  }, [editing])
 
   const fetchBudget = (updateForm = true) => {
     fetch('/api/budget')
@@ -35,9 +40,8 @@ export function BudgetControls() {
         if (!d.error) {
           setData(d)
           setLoadError(false)
-          // Only update form fields if not currently editing
-          // (auto-refresh was overwriting user input mid-edit)
-          if (updateForm) {
+          // Skip form overwrites if a request resolves after the user enters edit mode.
+          if (updateForm && !editingRef.current) {
             setDailyLimit(String(d.budget.dailyLimit))
             setMonthlyLimit(String(d.budget.monthlyLimit))
             setAutoThrottle(d.budget.autoThrottle)
@@ -50,7 +54,10 @@ export function BudgetControls() {
   }
 
   useEffect(() => {
-    fetchBudget(true)
+    // Only populate form fields on initial load, never when entering edit mode
+    if (!editing) {
+      fetchBudget(true)
+    }
     const interval = setInterval(() => fetchBudget(!editing), 30000)
     return () => clearInterval(interval)
   }, [editing])
