@@ -1,4 +1,5 @@
-import { Clapperboard, Camera, Film, Mic, Package, Mail, CheckCircle2, XCircle, Circle, Loader2, DollarSign, Activity, Hash, TrendingUp } from 'lucide-react'
+import { Clapperboard, Camera, Film, Mic, Package, Mail, CheckCircle2, XCircle, Circle, Loader2 } from 'lucide-react'
+import { getAppBaseUrl } from '@/lib/app-url'
 
 const BUDGET_CAP = 20
 
@@ -126,11 +127,10 @@ function formatCost(n?: number) {
 }
 
 async function getOperationsData(): Promise<OperationsData> {
-  // Import the GET handler directly to avoid self-call deadlock
-  // (server component calling its own API route during SSR)
   try {
-    const { GET } = await import('@/app/api/operations/route')
-    const res = await GET()
+    const baseUrl = getAppBaseUrl()
+    const res = await fetch(`${baseUrl}/api/operations`, { cache: 'no-store' })
+    if (!res.ok) throw new Error('Failed to fetch operations data')
     return await res.json()
   } catch {
     return {

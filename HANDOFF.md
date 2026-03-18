@@ -241,9 +241,9 @@ Second pass focused on deeper failure paths: IPC crashes, malformed request bodi
 - All error paths return structured `{ error: string }` responses, never raw stack traces or HTML
 
 ### What remains (failure-state hardening)
-- Operations page uses fragile direct-import pattern instead of fetch (works but not idiomatic)
-- Settings via localStorage silently swallow quota-exceeded errors (low risk)
-- No global loading indicator for slow SSR pages on bad networks
+- ~~Operations page uses fragile direct-import pattern~~ → Fixed in Round 4
+- ~~Settings via localStorage silently swallow quota-exceeded errors~~ → Fixed in Round 4
+- ~~No global loading indicator for slow SSR pages~~ → Fixed in Round 4
 
 ## Launch Hardening: Reliability & UX (Round 3)
 
@@ -291,6 +291,29 @@ Focused on the packaged desktop feel: notifications now help users recover inste
 - The new notification and command-palette recovery actions were typechecked and packaged, but not visually exercised end-to-end in the installed app from the shell
 - The shell still has no dedicated in-app release notes/update history surface beyond updater dialogs and diagnostics
 - Desktop support still depends on a placeholder `MC_LICENSE_SECRET` until production secret handling is finalized
+
+## Launch Hardening: Final App Polish (Round 4 — Claude's lane)
+
+### What was done
+Closed the remaining three app-polish items from the hardening backlog: loading skeleton, Operations page fragility, and localStorage quota guard.
+
+### Files touched
+| File | Change |
+|------|--------|
+| `src/app/(app)/loading.tsx` | Upgraded from plain spinner to a shimmer skeleton matching the dashboard layout (4 status cards, 2-column content area). Users see structure instead of a blank void during SSR loads |
+| `src/app/(app)/operations/page.tsx` | Replaced direct `import('@/app/api/operations/route')` with proper `fetch(baseUrl + '/api/operations')` via `getAppBaseUrl()`. Removed 4 unused icon imports. This eliminates the fragile direct-import pattern that could break in the packaged Electron app |
+| `src/contexts/settings-context.tsx` | localStorage writes now catch quota-exceeded/unavailable errors explicitly. Added `saveWarning` boolean to context so UI can inform users. Settings still apply for the current session even if persistence fails |
+| `src/components/layout/preferences-modal.tsx` | Surfaces `saveWarning` as an amber banner inside the modal: "Settings apply for this session but could not be saved permanently. Storage may be full." |
+
+### What was verified
+- `npx tsc --noEmit` passes with zero errors
+- No files outside owned module list touched
+- Operations page now uses the same `getAppBaseUrl()` pattern as the dashboard page
+- localStorage quota guard is exposed via context, not swallowed silently
+
+### What remains (Claude's lane)
+All three items from the backlog are now closed. Remaining work is:
+- QA checklist items (setup flow, dashboard, refresh, mode switch, budget save, CSV upload, offline → recover, preferences round-trip)
 
 ## Open Questions
 1. Should `win.signAndEditExecutable: false` remain only as a local-build workaround, or should Windows packaging move to a proper signing-capable setup immediately?

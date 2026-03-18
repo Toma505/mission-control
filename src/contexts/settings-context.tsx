@@ -34,6 +34,8 @@ interface SettingsContextType {
   settings: Settings
   updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => void
   resetSettings: () => void
+  /** True if the last save attempt failed (e.g., localStorage quota exceeded). Settings still apply for the current session. */
+  saveWarning: boolean
 }
 
 const SettingsContext = createContext<SettingsContextType | null>(null)
@@ -167,21 +169,35 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     root.dataset.theme = settings.theme
   }, [settings, mounted])
 
+  const [saveWarning, setSaveWarning] = useState(false)
+
+  function persistSettings(data: Settings) {
+    try {
+      localStorage.setItem('mc-settings', JSON.stringify(data))
+      setSaveWarning(false)
+    } catch (e) {
+      // localStorage quota exceeded or unavailable (incognito, disabled, etc.)
+      // Settings still apply for this session — just won't persist across restarts
+      console.warn('[settings] Could not save to localStorage:', e)
+      setSaveWarning(true)
+    }
+  }
+
   function updateSetting<K extends keyof Settings>(key: K, value: Settings[K]) {
     setSettings(prev => {
       const next = { ...prev, [key]: value }
-      try { localStorage.setItem('mc-settings', JSON.stringify(next)) } catch {}
+      persistSettings(next)
       return next
     })
   }
 
   function resetSettings() {
     setSettings(DEFAULT_SETTINGS)
-    try { localStorage.setItem('mc-settings', JSON.stringify(DEFAULT_SETTINGS)) } catch {}
+    persistSettings(DEFAULT_SETTINGS)
   }
 
   return (
-    <SettingsContext.Provider value={{ settings, updateSetting, resetSettings }}>
+    <SettingsContext.Provider value={{ settings, updateSetting, resetSettings, saveWarning }}>
       {children}
     </SettingsContext.Provider>
   )

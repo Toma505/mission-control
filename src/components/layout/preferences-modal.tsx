@@ -38,7 +38,7 @@ const REFRESH_INTERVALS: { value: RefreshInterval; label: string }[] = [
 ]
 
 export function PreferencesModal({ open, onClose }: Props) {
-  const { settings, updateSetting, resetSettings } = useSettings()
+  const { settings, updateSetting, resetSettings, saveWarning } = useSettings()
   const [tab, setTab] = useState<'appearance' | 'layout' | 'performance' | 'connection'>('appearance')
   const [connectionInfo, setConnectionInfo] = useState<{ configured: boolean; source?: string; openclawUrl?: string } | null>(null)
   const [connectionError, setConnectionError] = useState(false)
@@ -111,6 +111,13 @@ export function PreferencesModal({ open, onClose }: Props) {
 
         {/* Content */}
         <div className="px-6 py-5 space-y-6 max-h-[60vh] overflow-y-auto">
+          {/* Storage warning */}
+          {saveWarning && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-400/10 border border-amber-400/20 text-xs text-amber-400">
+              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              Settings apply for this session but could not be saved permanently. Storage may be full.
+            </div>
+          )}
           {tab === 'appearance' && (
             <>
               {/* Theme */}
