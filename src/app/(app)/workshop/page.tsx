@@ -1,5 +1,6 @@
 import { Wrench, Activity } from 'lucide-react'
 import { getAppBaseUrl } from '@/lib/app-url'
+import { PageEmptyState } from '@/components/layout/page-empty-state'
 
 interface Session {
   key: string
@@ -21,6 +22,24 @@ async function getWorkshop(): Promise<{ connected: boolean; sessions: Session[];
 export default async function WorkshopPage() {
   const { connected, sessions, agentInfo } = await getWorkshop()
 
+  if (!connected) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">Workshop</h1>
+          <p className="text-sm text-text-secondary">Active tasks and sessions</p>
+        </div>
+        <PageEmptyState
+          icon={<Wrench className="w-8 h-8 text-text-muted" />}
+          title="Connect your workspace"
+          description="Finish setup to load active sessions, running tasks, and live work status from OpenClaw."
+          primaryAction={{ label: 'Open Connection Settings', href: '/setup?reconfigure=true' }}
+          secondaryAction={{ label: 'Go to Dashboard', href: '/' }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -36,18 +55,13 @@ export default async function WorkshopPage() {
         </p>
       </div>
 
-      {!connected || sessions.length === 0 ? (
-        <div className="glass rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-          <div className="p-4 rounded-2xl bg-background-elevated mb-4">
-            <Wrench className="w-8 h-8 text-text-muted" />
-          </div>
-          <h2 className="text-lg font-semibold text-text-primary mb-2">No active tasks</h2>
-          <p className="text-sm text-text-secondary max-w-md">
-            {connected
-              ? 'No active sessions running. Tasks will appear here when your agents are processing work.'
-              : 'Connect OpenClaw to see active tasks and sessions here.'}
-          </p>
-        </div>
+      {sessions.length === 0 ? (
+        <PageEmptyState
+          icon={<Wrench className="w-8 h-8 text-text-muted" />}
+          title="No active tasks"
+          description="Nothing is running right now. Active sessions will appear here when your agents start processing work."
+          secondaryAction={{ label: 'Open Operations', href: '/operations' }}
+        />
       ) : (
         <>
           <div className="grid grid-cols-2 gap-4">

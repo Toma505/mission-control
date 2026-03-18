@@ -1,5 +1,6 @@
 import { Clock, Play, Pause } from 'lucide-react'
 import { getAppBaseUrl } from '@/lib/app-url'
+import { PageEmptyState } from '@/components/layout/page-empty-state'
 
 interface CronJob {
   name: string
@@ -23,6 +24,24 @@ async function getCronJobs(): Promise<{ connected: boolean; jobs: CronJob[] }> {
 export default async function CronJobsPage() {
   const { connected, jobs } = await getCronJobs()
 
+  if (!connected) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">Cron Jobs</h1>
+          <p className="text-sm text-text-secondary">Scheduled tasks and automated workflows</p>
+        </div>
+        <PageEmptyState
+          icon={<Clock className="w-8 h-8 text-text-muted" />}
+          title="Connect your workspace"
+          description="Finish setup to load scheduled tasks and automation activity from your OpenClaw workspace."
+          primaryAction={{ label: 'Open Connection Settings', href: '/setup?reconfigure=true' }}
+          secondaryAction={{ label: 'Go to Dashboard', href: '/' }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -39,17 +58,12 @@ export default async function CronJobsPage() {
       </div>
 
       {jobs.length === 0 ? (
-        <div className="glass rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-          <div className="p-4 rounded-2xl bg-background-elevated mb-4">
-            <Clock className="w-8 h-8 text-text-muted" />
-          </div>
-          <h2 className="text-lg font-semibold text-text-primary mb-2">No cron jobs scheduled</h2>
-          <p className="text-sm text-text-secondary max-w-md">
-            {connected
-              ? 'No scheduled tasks found in your OpenClaw config. Add cron/schedule definitions and they will appear here automatically.'
-              : 'Connect OpenClaw to see scheduled tasks here.'}
-          </p>
-        </div>
+        <PageEmptyState
+          icon={<Clock className="w-8 h-8 text-text-muted" />}
+          title="No cron jobs scheduled"
+          description="No scheduled tasks were found in your OpenClaw workspace yet. They will appear here automatically when configured."
+          secondaryAction={{ label: 'Go to Operations', href: '/operations' }}
+        />
       ) : (
         <>
           <div className="glass rounded-2xl p-5">

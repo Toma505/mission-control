@@ -1,5 +1,6 @@
 import { Calendar, Activity } from 'lucide-react'
 import { getAppBaseUrl } from '@/lib/app-url'
+import { PageEmptyState } from '@/components/layout/page-empty-state'
 
 interface Recap {
   period: string
@@ -21,6 +22,24 @@ async function getRecaps(): Promise<{ connected: boolean; recaps: Recap[] }> {
 export default async function WeeklyRecapsPage() {
   const { connected, recaps } = await getRecaps()
 
+  if (!connected) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">Weekly Recaps</h1>
+          <p className="text-sm text-text-secondary">Activity summaries and system health</p>
+        </div>
+        <PageEmptyState
+          icon={<Calendar className="w-8 h-8 text-text-muted" />}
+          title="Connect your workspace"
+          description="Finish setup to load activity summaries and weekly recap data from your OpenClaw workspace."
+          primaryAction={{ label: 'Open Connection Settings', href: '/setup?reconfigure=true' }}
+          secondaryAction={{ label: 'Go to Dashboard', href: '/' }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -37,17 +56,12 @@ export default async function WeeklyRecapsPage() {
       </div>
 
       {recaps.length === 0 ? (
-        <div className="glass rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-          <div className="p-4 rounded-2xl bg-background-elevated mb-4">
-            <Calendar className="w-8 h-8 text-text-muted" />
-          </div>
-          <h2 className="text-lg font-semibold text-text-primary mb-2">No recaps yet</h2>
-          <p className="text-sm text-text-secondary max-w-md">
-            {connected
-              ? 'Recaps are generated from your agent activity logs. As more activity accumulates, summaries will appear here.'
-              : 'Connect OpenClaw to see activity recaps here.'}
-          </p>
-        </div>
+        <PageEmptyState
+          icon={<Calendar className="w-8 h-8 text-text-muted" />}
+          title="No recaps yet"
+          description="Recaps are generated from recent activity. As your workspace builds history, summaries will appear here."
+          secondaryAction={{ label: 'Open Journal', href: '/journal' }}
+        />
       ) : (
         recaps.map((recap) => (
           <div key={recap.period} className="space-y-4">

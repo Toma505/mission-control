@@ -1,5 +1,6 @@
 import { Briefcase, MessageSquare } from 'lucide-react'
 import { getAppBaseUrl } from '@/lib/app-url'
+import { PageEmptyState } from '@/components/layout/page-empty-state'
 
 interface Client {
   name: string
@@ -21,6 +22,24 @@ async function getClients(): Promise<{ connected: boolean; clients: Client[] }> 
 export default async function ClientsPage() {
   const { connected, clients } = await getClients()
 
+  if (!connected) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">Clients</h1>
+          <p className="text-sm text-text-secondary">Connected integrations and channels</p>
+        </div>
+        <PageEmptyState
+          icon={<Briefcase className="w-8 h-8 text-text-muted" />}
+          title="Connect your workspace"
+          description="Finish setup to load your OpenClaw clients, channels, and connected services."
+          primaryAction={{ label: 'Open Connection Settings', href: '/setup?reconfigure=true' }}
+          secondaryAction={{ label: 'Go to Dashboard', href: '/' }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -37,17 +56,12 @@ export default async function ClientsPage() {
       </div>
 
       {clients.length === 0 ? (
-        <div className="glass rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-          <div className="p-4 rounded-2xl bg-background-elevated mb-4">
-            <Briefcase className="w-8 h-8 text-text-muted" />
-          </div>
-          <h2 className="text-lg font-semibold text-text-primary mb-2">No clients added</h2>
-          <p className="text-sm text-text-secondary max-w-md">
-            {connected
-              ? 'No additional channels configured. Enable channels in your OpenClaw config and they will appear here.'
-              : 'Connect OpenClaw to see integrations and channels here.'}
-          </p>
-        </div>
+        <PageEmptyState
+          icon={<Briefcase className="w-8 h-8 text-text-muted" />}
+          title="No clients added"
+          description="No additional channels are configured yet. When you enable them in OpenClaw, they will appear here."
+          secondaryAction={{ label: 'Go to Dashboard', href: '/' }}
+        />
       ) : (
         <>
           <div className="grid grid-cols-2 gap-4">

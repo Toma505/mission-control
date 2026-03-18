@@ -1,5 +1,6 @@
 import { BookOpen, AlertCircle, Info, AlertTriangle, Bug } from 'lucide-react'
 import { getAppBaseUrl } from '@/lib/app-url'
+import { PageEmptyState } from '@/components/layout/page-empty-state'
 
 interface LogEntry {
   timestamp: string
@@ -49,6 +50,24 @@ function LevelBadge({ level }: { level: string }) {
 export default async function JournalPage() {
   const { connected, logs } = await getLogs()
 
+  if (!connected) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">Journal</h1>
+          <p className="text-sm text-text-secondary">Live activity log from OpenClaw</p>
+        </div>
+        <PageEmptyState
+          icon={<BookOpen className="w-8 h-8 text-text-muted" />}
+          title="Connect your workspace"
+          description="Finish setup to load your OpenClaw activity stream, errors, and job history."
+          primaryAction={{ label: 'Open Connection Settings', href: '/setup?reconfigure=true' }}
+          secondaryAction={{ label: 'Go to Dashboard', href: '/' }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -64,18 +83,13 @@ export default async function JournalPage() {
         </p>
       </div>
 
-      {!connected || logs.length === 0 ? (
-        <div className="glass rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-          <div className="p-4 rounded-2xl bg-background-elevated mb-4">
-            <BookOpen className="w-8 h-8 text-text-muted" />
-          </div>
-          <h2 className="text-lg font-semibold text-text-primary mb-2">No journal entries</h2>
-          <p className="text-sm text-text-secondary max-w-md">
-            {connected
-              ? 'No recent log entries. Activity will appear here as your agents run.'
-              : 'Connect OpenClaw to see live activity logs here.'}
-          </p>
-        </div>
+      {logs.length === 0 ? (
+        <PageEmptyState
+          icon={<BookOpen className="w-8 h-8 text-text-muted" />}
+          title="No journal entries"
+          description="No recent activity has been recorded yet. Journal entries will appear here as your agents run."
+          secondaryAction={{ label: 'Open Workshop', href: '/workshop' }}
+        />
       ) : (
         <div className="glass rounded-2xl overflow-hidden">
           <div className="p-4 border-b border-white/[0.06]">

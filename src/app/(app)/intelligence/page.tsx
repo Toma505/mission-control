@@ -1,5 +1,6 @@
 import { Brain } from 'lucide-react'
 import { getAppBaseUrl } from '@/lib/app-url'
+import { PageEmptyState } from '@/components/layout/page-empty-state'
 
 interface Memory {
   id: string
@@ -21,6 +22,24 @@ async function getIntelligence(): Promise<{ connected: boolean; memories: Memory
 export default async function IntelligencePage() {
   const { connected, memories } = await getIntelligence()
 
+  if (!connected) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">Intelligence</h1>
+          <p className="text-sm text-text-secondary">Agent memory and knowledge base</p>
+        </div>
+        <PageEmptyState
+          icon={<Brain className="w-8 h-8 text-text-muted" />}
+          title="Connect your workspace"
+          description="Finish setup to load saved memory, context, and intelligence from your OpenClaw workspace."
+          primaryAction={{ label: 'Open Connection Settings', href: '/setup?reconfigure=true' }}
+          secondaryAction={{ label: 'Go to Dashboard', href: '/' }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -37,17 +56,12 @@ export default async function IntelligencePage() {
       </div>
 
       {memories.length === 0 ? (
-        <div className="glass rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-          <div className="p-4 rounded-2xl bg-background-elevated mb-4">
-            <Brain className="w-8 h-8 text-text-muted" />
-          </div>
-          <h2 className="text-lg font-semibold text-text-primary mb-2">No intelligence reports</h2>
-          <p className="text-sm text-text-secondary max-w-md">
-            {connected
-              ? 'No memory entries found. As your agent learns and stores information, it will appear here automatically.'
-              : 'Connect OpenClaw to see agent memory and knowledge here.'}
-          </p>
-        </div>
+        <PageEmptyState
+          icon={<Brain className="w-8 h-8 text-text-muted" />}
+          title="No intelligence reports"
+          description="No memory entries have been recorded yet. As your agents learn and save information, it will appear here."
+          secondaryAction={{ label: 'Open Journal', href: '/journal' }}
+        />
       ) : (
         <>
           <div className="glass rounded-2xl p-5">

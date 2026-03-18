@@ -1,5 +1,6 @@
 import { FileText, Folder, File } from 'lucide-react'
 import { getAppBaseUrl } from '@/lib/app-url'
+import { PageEmptyState } from '@/components/layout/page-empty-state'
 
 interface Document {
   name: string
@@ -30,6 +31,24 @@ function formatSize(size: string): string {
 export default async function DocumentsPage() {
   const { connected, documents } = await getDocuments()
 
+  if (!connected) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">Documents</h1>
+          <p className="text-sm text-text-secondary">Workspace files and documentation</p>
+        </div>
+        <PageEmptyState
+          icon={<FileText className="w-8 h-8 text-text-muted" />}
+          title="Connect your workspace"
+          description="Finish setup to load workspace files and documents from your OpenClaw environment."
+          primaryAction={{ label: 'Open Connection Settings', href: '/setup?reconfigure=true' }}
+          secondaryAction={{ label: 'Go to Dashboard', href: '/' }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -46,17 +65,12 @@ export default async function DocumentsPage() {
       </div>
 
       {documents.length === 0 ? (
-        <div className="glass rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-          <div className="p-4 rounded-2xl bg-background-elevated mb-4">
-            <FileText className="w-8 h-8 text-text-muted" />
-          </div>
-          <h2 className="text-lg font-semibold text-text-primary mb-2">No documents yet</h2>
-          <p className="text-sm text-text-secondary max-w-md">
-            {connected
-              ? 'No files in the workspace directory. Documents will appear here as your agents create them.'
-              : 'Connect OpenClaw to see workspace files here.'}
-          </p>
-        </div>
+        <PageEmptyState
+          icon={<FileText className="w-8 h-8 text-text-muted" />}
+          title="No documents yet"
+          description="No files have been created in the workspace yet. Documents will appear here as your agents produce them."
+          secondaryAction={{ label: 'Open Workshop', href: '/workshop' }}
+        />
       ) : (
         <>
           <div className="glass rounded-2xl p-5">

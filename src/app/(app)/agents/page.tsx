@@ -1,5 +1,6 @@
 import { Users, Bot, Activity } from 'lucide-react'
 import { getAppBaseUrl } from '@/lib/app-url'
+import { PageEmptyState } from '@/components/layout/page-empty-state'
 
 interface Agent {
   name: string
@@ -29,6 +30,24 @@ export default async function AgentsPage() {
 
   const hasData = connected && (agents.length > 0 || sessions.length > 0)
 
+  if (!connected) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">Agents</h1>
+          <p className="text-sm text-text-secondary">Manage and monitor your AI agents</p>
+        </div>
+        <PageEmptyState
+          icon={<Users className="w-8 h-8 text-text-muted" />}
+          title="Connect your workspace"
+          description="Finish setup to load your OpenClaw agents, active sessions, and model details."
+          primaryAction={{ label: 'Open Connection Settings', href: '/setup?reconfigure=true' }}
+          secondaryAction={{ label: 'Go to Dashboard', href: '/' }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -45,17 +64,12 @@ export default async function AgentsPage() {
       </div>
 
       {!hasData ? (
-        <div className="glass rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-          <div className="p-4 rounded-2xl bg-background-elevated mb-4">
-            <Users className="w-8 h-8 text-text-muted" />
-          </div>
-          <h2 className="text-lg font-semibold text-text-primary mb-2">No agents configured</h2>
-          <p className="text-sm text-text-secondary max-w-md">
-            {connected
-              ? 'Configure agents in your OpenClaw instance and they will appear here automatically.'
-              : 'Connect your OpenClaw instance in Connection Settings to view agent definitions and live sessions.'}
-          </p>
-        </div>
+        <PageEmptyState
+          icon={<Users className="w-8 h-8 text-text-muted" />}
+          title="No agents configured"
+          description="Configure agents in your OpenClaw workspace and they will appear here automatically."
+          secondaryAction={{ label: 'Go to Dashboard', href: '/' }}
+        />
       ) : (
         <>
           {/* Overview */}
