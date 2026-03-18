@@ -9,6 +9,18 @@ export function CsvUpload() {
   const [message, setMessage] = useState('')
 
   const handleUpload = useCallback(async (file: File) => {
+    // Client-side validation
+    if (file.size === 0) {
+      setStatus('error')
+      setMessage('The file is empty. Select a CSV with data.')
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setStatus('error')
+      setMessage('File is too large (max 10 MB). Try exporting a shorter date range.')
+      return
+    }
+
     setStatus('uploading')
     setMessage('Processing...')
 
@@ -36,9 +48,13 @@ export function CsvUpload() {
 
       // Reload page after short delay to show new data
       setTimeout(() => window.location.reload(), 1500)
-    } catch {
+    } catch (e) {
       setStatus('error')
-      setMessage('Upload failed. Check the console.')
+      if (!navigator.onLine) {
+        setMessage('You appear to be offline. Reconnect and try again.')
+      } else {
+        setMessage('Could not reach the app server. Try restarting Mission Control.')
+      }
     }
   }, [])
 
@@ -104,6 +120,12 @@ export function CsvUpload() {
         <>
           <AlertCircle className="w-6 h-6 text-status-error mx-auto mb-2" />
           <p className="text-sm text-status-error">{message}</p>
+          <button
+            onClick={(e) => { e.stopPropagation(); setStatus('idle'); setMessage('') }}
+            className="mt-2 px-3 py-1 rounded-lg bg-white/[0.06] text-xs text-text-secondary hover:bg-white/[0.1] transition-colors"
+          >
+            Try again
+          </button>
         </>
       )}
     </div>

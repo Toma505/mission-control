@@ -241,12 +241,31 @@ Second pass focused on deeper failure paths: IPC crashes, malformed request bodi
 - All error paths return structured `{ error: string }` responses, never raw stack traces or HTML
 
 ### What remains (failure-state hardening)
-- Dashboard has no client-side reload/retry button (user must browser-refresh for SSR pages)
 - Operations page uses fragile direct-import pattern instead of fetch (works but not idiomatic)
 - Settings via localStorage silently swallow quota-exceeded errors (low risk)
 - No global loading indicator for slow SSR pages on bad networks
-- CSV upload error handling could be more specific
-- No offline detection banner (app assumes network is always available)
+
+## Launch Hardening: Reliability & UX (Round 3)
+
+### What was done
+Closed the three remaining launch blockers from the hardening backlog: offline detection, dashboard refresh, and CSV upload errors.
+
+### Files touched
+| File | Change |
+|------|--------|
+| `src/components/layout/offline-banner.tsx` | **New.** Persistent banner that detects browser offline events + periodic API health check (30s). Shows "You are offline" or "App server unreachable" with Reload button |
+| `src/components/layout/app-shell.tsx` | Added `<OfflineBanner />` between Header and main content area |
+| `src/components/dashboard/refresh-control.tsx` | **New.** Client-side refresh button with "Updated Xs ago" timestamp. Auto-refreshes on user's configured interval from settings. Uses `router.refresh()` + `useTransition` for non-blocking SSR re-fetch |
+| `src/app/(app)/page.tsx` | Added `<RefreshControl />` to dashboard header row. Users can now refresh without browser reload |
+| `src/app/api/costs/upload/route.ts` | Unrecognized CSV now returns specific diagnostic (provider not detected, no rows parsed, format changed). Catch block maps ENOSPC/EACCES/FormData errors to actionable messages |
+| `src/components/costs/csv-upload.tsx` | Client-side file validation (empty file, >10MB). Network errors detect offline state. Error state now has "Try again" dismiss button |
+
+### What was verified
+- `npx tsc --noEmit` passes with zero errors
+- No files outside owned module list touched
+- Offline banner only appears when truly offline (uses both `navigator.onLine` and API probe)
+- RefreshControl uses `useTransition` so UI stays interactive during refresh
+- CSV error messages are specific enough to guide user recovery
 
 ## Open Questions
 1. Should `win.signAndEditExecutable: false` remain only as a local-build workaround, or should Windows packaging move to a proper signing-capable setup immediately?

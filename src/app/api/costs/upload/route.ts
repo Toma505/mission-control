@@ -262,9 +262,34 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ error: 'Unrecognized CSV format. Upload a cost or token CSV from console.anthropic.com or platform.openai.com.' }, { status: 400 })
+    // Build a specific error message based on what we could detect
+    const parts: string[] = []
+    if (!isAnthropic && !isOpenAi) {
+      parts.push('Could not detect the provider (Anthropic or OpenAI) from the CSV headers or filename.')
+    }
+    if (!isCostFile && !isTokenFile) {
+      parts.push('Could not determine if this is a cost or token CSV.')
+    }
+    if (isAnthropic || isOpenAi) {
+      // We detected provider but parsing returned zero rows
+      parts.push(`The file was detected as ${isAnthropic ? 'Anthropic' : 'OpenAI'} but could not parse any data rows. The format may have changed.`)
+    }
+    parts.push('Expected a cost or token CSV exported from console.anthropic.com or platform.openai.com.')
+
+    return NextResponse.json({ error: parts.join(' ') }, { status: 400 })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Upload failed'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    let message = 'Upload failed'
+    if (error instanceof Error) {
+      if (error.message.includes('FormData') || error.message.includes('formData')) {
+        message = 'Could not read the uploaded file. Try selecting the file again.'
+      } else if (error.message.includes('ENOSPC') || error.message.includes('EDQUOT')) {
+        message = 'Disk is full. Free up space and try again.'
+      } else if (error.message.includes('EACCES') || error.message.includes('EPERM')) {
+        message = 'Permission denied writing data. Check that the app has write access to its data directory.'
+      } else {
+        message = `Upload failed: ${error.message}`
+      }
+    }
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

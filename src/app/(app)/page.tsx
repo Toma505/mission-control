@@ -3,6 +3,7 @@ import { StatusCard } from '@/components/dashboard/status-card'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
 import { QuickLinks } from '@/components/dashboard/quick-links'
 import { CostWidget } from '@/components/dashboard/bandwidth-widget'
+import { RefreshControl } from '@/components/dashboard/refresh-control'
 import { getAppBaseUrl } from '@/lib/app-url'
 
 async function getDashboardData() {
@@ -65,17 +66,20 @@ export default async function Home() {
   return (
     <div className="space-y-6">
       {/* Page title */}
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">Mission Control</h1>
-        <p className="text-sm text-text-secondary">
-          Real-time overview of all systems
-          {connected && (
-            <span className="ml-2 inline-flex items-center gap-1 text-xs text-status-active">
-              <span className="w-1.5 h-1.5 rounded-full bg-status-active animate-pulse" />
-              Live
-            </span>
-          )}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary">Mission Control</h1>
+          <p className="text-sm text-text-secondary">
+            Real-time overview of all systems
+            {connected && (
+              <span className="ml-2 inline-flex items-center gap-1 text-xs text-status-active">
+                <span className="w-1.5 h-1.5 rounded-full bg-status-active animate-pulse" />
+                Live
+              </span>
+            )}
+          </p>
+        </div>
+        <RefreshControl />
       </div>
 
       {/* Disconnected banner */}
