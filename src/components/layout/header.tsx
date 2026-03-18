@@ -1,10 +1,11 @@
 "use client"
 
-import { Search, Minus, Square, X, Settings } from 'lucide-react'
+import { Search, Settings } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Notifications } from './notifications'
 import { CommandPalette } from './command-palette'
 import { PreferencesModal } from './preferences-modal'
+import { WindowControls } from './window-controls'
 
 export function Header() {
   const [prefsOpen, setPrefsOpen] = useState(false)
@@ -14,22 +15,6 @@ export function Header() {
     window.addEventListener('open-preferences', handler)
     return () => window.removeEventListener('open-preferences', handler)
   }, [])
-
-  const handleMinimize = () => {
-    if (typeof window !== 'undefined' && (window as any).electronAPI?.minimize) {
-      (window as any).electronAPI.minimize()
-    }
-  }
-  const handleMaximize = () => {
-    if (typeof window !== 'undefined' && (window as any).electronAPI?.maximize) {
-      (window as any).electronAPI.maximize()
-    }
-  }
-  const handleClose = () => {
-    if (typeof window !== 'undefined' && (window as any).electronAPI?.close) {
-      (window as any).electronAPI.close()
-    }
-  }
 
   function openPalette() {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))
@@ -80,17 +65,7 @@ export function Header() {
           </button>
 
           {/* Window controls */}
-          <div className="flex items-center ml-2 -mr-2">
-            <button onClick={handleMinimize} className="w-8 h-8 flex items-center justify-center hover:bg-white/[0.08] transition-colors rounded">
-              <Minus className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-            </button>
-            <button onClick={handleMaximize} className="w-8 h-8 flex items-center justify-center hover:bg-white/[0.08] transition-colors rounded">
-              <Square className="w-3 h-3 text-[var(--text-muted)]" />
-            </button>
-            <button onClick={handleClose} className="w-8 h-8 flex items-center justify-center hover:bg-red-500/80 transition-colors rounded group">
-              <X className="w-3.5 h-3.5 text-[var(--text-muted)] group-hover:text-white" />
-            </button>
-          </div>
+          <WindowControls className="flex items-center ml-2 -mr-2" />
         </div>
       </header>
     </>

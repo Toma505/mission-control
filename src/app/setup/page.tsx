@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plug, CheckCircle2, XCircle, Loader2, Eye, EyeOff, ArrowRight, Zap, Shield, ExternalLink } from 'lucide-react'
+import { FramelessPageChrome } from '@/components/layout/frameless-page-chrome'
 
 interface TestResults {
   openclaw: { ok: boolean; error: string; version: string }
@@ -88,7 +89,8 @@ export default function SetupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--background)' }}>
+    <div className="min-h-screen relative flex items-center justify-center p-6 pt-16" style={{ background: 'var(--background)' }}>
+      <FramelessPageChrome />
       <div className="w-full max-w-lg space-y-8">
 
         {/* Step 1: Welcome */}

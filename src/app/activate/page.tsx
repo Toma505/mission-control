@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Key, Loader2, CheckCircle2, AlertCircle, Zap } from 'lucide-react'
+import { FramelessPageChrome } from '@/components/layout/frameless-page-chrome'
 
 declare global {
   interface Window {
@@ -74,7 +75,8 @@ export default function ActivatePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--background)' }}>
+    <div className="min-h-screen relative flex items-center justify-center p-6 pt-16" style={{ background: 'var(--background)' }}>
+      <FramelessPageChrome />
       <div className="w-full max-w-md space-y-8">
         {/* Branding */}
         <div className="text-center space-y-3">
