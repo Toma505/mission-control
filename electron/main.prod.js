@@ -15,6 +15,7 @@ const os = require('os')
 const crypto = require('crypto')
 const AutoLaunch = require('auto-launch')
 const { autoUpdater } = require('electron-updater')
+const { resolveLicenseSecret } = require('./license-secret')
 
 // ─── Cross-platform user data path ──────────────────────────
 function getUserDataPath() {
@@ -127,9 +128,33 @@ function ensureDataDir() {
 
 // ─── License (HMAC-signed keys) ─────────────────────────────
 
-const LICENSE_SECRET = process.env.MC_LICENSE_SECRET || 'mc-prod-secret-change-me-before-shipping'
 const BASE32 = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 const LICENSE_FILE = path.join(userDataPath, 'license.json')
+let licenseSecretCache = null
+
+function getLicenseSecret() {
+  if (!licenseSecretCache) {
+    licenseSecretCache = resolveLicenseSecret({ allowPlaceholder: !app.isPackaged })
+  }
+  return licenseSecretCache
+}
+
+function ensurePackagedLicenseSecret() {
+  if (!app.isPackaged) return true
+
+  try {
+    getLicenseSecret()
+    return true
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Mission Control is missing a valid release license secret.'
+    dialog.showErrorBox(
+      'Mission Control Build Error',
+      `${message}\n\nThis packaged build cannot validate licenses. Rebuild it with a real MC_LICENSE_SECRET before shipping.`,
+    )
+    app.quit()
+    return false
+  }
+}
 
 function toBase32(buffer, length) {
   let result = ''
@@ -171,7 +196,7 @@ function validateLicenseKey(key) {
   const sig = payload.slice(8, 20)
 
   // Recompute HMAC and compare
-  const hmac = crypto.createHmac('sha256', LICENSE_SECRET).update(id).digest()
+  const hmac = crypto.createHmac('sha256', getLicenseSecret()).update(id).digest()
   const expectedSig = toBase32(hmac, 12)
 
   return sig === expectedSig
@@ -683,6 +708,8 @@ if (!gotLock) {
 }
 
 app.on('ready', async () => {
+  if (!ensurePackagedLicenseSecret()) return
+
   ensureDataDir()
   createSplashWindow()
   createTray()

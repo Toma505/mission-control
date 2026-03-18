@@ -15,10 +15,15 @@
  */
 
 const crypto = require('crypto')
+const { resolveLicenseSecret } = require('../electron/license-secret')
 
-// ── This secret signs all license keys. Keep it private. ──
-// In production, load from an env var or secrets manager.
-const LICENSE_SECRET = process.env.MC_LICENSE_SECRET || 'mc-prod-secret-change-me-before-shipping'
+let LICENSE_SECRET = ''
+try {
+  LICENSE_SECRET = resolveLicenseSecret({ allowPlaceholder: false })
+} catch (error) {
+  console.error(`[license-generator] ${error instanceof Error ? error.message : 'MC_LICENSE_SECRET is invalid.'}`)
+  process.exit(1)
+}
 
 const BASE32 = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // no I, O, 0, 1 (avoid confusion)
 

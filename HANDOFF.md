@@ -4,18 +4,20 @@
 Package Mission Control (Next.js 16 + Electron desktop app) as a consumer-grade downloadable product for OpenClaw users. Double-click install, no terminal, no Node.js, no dev setup. Ship on Windows, macOS, and Linux.
 
 ## Current Owner
-Codex - cross-platform CI packaging verified on GitHub Actions.
+Codex - Round 4 release-secret enforcement and installed Windows QA verified.
 
 ## Repo Location
 `C:\Users\tomas\mission-control`
 
 ## Git State
 - Branch: `mission-control-v2`
-- Latest verified base commit: `1a883fe`
+- Latest verified base commit: `785634a`
 - Note: GitHub Actions run `23226926821` completed successfully for `mission-control-v2` after CI fixes in commits `6afd518` and `1a883fe`.
 
 ## Status
 The Windows packaging path remains verified end-to-end. Cross-platform packaging is now also verified on native GitHub runners: Desktop Builds run `23226926821` passed on Windows, macOS, and Linux for commit `1a883fe`.
+
+Round 4 is now in place on the current branch head: packaged builds require a real `MC_LICENSE_SECRET`, the packaged app hard-fails at startup if the embedded release secret is invalid, and the installed Windows app was exercised directly for activation, diagnostics copy, updater invocation, and close-to-tray/relaunch/quit behavior.
 
 - [x] Next.js `output: 'standalone'`
 - [x] Electron production main process forks `.next/standalone/server.js`
@@ -67,9 +69,14 @@ Packaging fixes now in place:
 ### License & Auto-Updater
 | File | Change |
 |------|--------|
+| `electron/license-secret.js` | Shared release-secret validation for packaged runtime and CLI tooling; rejects missing, placeholder, or too-short secrets |
+| `electron/prepare-license-secret.js` | Build-time step that embeds a validated release secret into the packaged app and fails packaging if `MC_LICENSE_SECRET` is missing or still a placeholder |
 | `electron/main.prod.js` | Added HMAC-SHA256 license validation, machine fingerprinting, `electron-updater` auto-update lifecycle, tray menu "Check for Updates" |
 | `electron/preload.js` | Added updater IPC: `updaterCheck()`, `updaterDownload()`, `updaterInstall()`, `updaterStatus()`, `onUpdateStatus()` |
-| `scripts/generate-license.js` | CLI tool for generating and validating HMAC-signed license keys |
+| `scripts/generate-license.js` | CLI tool for generating and validating HMAC-signed license keys; now refuses to run without a real release secret |
+| `package.json` | Added `prepare:license` and enforced it in all desktop packaging scripts (`dist`, `dist:win`, `dist:mac`, `dist:linux`) |
+| `.github/workflows/desktop-builds.yml` | Desktop CI now injects `MC_LICENSE_SECRET` and runs `prepare:license` before packaging |
+| `.gitignore` | Ignores the generated embedded release-secret file used only during packaging |
 | `src/app/activate/page.tsx` | Updated key format from 4-group to 5-group (`MC-XXXXX-XXXXX-XXXXX-XXXXX`) |
 
 ### Desktop Support & Diagnostics
@@ -288,9 +295,9 @@ Focused on the packaged desktop feel: notifications now help users recover inste
 - No files in `src/app/api/*`, `src/app/setup/*`, `src/app/activate/*`, `src/middleware.ts`, `src/components/costs/*`, `website/*`, or `public/*` were touched in this round
 
 ### What remains (desktop shell lane)
-- The new notification and command-palette recovery actions were typechecked and packaged, but not visually exercised end-to-end in the installed app from the shell
+- The installed Windows app has now exercised notification diagnostics, clipboard export, updater invocation, and tray/relaunch/quit flows; command-palette-specific visual QA is still optional follow-up
 - The shell still has no dedicated in-app release notes/update history surface beyond updater dialogs and diagnostics
-- Desktop support still depends on a placeholder `MC_LICENSE_SECRET` until production secret handling is finalized
+- Desktop support no longer depends on a placeholder `MC_LICENSE_SECRET`; release builds now fail fast unless a real secret is provided and embedded during packaging
 
 ## Launch Hardening: Final App Polish (Round 4 — Claude's lane)
 
@@ -315,6 +322,48 @@ Closed the remaining three app-polish items from the hardening backlog: loading 
 All three items from the backlog are now closed. Remaining work is:
 - QA checklist items (setup flow, dashboard, refresh, mode switch, budget save, CSV upload, offline → recover, preferences round-trip)
 
+## Final Pre-Merge: Release Secret Enforcement & Installed Windows QA (Round 4 — Codex's lane)
+
+### What was done
+Closed the last packaging/security gap in the offline HMAC path and exercised the installed Windows build directly on the current branch head.
+
+- Added a shared release-secret validator so packaged builds reject a missing, placeholder, or too-short `MC_LICENSE_SECRET`
+- Added `prepare:license` so desktop packaging embeds a validated release secret into the packaged app before `electron-builder` runs
+- Updated all desktop dist scripts and the GitHub Actions desktop workflow so release builds fail fast unless the secret is present
+- Added a packaged-app startup guard in `electron/main.prod.js` so a bad build shows a blocking error and quits instead of silently shipping broken license validation
+- Rebuilt `dist:win` on top of Claude's latest app-side fixes and verified the installed app directly
+
+### Files touched
+| File | Change |
+|------|--------|
+| `electron/license-secret.js` | Centralized release-secret validation and resolution for runtime/build tooling |
+| `electron/prepare-license-secret.js` | New packaging preflight that writes the embedded release-secret payload or exits with an error |
+| `electron/main.prod.js` | Uses the shared secret resolver for HMAC validation and blocks packaged startup when the release secret is invalid |
+| `scripts/generate-license.js` | Refuses license generation without a real non-placeholder secret |
+| `package.json` | Runs `prepare:license` before all desktop packaging targets |
+| `.github/workflows/desktop-builds.yml` | Injects `MC_LICENSE_SECRET` into native desktop builds and runs the new preflight step |
+| `.gitignore` | Ignores `electron/.generated-license-secret.json` |
+
+### What was verified
+- `.\node_modules\.bin\tsc.cmd --noEmit` passes
+- `npm.cmd run prepare:license` fails immediately without `MC_LICENSE_SECRET`
+- `$env:MC_LICENSE_SECRET='mission-control-release-secret-2026-03-18-qa-build-abcdef1234567890'; npm.cmd run dist:win` passes on the current branch head
+- Installed `Mission Control.exe` from `%LOCALAPPDATA%\Programs\MissionControlTest` launches the packaged app and serves the current dashboard build
+- Renderer-level QA via the packaged Electron window confirmed:
+  - `window.electronAPI.activateLicense(...)` succeeds with a generated HMAC key and `checkLicense()` returns `{ valid: true }`
+  - notification action `Open Diagnostics` opens the diagnostics modal
+  - `Copy Diagnostics` writes the support snapshot to the Windows clipboard
+  - `updaterCheck()` transitions to `checking` and back to `error` without breaking the app UI
+  - `setCloseToTray(true)` + `close()` keeps the background app/server alive
+  - relaunching the EXE restores the existing window
+  - `quit()` shuts the app down and drops the local server listener
+- Temporary QA-only license and tray-setting files were removed afterward so the pre-QA app-data state was restored
+
+### What remains (Codex's lane)
+- `Check for Updates` fails gracefully, but the current GitHub Releases feed still returns `404` from `https://github.com/tomaslau/mission-control/releases.atom`; release/update hosting needs to be finalized before public updater use
+- Signing/notarization prep still needs the actual release certificates and CI secrets
+- A true clean-machine pass on a machine without existing Mission Control app data is still worth doing before merge, even though the installed-build behaviors above were verified locally
+
 ## Open Questions
 1. Should `win.signAndEditExecutable: false` remain only as a local-build workaround, or should Windows packaging move to a proper signing-capable setup immediately?
 2. Should `asarUnpack` be used for just the standalone server instead of `asar: false`?
@@ -328,9 +377,10 @@ All three items from the backlog are now closed. Remaining work is:
 ## Next Steps
 1. Decide whether to keep or replace the local Windows `signAndEditExecutable: false` workaround before release builds
 2. Revisit `asar` vs `asarUnpack` to reduce package size
-3. Visually verify the new desktop recovery actions in the installed build (notifications, command palette diagnostics, updater actions)
-4. Create dashboard screenshot and OG image for the landing page
-5. Set up payment integration (LemonSqueezy/Stripe) for license key fulfillment
-6. Deploy landing page to production (Vercel/Netlify)
-7. Change `MC_LICENSE_SECRET` from placeholder before shipping
-8. Consider updating GitHub Actions versions before the Node 20 runner deprecation date noted in CI annotations
+3. Configure the real GitHub Releases/update feed so `Check for Updates` can succeed outside dev/QA
+4. Run the full clean-machine QA checklist on a machine without existing Mission Control app data
+5. Create dashboard screenshot and OG image for the landing page
+6. Set up payment integration (LemonSqueezy/Stripe) for license key fulfillment
+7. Deploy landing page to production (Vercel/Netlify)
+8. Provision Windows code signing and Apple notarization inputs for release CI
+9. Consider updating GitHub Actions versions before the Node 20 runner deprecation date noted in CI annotations
