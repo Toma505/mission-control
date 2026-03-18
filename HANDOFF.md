@@ -4,20 +4,20 @@
 Package Mission Control (Next.js 16 + Electron desktop app) as a consumer-grade downloadable product for OpenClaw users. Double-click install, no terminal, no Node.js, no dev setup. Ship on Windows, macOS, and Linux.
 
 ## Current Owner
-Codex - Round 4 release-secret enforcement and installed Windows QA verified.
+Codex - release-secret enforcement, updater metadata correction, and installed Windows QA verified.
 
 ## Repo Location
 `C:\Users\tomas\mission-control`
 
 ## Git State
 - Branch: `mission-control-v2`
-- Latest verified base commit: `785634a`
+- Latest verified base commit: `95fa020`
 - Note: GitHub Actions run `23226926821` completed successfully for `mission-control-v2` after CI fixes in commits `6afd518` and `1a883fe`.
 
 ## Status
 The Windows packaging path remains verified end-to-end. Cross-platform packaging is now also verified on native GitHub runners: Desktop Builds run `23226926821` passed on Windows, macOS, and Linux for commit `1a883fe`.
 
-Round 4 is now in place on the current branch head: packaged builds require a real `MC_LICENSE_SECRET`, the packaged app hard-fails at startup if the embedded release secret is invalid, and the installed Windows app was exercised directly for activation, diagnostics copy, updater invocation, and close-to-tray/relaunch/quit behavior.
+Round 4 is now in place on the current branch head: packaged builds require a real `MC_LICENSE_SECRET`, the packaged app hard-fails at startup if the embedded release secret is invalid, the GitHub updater metadata now points at the real repository (`Toma505/mission-control`), and the installed Windows app was exercised directly for activation, diagnostics copy, updater invocation, and close-to-tray/relaunch/quit behavior.
 
 - [x] Next.js `output: 'standalone'`
 - [x] Electron production main process forks `.next/standalone/server.js`
@@ -74,7 +74,7 @@ Packaging fixes now in place:
 | `electron/main.prod.js` | Added HMAC-SHA256 license validation, machine fingerprinting, `electron-updater` auto-update lifecycle, tray menu "Check for Updates" |
 | `electron/preload.js` | Added updater IPC: `updaterCheck()`, `updaterDownload()`, `updaterInstall()`, `updaterStatus()`, `onUpdateStatus()` |
 | `scripts/generate-license.js` | CLI tool for generating and validating HMAC-signed license keys; now refuses to run without a real release secret |
-| `package.json` | Added `prepare:license` and enforced it in all desktop packaging scripts (`dist`, `dist:win`, `dist:mac`, `dist:linux`) |
+| `package.json` | Added `prepare:license`, enforced it in all desktop packaging scripts (`dist`, `dist:win`, `dist:mac`, `dist:linux`), and corrected GitHub publish metadata to the real repo owner |
 | `.github/workflows/desktop-builds.yml` | Desktop CI now injects `MC_LICENSE_SECRET` and runs `prepare:license` before packaging |
 | `.gitignore` | Ignores the generated embedded release-secret file used only during packaging |
 | `src/app/activate/page.tsx` | Updated key format from 4-group to 5-group (`MC-XXXXX-XXXXX-XXXXX-XXXXX`) |
@@ -331,7 +331,8 @@ Closed the last packaging/security gap in the offline HMAC path and exercised th
 - Added `prepare:license` so desktop packaging embeds a validated release secret into the packaged app before `electron-builder` runs
 - Updated all desktop dist scripts and the GitHub Actions desktop workflow so release builds fail fast unless the secret is present
 - Added a packaged-app startup guard in `electron/main.prod.js` so a bad build shows a blocking error and quits instead of silently shipping broken license validation
-- Rebuilt `dist:win` on top of Claude's latest app-side fixes and verified the installed app directly
+- Corrected Electron Builder's GitHub publish metadata to the actual repo (`Toma505/mission-control`) so packaged updater checks target the right release feed
+- Rebuilt `dist:win` on top of Claude's `95fa020` budget-fix commit and verified the installed app directly
 
 ### Files touched
 | File | Change |
@@ -340,7 +341,7 @@ Closed the last packaging/security gap in the offline HMAC path and exercised th
 | `electron/prepare-license-secret.js` | New packaging preflight that writes the embedded release-secret payload or exits with an error |
 | `electron/main.prod.js` | Uses the shared secret resolver for HMAC validation and blocks packaged startup when the release secret is invalid |
 | `scripts/generate-license.js` | Refuses license generation without a real non-placeholder secret |
-| `package.json` | Runs `prepare:license` before all desktop packaging targets |
+| `package.json` | Runs `prepare:license` before all desktop packaging targets and points auto-update publishing at `Toma505/mission-control` |
 | `.github/workflows/desktop-builds.yml` | Injects `MC_LICENSE_SECRET` into native desktop builds and runs the new preflight step |
 | `.gitignore` | Ignores `electron/.generated-license-secret.json` |
 
@@ -348,19 +349,20 @@ Closed the last packaging/security gap in the offline HMAC path and exercised th
 - `.\node_modules\.bin\tsc.cmd --noEmit` passes
 - `npm.cmd run prepare:license` fails immediately without `MC_LICENSE_SECRET`
 - `$env:MC_LICENSE_SECRET='mission-control-release-secret-2026-03-18-qa-build-abcdef1234567890'; npm.cmd run dist:win` passes on the current branch head
+- `release\win-unpacked\resources\app-update.yml` now points at `owner: Toma505`, `repo: mission-control`
 - Installed `Mission Control.exe` from `%LOCALAPPDATA%\Programs\MissionControlTest` launches the packaged app and serves the current dashboard build
 - Renderer-level QA via the packaged Electron window confirmed:
   - `window.electronAPI.activateLicense(...)` succeeds with a generated HMAC key and `checkLicense()` returns `{ valid: true }`
   - notification action `Open Diagnostics` opens the diagnostics modal
   - `Copy Diagnostics` writes the support snapshot to the Windows clipboard
-  - `updaterCheck()` transitions to `checking` and back to `error` without breaking the app UI
+  - `updaterCheck()` transitions to `checking` and back to `error` without breaking the app UI, and now reports `No published versions on GitHub` instead of a bad-repo `404`
   - `setCloseToTray(true)` + `close()` keeps the background app/server alive
   - relaunching the EXE restores the existing window
   - `quit()` shuts the app down and drops the local server listener
 - Temporary QA-only license and tray-setting files were removed afterward so the pre-QA app-data state was restored
 
 ### What remains (Codex's lane)
-- `Check for Updates` fails gracefully, but the current GitHub Releases feed still returns `404` from `https://github.com/tomaslau/mission-control/releases.atom`; release/update hosting needs to be finalized before public updater use
+- `Check for Updates` now reaches the correct GitHub repo, but there are still no published releases for the updater to consume, so the app correctly reports `No published versions on GitHub`
 - Signing/notarization prep still needs the actual release certificates and CI secrets
 - A true clean-machine pass on a machine without existing Mission Control app data is still worth doing before merge, even though the installed-build behaviors above were verified locally
 
@@ -377,7 +379,7 @@ Closed the last packaging/security gap in the offline HMAC path and exercised th
 ## Next Steps
 1. Decide whether to keep or replace the local Windows `signAndEditExecutable: false` workaround before release builds
 2. Revisit `asar` vs `asarUnpack` to reduce package size
-3. Configure the real GitHub Releases/update feed so `Check for Updates` can succeed outside dev/QA
+3. Publish tagged GitHub release artifacts to `Toma505/mission-control` or disable the updater surface until public releases exist
 4. Run the full clean-machine QA checklist on a machine without existing Mission Control app data
 5. Create dashboard screenshot and OG image for the landing page
 6. Set up payment integration (LemonSqueezy/Stripe) for license key fulfillment

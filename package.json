@@ -7,6 +7,14 @@
     "name": "Tomas",
     "email": "tomasthoma4@gmail.com"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Toma505/mission-control.git"
+  },
+  "homepage": "https://github.com/Toma505/mission-control",
+  "bugs": {
+    "url": "https://github.com/Toma505/mission-control/issues"
+  },
   "private": true,
   "main": "electron/main.prod.js",
   "scripts": {
@@ -40,7 +48,7 @@
     "copyright": "Copyright © 2026",
     "publish": {
       "provider": "github",
-      "owner": "tomaslau",
+      "owner": "Toma505",
       "repo": "mission-control"
     },
     "directories": {
