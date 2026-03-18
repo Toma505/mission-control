@@ -31,13 +31,18 @@ export default function ActivatePage() {
     }
 
     // Check if already activated
-    window.electronAPI.checkLicense().then(result => {
-      if (result.valid) {
-        router.push('/setup')
-      } else {
+    window.electronAPI.checkLicense()
+      .then(result => {
+        if (result.valid) {
+          router.push('/setup')
+        } else {
+          setChecking(false)
+        }
+      })
+      .catch(() => {
+        // License check IPC failed — show the form so the user isn't stuck
         setChecking(false)
-      }
-    })
+      })
   }, [router])
 
   // Auto-format license key: MC-XXXXX-XXXXX-XXXXX-XXXXX
@@ -58,11 +63,25 @@ export default function ActivatePage() {
     setActivating(true)
     setError('')
 
-    const result = await window.electronAPI.activateLicense({ key: licenseKey, email })
-    if (result.ok) {
-      router.push('/setup')
-    } else {
-      setError(result.error || 'Activation failed')
+    try {
+      const result = await window.electronAPI.activateLicense({ key: licenseKey, email })
+      if (result.ok) {
+        router.push('/setup')
+      } else {
+        const rawError = result.error || 'Activation failed'
+        // Provide actionable context for common errors
+        if (rawError.toLowerCase().includes('invalid') || rawError.toLowerCase().includes('not found')) {
+          setError('Invalid license key. Double-check the key from your purchase confirmation email.')
+        } else if (rawError.toLowerCase().includes('expired')) {
+          setError('This license has expired. Visit openclaw.dev/mission-control to renew.')
+        } else if (rawError.toLowerCase().includes('machine') || rawError.toLowerCase().includes('fingerprint')) {
+          setError('This key is already activated on another device. Contact support@openclaw.dev for help.')
+        } else {
+          setError(rawError)
+        }
+      }
+    } catch {
+      setError('Something went wrong during activation. Please try again.')
     }
     setActivating(false)
   }

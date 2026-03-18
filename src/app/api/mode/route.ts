@@ -145,8 +145,19 @@ export async function POST(request: Request) {
       currentModel: selectedMode.model.primary,
     })
   } catch (error) {
+    // Sanitize internal errors — don't leak raw HTML or server details to the client
+    let message = 'Could not update the AI mode'
+    if (error instanceof Error) {
+      if (error.message.includes('Config fetch failed')) {
+        message = 'Could not read config from OpenClaw. Make sure the instance is running.'
+      } else if (error.message.includes('Config save failed')) {
+        message = 'Could not save config to OpenClaw. The server may be temporarily unavailable.'
+      } else if (error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND')) {
+        message = 'Could not reach OpenClaw. Check your connection settings.'
+      }
+    }
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { error: message },
       { status: 500 }
     )
   }

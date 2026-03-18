@@ -25,8 +25,18 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const { openclawUrl, setupPassword, openrouterApiKey, openrouterMgmtKey } = body
+    let body: Record<string, unknown>
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      )
+    }
+    const { openclawUrl, setupPassword, openrouterApiKey, openrouterMgmtKey } = body as {
+      openclawUrl?: string; setupPassword?: string; openrouterApiKey?: string; openrouterMgmtKey?: string
+    }
 
     if (!openclawUrl || !setupPassword) {
       return NextResponse.json(

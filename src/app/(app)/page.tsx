@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { StatusCard } from '@/components/dashboard/status-card'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
 import { QuickLinks } from '@/components/dashboard/quick-links'
@@ -76,6 +77,22 @@ export default async function Home() {
           )}
         </p>
       </div>
+
+      {/* Disconnected banner */}
+      {!connected && (
+        <div className="glass rounded-xl p-4 flex items-center gap-3 border border-amber-400/20 bg-amber-400/5">
+          <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+          <p className="text-sm text-text-secondary flex-1">
+            Not connected to OpenClaw. Live data is unavailable.
+          </p>
+          <Link
+            href="/setup?reconfigure=true"
+            className="px-3 py-1.5 rounded-lg bg-white/[0.06] text-xs font-medium text-text-primary hover:bg-white/[0.1] transition-colors whitespace-nowrap"
+          >
+            Check Connection
+          </Link>
+        </div>
+      )}
 
       {/* Status cards row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

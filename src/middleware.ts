@@ -25,7 +25,9 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/setup', request.url))
       }
     } catch {
-      // If check fails, let user through — they can configure later
+      // If the connection API itself is unreachable, redirect to setup
+      // so users don't land on a broken dashboard with no guidance
+      return NextResponse.redirect(new URL('/setup', request.url))
     }
 
     return NextResponse.next()

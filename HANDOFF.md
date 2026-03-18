@@ -180,6 +180,55 @@ gh run watch 23226926821 --exit-status
 #   - mission-control_1.0.0_amd64.deb: 264607540 bytes
 ```
 
+## Launch Hardening: Failure-State Fixes (Round 1)
+
+### What was done
+Audited every customer-facing failure flow and fixed the highest-risk ones — places where a paying user could get stuck, see a useless error, or hit a dead end with no recovery.
+
+### Files touched
+| File | Change |
+|------|--------|
+| `src/middleware.ts` | Connection check failure now redirects to `/setup` instead of letting unconfigured users through to broken dashboard |
+| `src/app/setup/page.tsx` | Save failure now shows error message instead of silently swallowing; added `saveError` state and UI |
+| `src/app/api/connection/test/route.ts` | Connection test errors now provide specific actionable messages (DNS, timeout, SSL, 401, 403, 404, 5xx) instead of generic "Could not reach server" |
+| `src/app/activate/page.tsx` | License activation errors now show context-specific recovery guidance (invalid key, expired, wrong device) with support contact |
+| `src/components/costs/budget-controls.tsx` | Fetch failure shows error state with Retry button instead of stuck "Loading budget..." forever; budget save failures show error message |
+| `src/components/layout/preferences-modal.tsx` | Connection tab fetch failure shows error with Retry button instead of infinite spinner |
+| `src/app/(app)/error.tsx` | Added "Go to Dashboard" escape hatch and recovery hint alongside "Try again" |
+| `src/app/(app)/page.tsx` | Added disconnected banner with "Check Connection" link when OpenClaw is unreachable |
+| `src/components/costs/mode-switcher.tsx` | Mode switch errors now include actionable guidance ("Check your connection in Settings") |
+
+## Launch Hardening: Failure-State Fixes (Round 2)
+
+### What was done
+Second pass focused on deeper failure paths: IPC crashes, malformed request bodies, leaked internal errors, and startup timing issues.
+
+### Files touched
+| File | Change |
+|------|--------|
+| `src/app/activate/page.tsx` | `checkLicense()` IPC rejection now caught — user sees the activation form instead of an infinite spinner |
+| `src/app/setup/page.tsx` | Initial `/api/connection` fetch failure now shows amber warning ("The app is still starting up…") instead of silent `catch(() => {})`. Added `initError` state and banner |
+| `src/app/api/connection/test/route.ts` | `request.json()` parse failure now returns a structured error instead of crashing the route with an unhandled exception |
+| `src/app/api/connection/route.ts` | POST handler guards against malformed request body; returns 400 with `{ error }` instead of crashing |
+| `src/app/api/mode/route.ts` | POST error responses now sanitized — internal messages like "Config fetch failed (502): \<html\>…" replaced with user-facing guidance |
+| `src/app/api/openclaw/route.ts` | Catch-all error now returns specific messages (ECONNREFUSED, ENOTFOUND, timeout) instead of raw `error.message` |
+| `src/app/api/activities/route.ts` | Error status changed from "Error" to "Unreachable" with specific connection failure guidance; raw error messages no longer exposed |
+| `src/components/layout/preferences-modal.tsx` | Connection tab now clears stale data on each load; checks `r.ok` before parsing JSON |
+
+### What was verified
+- `npx tsc --noEmit` passes with zero errors after all changes
+- No files outside the owned module list were touched
+- No changes to `electron/*`, `website/`, `public/`, header, profile-menu, command-palette, or notifications
+- All error paths return structured `{ error: string }` responses, never raw stack traces or HTML
+
+### What remains (failure-state hardening)
+- Dashboard has no client-side reload/retry button (user must browser-refresh for SSR pages)
+- Operations page uses fragile direct-import pattern instead of fetch (works but not idiomatic)
+- Settings via localStorage silently swallow quota-exceeded errors (low risk)
+- No global loading indicator for slow SSR pages on bad networks
+- CSV upload error handling could be more specific
+- No offline detection banner (app assumes network is always available)
+
 ## Open Questions
 1. Should `win.signAndEditExecutable: false` remain only as a local-build workaround, or should Windows packaging move to a proper signing-capable setup immediately?
 2. Should `asarUnpack` be used for just the standalone server instead of `asar: false`?

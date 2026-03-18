@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+
 export default function Error({
   error,
   reset,
@@ -26,15 +28,26 @@ export default function Error({
           </svg>
         </div>
         <h2 className="text-lg font-semibold text-text-primary mb-2">Something went wrong</h2>
-        <p className="text-sm text-text-secondary mb-6">
+        <p className="text-sm text-text-secondary mb-4">
           {error.message || 'An unexpected error occurred.'}
         </p>
-        <button
-          onClick={reset}
-          className="px-5 py-2.5 rounded-xl bg-accent-highlight text-white text-sm font-medium hover:bg-accent-highlight/80 transition-colors"
-        >
-          Try again
-        </button>
+        <p className="text-xs text-text-muted mb-6">
+          If this keeps happening, try reconfiguring your connection in Settings.
+        </p>
+        <div className="flex items-center justify-center gap-3">
+          <button
+            onClick={reset}
+            className="px-5 py-2.5 rounded-xl bg-accent-highlight text-white text-sm font-medium hover:bg-accent-highlight/80 transition-colors"
+          >
+            Try again
+          </button>
+          <Link
+            href="/"
+            className="px-5 py-2.5 rounded-xl bg-white/[0.06] text-text-secondary text-sm font-medium hover:bg-white/[0.1] transition-colors"
+          >
+            Go to Dashboard
+          </Link>
+        </div>
       </div>
     </div>
   )

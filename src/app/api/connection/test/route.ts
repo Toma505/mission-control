@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
-  const body = await request.json()
+  let body: { openclawUrl?: string; setupPassword?: string; openrouterApiKey?: string }
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({
+      openclaw: { ok: false, error: 'Invalid request — could not parse form data', version: '' },
+      openrouter: { ok: false, error: '', credits: 0 },
+    })
+  }
   const { openclawUrl, setupPassword, openrouterApiKey } = body
 
   const results = {
@@ -24,14 +32,32 @@ export async function POST(request: Request) {
         const data = await res.json()
         results.openclaw = { ok: true, error: '', version: data.openclawVersion || 'connected' }
       } else if (res.status === 401) {
-        results.openclaw.error = 'Invalid password'
+        results.openclaw.error = 'Invalid password — check OPENCLAW_SETUP_PASSWORD in your deployment'
+      } else if (res.status === 403) {
+        results.openclaw.error = 'Access denied — the server rejected the request (HTTP 403)'
+      } else if (res.status === 404) {
+        results.openclaw.error = 'OpenClaw setup API not found — check that the URL points to an OpenClaw instance'
+      } else if (res.status >= 500) {
+        results.openclaw.error = `Server error (HTTP ${res.status}) — OpenClaw may be starting up, try again in a moment`
       } else {
-        results.openclaw.error = `Server returned ${res.status}`
+        results.openclaw.error = `Unexpected response (HTTP ${res.status}) — verify the URL is correct`
       }
     } catch (e) {
-      results.openclaw.error = e instanceof Error
-        ? (e.name === 'TimeoutError' ? 'Connection timed out' : 'Could not reach server')
-        : 'Connection failed'
+      if (e instanceof Error) {
+        if (e.name === 'TimeoutError' || e.name === 'AbortError') {
+          results.openclaw.error = 'Connection timed out — check the URL and that your server is running'
+        } else if (e.message.includes('ECONNREFUSED')) {
+          results.openclaw.error = 'Connection refused — the server is not accepting connections on this URL'
+        } else if (e.message.includes('ENOTFOUND') || e.message.includes('getaddrinfo')) {
+          results.openclaw.error = 'Server not found — check that the URL is spelled correctly'
+        } else if (e.message.includes('certificate') || e.message.includes('SSL') || e.message.includes('CERT')) {
+          results.openclaw.error = 'SSL certificate error — the server\'s certificate could not be verified'
+        } else {
+          results.openclaw.error = 'Could not reach server — verify the URL and that your instance is running'
+        }
+      } else {
+        results.openclaw.error = 'Connection failed — verify the URL and try again'
+      }
     }
   }
 

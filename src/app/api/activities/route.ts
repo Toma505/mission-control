@@ -128,10 +128,19 @@ export async function GET() {
       },
     })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Unknown error'
+    let subtitle = 'Could not connect to OpenClaw'
+    if (error instanceof Error) {
+      if (error.message.includes('ECONNREFUSED')) {
+        subtitle = 'Connection refused — OpenClaw may not be running'
+      } else if (error.message.includes('ENOTFOUND') || error.message.includes('getaddrinfo')) {
+        subtitle = 'Server not found — check your connection settings'
+      } else if (error.message.includes('Timeout') || error.message.includes('AbortError')) {
+        subtitle = 'Connection timed out — OpenClaw may be starting up'
+      }
+    }
     return NextResponse.json({
       connected: false,
-      status: { online: false, value: 'Error', subtitle: msg },
+      status: { online: false, value: 'Unreachable', subtitle },
       sessions: [],
       channels: [],
       activities: [],

@@ -20,11 +20,13 @@ interface BudgetData {
 
 export function BudgetControls() {
   const [data, setData] = useState<BudgetData | null>(null)
+  const [loadError, setLoadError] = useState(false)
   const [editing, setEditing] = useState(false)
   const [dailyLimit, setDailyLimit] = useState('')
   const [monthlyLimit, setMonthlyLimit] = useState('')
   const [autoThrottle, setAutoThrottle] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   const fetchBudget = () => {
     fetch('/api/budget')
@@ -32,12 +34,15 @@ export function BudgetControls() {
       .then(d => {
         if (!d.error) {
           setData(d)
+          setLoadError(false)
           setDailyLimit(String(d.budget.dailyLimit))
           setMonthlyLimit(String(d.budget.monthlyLimit))
           setAutoThrottle(d.budget.autoThrottle)
+        } else {
+          setLoadError(true)
         }
       })
-      .catch(() => {})
+      .catch(() => { setLoadError(true) })
   }
 
   useEffect(() => {
@@ -48,8 +53,9 @@ export function BudgetControls() {
 
   const save = async () => {
     setSaving(true)
+    setSaveError('')
     try {
-      await fetch('/api/budget', {
+      const res = await fetch('/api/budget', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -58,16 +64,36 @@ export function BudgetControls() {
           autoThrottle,
         }),
       })
-      fetchBudget()
-      setEditing(false)
-    } catch {}
+      if (res.ok) {
+        fetchBudget()
+        setEditing(false)
+      } else {
+        setSaveError('Could not save budget settings. Try again.')
+      }
+    } catch {
+      setSaveError('Could not reach OpenClaw. Check your connection.')
+    }
     setSaving(false)
   }
 
   if (!data) {
     return (
       <div className="glass rounded-2xl p-6">
-        <p className="text-sm text-text-muted">Loading budget...</p>
+        {loadError ? (
+          <div className="text-center space-y-3">
+            <AlertTriangle className="w-6 h-6 text-text-muted mx-auto" />
+            <p className="text-sm text-text-secondary">Could not load budget data</p>
+            <p className="text-xs text-text-muted">Make sure OpenClaw is running and your connection is configured.</p>
+            <button
+              onClick={fetchBudget}
+              className="px-4 py-1.5 rounded-lg bg-white/[0.06] text-text-secondary text-xs hover:bg-white/[0.1] transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        ) : (
+          <p className="text-sm text-text-muted">Loading budget...</p>
+        )}
       </div>
     )
   }
@@ -221,6 +247,13 @@ export function BudgetControls() {
             <span className="text-xs text-text-secondary">Auto-switch to budget mode when limit exceeded</span>
           </label>
 
+          {saveError && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-400/10 border border-red-400/20 text-xs text-red-400">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              {saveError}
+            </div>
+          )}
+
           <div className="flex gap-2">
             <button
               onClick={save}
@@ -230,7 +263,7 @@ export function BudgetControls() {
               {saving ? 'Saving...' : 'Save'}
             </button>
             <button
-              onClick={() => setEditing(false)}
+              onClick={() => { setEditing(false); setSaveError('') }}
               className="px-4 py-1.5 rounded-lg bg-white/[0.06] text-text-secondary text-xs hover:bg-white/[0.1] transition-colors"
             >
               Cancel

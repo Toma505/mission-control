@@ -41,10 +41,19 @@ export function PreferencesModal({ open, onClose }: Props) {
   const { settings, updateSetting, resetSettings } = useSettings()
   const [tab, setTab] = useState<'appearance' | 'layout' | 'performance' | 'connection'>('appearance')
   const [connectionInfo, setConnectionInfo] = useState<{ configured: boolean; source?: string; openclawUrl?: string } | null>(null)
+  const [connectionError, setConnectionError] = useState(false)
 
   // Fetch connection info when connection tab is opened
   const loadConnectionInfo = () => {
-    fetch('/api/connection').then(r => r.json()).then(setConnectionInfo).catch(() => {})
+    setConnectionInfo(null) // Clear stale data so user sees a fresh load
+    setConnectionError(false)
+    fetch('/api/connection')
+      .then(r => {
+        if (!r.ok) throw new Error('API error')
+        return r.json()
+      })
+      .then(data => { setConnectionInfo(data); setConnectionError(false) })
+      .catch(() => setConnectionError(true))
   }
 
   if (!open) return null
@@ -316,6 +325,17 @@ export function PreferencesModal({ open, onClose }: Props) {
                     Reconfigure Connection
                     <ExternalLink className="w-3 h-3 ml-auto text-[var(--text-muted)]" />
                   </a>
+                </div>
+              ) : connectionError ? (
+                <div className="text-center space-y-3 py-4">
+                  <XCircle className="w-6 h-6 text-[var(--text-muted)] mx-auto" />
+                  <p className="text-sm text-[var(--text-secondary)]">Could not load connection info</p>
+                  <button
+                    onClick={loadConnectionInfo}
+                    className="px-4 py-1.5 rounded-lg bg-white/[0.06] text-[var(--text-secondary)] text-xs hover:bg-white/[0.1] transition-colors"
+                  >
+                    Retry
+                  </button>
                 </div>
               ) : (
                 <div className="flex items-center justify-center py-8">

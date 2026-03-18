@@ -20,11 +20,13 @@ export default function SetupPage() {
   const [showApiKey, setShowApiKey] = useState(false)
   const [testing, setTesting] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [testResults, setTestResults] = useState<TestResults | null>(null)
   const [alreadyConfigured, setAlreadyConfigured] = useState(false)
   const [step, setStep] = useState(1) // 1 = welcome, 2 = configure
   const [hasHistory, setHasHistory] = useState(false)
   const [isReconfiguring, setIsReconfiguring] = useState(false)
+  const [initError, setInitError] = useState('')
 
   // Check if already configured
   useEffect(() => {
@@ -44,7 +46,11 @@ export default function SetupPage() {
           setStep(2) // Skip welcome if reconfiguring
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        // App API unreachable — show setup form anyway so user isn't stuck
+        // This can happen during first launch while the server is still starting
+        setInitError('The app is still starting up. If this persists, restart Mission Control.')
+      })
   }, [router])
 
   async function testConnection() {
@@ -69,6 +75,7 @@ export default function SetupPage() {
 
   async function saveAndContinue() {
     setSaving(true)
+    setSaveError('')
     try {
       const res = await fetch('/api/connection', {
         method: 'POST',
@@ -77,9 +84,12 @@ export default function SetupPage() {
       })
       if (res.ok) {
         router.push('/')
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setSaveError(data.error || 'Could not save settings. Please try again.')
       }
     } catch {
-      // Failed to save
+      setSaveError('Could not save settings. Check that the app is running and try again.')
     }
     setSaving(false)
   }
@@ -126,6 +136,14 @@ export default function SetupPage() {
             disabled={!isReconfiguring && step === 1 && !hasHistory}
           />
         </div>
+
+        {/* Init warning */}
+        {initError && (
+          <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-amber-400/10 border border-amber-400/20 text-sm text-amber-400">
+            <svg className="w-4 h-4 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            <span>{initError}</span>
+          </div>
+        )}
 
         {/* Step 1: Welcome */}
         {step === 1 && (
@@ -282,6 +300,14 @@ export default function SetupPage() {
                       detail={testResults.openrouter.ok ? `$${testResults.openrouter.credits.toFixed(2)} credits` : testResults.openrouter.error}
                     />
                   )}
+                </div>
+              )}
+
+              {/* Save error */}
+              {saveError && (
+                <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-red-400/10 border border-red-400/20 text-sm text-red-400">
+                  <XCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{saveError}</span>
                 </div>
               )}
 
