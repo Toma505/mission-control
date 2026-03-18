@@ -28,12 +28,33 @@ export default function SetupPage() {
   const [isReconfiguring, setIsReconfiguring] = useState(false)
   const [initError, setInitError] = useState('')
 
-  // Check if already configured
+  // Check license and configuration on mount
   useEffect(() => {
     const reconfiguring = window.location.search.includes('reconfigure')
     setIsReconfiguring(reconfiguring)
     setHasHistory(window.history.length > 1)
 
+    // In Electron, verify license before allowing setup (unless reconfiguring)
+    if (!reconfiguring && window.electronAPI?.checkLicense) {
+      window.electronAPI.checkLicense()
+        .then(result => {
+          if (!result.valid) {
+            router.push('/activate')
+            return
+          }
+          // License valid — proceed with configuration check
+          checkConfiguration(reconfiguring)
+        })
+        .catch(() => {
+          // IPC failed — still check configuration so user isn't stuck
+          checkConfiguration(reconfiguring)
+        })
+    } else {
+      checkConfiguration(reconfiguring)
+    }
+  }, [router]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  function checkConfiguration(reconfiguring: boolean) {
     fetch('/api/connection')
       .then(r => r.json())
       .then(data => {
@@ -51,7 +72,7 @@ export default function SetupPage() {
         // This can happen during first launch while the server is still starting
         setInitError('The app is still starting up. If this persists, restart Mission Control.')
       })
-  }, [router])
+  }
 
   async function testConnection() {
     setTesting(true)

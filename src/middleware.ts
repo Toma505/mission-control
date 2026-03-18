@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 
 /**
  * Middleware handles two things:
- * 1. Redirects unconfigured users to /setup on first run
+ * 1. Redirects unconfigured users to /activate (if unlicensed) or /setup (if licensed) on first run
  * 2. Blocks API requests from non-localhost origins (security)
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // ─── Setup redirect for page navigations ────────────────────
+  // ─── Setup / activation redirect for page navigations ───────
   if (
     !pathname.startsWith('/api') &&
     !pathname.startsWith('/setup') &&
@@ -22,12 +22,20 @@ export async function middleware(request: NextRequest) {
       const data = await res.json()
 
       if (!data.configured) {
-        return NextResponse.redirect(new URL('/setup', request.url))
+        // Not configured — check license before deciding where to send them
+        const destination = await getUnconfiguredDestination(baseUrl)
+        return NextResponse.redirect(new URL(destination, request.url))
       }
     } catch {
-      // If the connection API itself is unreachable, redirect to setup
-      // so users don't land on a broken dashboard with no guidance
-      return NextResponse.redirect(new URL('/setup', request.url))
+      // If the connection API itself is unreachable, check license to decide
+      // between /activate and /setup so users don't skip activation
+      try {
+        const baseUrl = request.nextUrl.origin
+        const destination = await getUnconfiguredDestination(baseUrl)
+        return NextResponse.redirect(new URL(destination, request.url))
+      } catch {
+        return NextResponse.redirect(new URL('/activate', request.url))
+      }
     }
 
     return NextResponse.next()
@@ -50,6 +58,21 @@ export async function middleware(request: NextRequest) {
   }
 
   return NextResponse.next()
+}
+
+/**
+ * Checks license status to decide where unconfigured users should land.
+ * Licensed users go to /setup; unlicensed users go to /activate first.
+ */
+async function getUnconfiguredDestination(baseUrl: string): Promise<string> {
+  try {
+    const res = await fetch(`${baseUrl}/api/license`, { cache: 'no-store' })
+    const data = await res.json()
+    return data.licensed ? '/setup' : '/activate'
+  } catch {
+    // If license API is unreachable, default to /activate (safer — don't skip activation)
+    return '/activate'
+  }
 }
 
 export const config = {
