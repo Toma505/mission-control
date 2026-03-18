@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { sanitizeError } from '@/lib/sanitize-error'
 import { isConfigured } from '@/lib/openclaw'
 import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
 import { getEffectiveConfig } from '@/lib/connection-config'
@@ -55,7 +56,6 @@ export async function POST(request: NextRequest) {
       hint: 'The plugin could not be installed automatically. Try running: openclaw plugins install ' + skillName,
     }, { status: 500 })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Install failed'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return NextResponse.json({ error: sanitizeError(error, 'Install failed') }, { status: 500 })
   }
 }

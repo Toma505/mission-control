@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { sanitizeError } from '@/lib/sanitize-error'
 import { isConfigured, getOpenClawLogs, getOpenClawSystemStatus, parseStatusOutput } from '@/lib/openclaw'
 
 export async function GET() {
@@ -43,7 +44,6 @@ export async function GET() {
 
     return NextResponse.json({ connected: true, recaps })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return NextResponse.json({ connected: false, error: message, recaps: [] })
+    return NextResponse.json({ connected: false, error: sanitizeError(error, 'Could not fetch weekly recaps'), recaps: [] })
   }
 }

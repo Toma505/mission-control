@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { sanitizeError } from '@/lib/sanitize-error'
 import { isConfigured, getOpenClawConfig } from '@/lib/openclaw'
 
 export async function GET() {
@@ -30,7 +31,6 @@ export async function GET() {
 
     return NextResponse.json({ connected: true, clients })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return NextResponse.json({ connected: false, error: message, clients: [] })
+    return NextResponse.json({ connected: false, error: sanitizeError(error, 'Could not fetch client data'), clients: [] })
   }
 }

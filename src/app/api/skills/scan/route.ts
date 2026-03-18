@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { sanitizeError } from '@/lib/sanitize-error'
 import JSZip from 'jszip'
 import { generateReport } from '@/lib/skill-scanner'
 import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
@@ -64,7 +65,6 @@ export async function POST(request: NextRequest) {
       report,
     })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Scan failed'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return NextResponse.json({ error: sanitizeError(error, 'Scan failed') }, { status: 500 })
   }
 }

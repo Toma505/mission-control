@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { sanitizeError } from '@/lib/sanitize-error'
 import {
   isConfigured,
   getOpenClawConfig,
@@ -72,7 +73,6 @@ export async function GET() {
       memory: status.memory,
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return NextResponse.json({ connected: false, error: message, agents: [], sessions: [] })
+    return NextResponse.json({ connected: false, error: sanitizeError(error, 'Could not fetch agent data'), agents: [], sessions: [] })
   }
 }

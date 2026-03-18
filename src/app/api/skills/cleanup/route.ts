@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { sanitizeError } from '@/lib/sanitize-error'
 import { isConfigured, getOpenClawConfig } from '@/lib/openclaw'
 import { getEffectiveConfig } from '@/lib/connection-config'
 
@@ -59,7 +60,6 @@ export async function POST() {
 
     return NextResponse.json({ ok: true, message: 'Removed stale plugin entry' })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Cleanup failed'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return NextResponse.json({ error: sanitizeError(error, 'Cleanup failed') }, { status: 500 })
   }
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { sanitizeError } from '@/lib/sanitize-error'
 import { readConnectionConfig, writeConnectionConfig } from '@/lib/connection-config'
 
 export async function GET() {
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true })
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to save connection' },
+      { error: sanitizeError(error, 'Failed to save connection settings') },
       { status: 500 }
     )
   }

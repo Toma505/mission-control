@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { sanitizeError } from '@/lib/sanitize-error'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { getEffectiveConfig, DATA_DIR } from '@/lib/connection-config'
@@ -146,7 +147,7 @@ export async function GET() {
     })
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to fetch budget' },
+      { error: sanitizeError(error, 'Failed to fetch budget') },
       { status: 500 }
     )
   }
@@ -170,7 +171,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ ok: true, budget: updated })
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to save budget' },
+      { error: sanitizeError(error, 'Failed to save budget') },
       { status: 500 }
     )
   }

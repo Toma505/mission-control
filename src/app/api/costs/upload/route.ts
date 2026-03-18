@@ -286,9 +286,8 @@ export async function POST(request: NextRequest) {
         message = 'Disk is full. Free up space and try again.'
       } else if (error.message.includes('EACCES') || error.message.includes('EPERM')) {
         message = 'Permission denied writing data. Check that the app has write access to its data directory.'
-      } else {
-        message = `Upload failed: ${error.message}`
       }
+      // Default case intentionally uses generic 'Upload failed' — never leak raw error.message
     }
     return NextResponse.json({ error: message }, { status: 500 })
   }
