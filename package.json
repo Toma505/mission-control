@@ -11,9 +11,10 @@
   "main": "electron/main.prod.js",
   "scripts": {
     "dev": "next dev -H 127.0.0.1",
-    "build": "next build && node electron/prepare-standalone.js",
+    "build": "npm run db:generate && next build && node electron/prepare-standalone.js",
     "start": "next start",
     "lint": "eslint",
+    "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
@@ -26,7 +27,8 @@
     "dist:win": "npm run prepare:icon && npm run build && electron-builder --win",
     "dist:mac": "npm run prepare:icon && npm run build && electron-builder --mac",
     "dist:linux": "npm run prepare:icon && npm run build && electron-builder --linux",
-    "generate:keys": "node scripts/generate-license.js"
+    "generate:keys": "node scripts/generate-license.js",
+    "postinstall": "npm run db:generate"
   },
   "build": {
     "appId": "com.openclaw.mission-control",
