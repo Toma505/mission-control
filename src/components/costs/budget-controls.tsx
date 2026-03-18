@@ -28,16 +28,20 @@ export function BudgetControls() {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
 
-  const fetchBudget = () => {
+  const fetchBudget = (updateForm = true) => {
     fetch('/api/budget')
       .then(r => r.json())
       .then(d => {
         if (!d.error) {
           setData(d)
           setLoadError(false)
-          setDailyLimit(String(d.budget.dailyLimit))
-          setMonthlyLimit(String(d.budget.monthlyLimit))
-          setAutoThrottle(d.budget.autoThrottle)
+          // Only update form fields if not currently editing
+          // (auto-refresh was overwriting user input mid-edit)
+          if (updateForm) {
+            setDailyLimit(String(d.budget.dailyLimit))
+            setMonthlyLimit(String(d.budget.monthlyLimit))
+            setAutoThrottle(d.budget.autoThrottle)
+          }
         } else {
           setLoadError(true)
         }
@@ -46,10 +50,10 @@ export function BudgetControls() {
   }
 
   useEffect(() => {
-    fetchBudget()
-    const interval = setInterval(fetchBudget, 30000)
+    fetchBudget(true)
+    const interval = setInterval(() => fetchBudget(!editing), 30000)
     return () => clearInterval(interval)
-  }, [])
+  }, [editing])
 
   const save = async () => {
     setSaving(true)
@@ -85,7 +89,7 @@ export function BudgetControls() {
             <p className="text-sm text-text-secondary">Could not load budget data</p>
             <p className="text-xs text-text-muted">Make sure OpenClaw is running and your connection is configured.</p>
             <button
-              onClick={fetchBudget}
+              onClick={() => fetchBudget(true)}
               className="px-4 py-1.5 rounded-lg bg-white/[0.06] text-text-secondary text-xs hover:bg-white/[0.1] transition-colors"
             >
               Retry
