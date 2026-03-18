@@ -3,7 +3,7 @@
  * Cross-platform: Windows, macOS, Linux.
  */
 
-const { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain, dialog } = require('electron')
+const { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain, dialog, clipboard } = require('electron')
 const { spawn } = require('child_process')
 const path = require('path')
 const net = require('net')
@@ -27,6 +27,9 @@ function getUserDataPath() {
 const userDataPath = getUserDataPath()
 try { fs.mkdirSync(userDataPath, { recursive: true }) } catch {}
 app.setPath('userData', userDataPath)
+const logsPath = path.join(userDataPath, 'logs')
+try { fs.mkdirSync(logsPath, { recursive: true }) } catch {}
+app.setAppLogsPath(logsPath)
 
 let mainWindow = null
 let tray = null
@@ -73,6 +76,14 @@ function getIconPath() {
   const pngPath = path.join(__dirname, 'icon.png')
   if (fs.existsSync(pngPath)) return pngPath
   return path.join(__dirname, 'icon.ico')
+}
+
+function getDataDir() {
+  return path.join(userDataPath, 'data')
+}
+
+function getLogsPath() {
+  return app.getPath('logs')
 }
 
 function createWindow() {
@@ -254,6 +265,50 @@ ipcMain.on('window-maximize', () => {
 })
 ipcMain.on('window-close', () => mainWindow?.close())
 ipcMain.handle('get-platform', () => process.platform)
+ipcMain.handle('get-desktop-diagnostics', async () => {
+  let autoLaunchEnabled = false
+  try { autoLaunchEnabled = await autoLauncher.isEnabled() } catch {}
+
+  return {
+    appName: app.getName(),
+    appVersion: app.getVersion(),
+    electronVersion: process.versions.electron,
+    chromiumVersion: process.versions.chrome,
+    nodeVersion: process.versions.node,
+    platform: process.platform,
+    arch: process.arch,
+    isPackaged: app.isPackaged,
+    port: PORT,
+    paths: {
+      appPath: app.getAppPath(),
+      execPath: process.execPath,
+      userData: userDataPath,
+      data: getDataDir(),
+      logs: getLogsPath(),
+      settingsFile: DESKTOP_SETTINGS_FILE,
+      licenseFile: path.join(userDataPath, 'license.json'),
+    },
+    features: {
+      autoLaunchEnabled,
+      closeToTrayEnabled: isCloseToTrayEnabled(),
+    },
+    updateStatus: { status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null },
+  }
+})
+ipcMain.handle('open-data-directory', async () => {
+  try { fs.mkdirSync(getDataDir(), { recursive: true }) } catch {}
+  const result = await shell.openPath(getDataDir())
+  return result ? { ok: false, error: result } : { ok: true }
+})
+ipcMain.handle('open-logs-directory', async () => {
+  try { fs.mkdirSync(getLogsPath(), { recursive: true }) } catch {}
+  const result = await shell.openPath(getLogsPath())
+  return result ? { ok: false, error: result } : { ok: true }
+})
+ipcMain.handle('copy-text', (_, text) => {
+  clipboard.writeText(String(text || ''))
+  return { ok: true }
+})
 ipcMain.handle('quit-app', () => {
   app.isQuitting = true
   app.quit()

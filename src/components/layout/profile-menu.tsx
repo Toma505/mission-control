@@ -6,6 +6,7 @@ import {
   ArrowUpRight,
   CheckCircle2,
   ChevronDown,
+  Info,
   KeyRound,
   Loader2,
   LogOut,
@@ -13,6 +14,7 @@ import {
   Rocket,
   ShieldCheck,
 } from 'lucide-react'
+import { AboutDiagnosticsModal } from './about-diagnostics-modal'
 
 type ElectronAPI = {
   checkLicense?: () => Promise<{ valid: boolean; email: string | null }>
@@ -86,6 +88,7 @@ export function ProfileMenu() {
   const router = useRouter()
   const menuRef = useRef<HTMLDivElement | null>(null)
   const [open, setOpen] = useState(false)
+  const [aboutOpen, setAboutOpen] = useState(false)
   const [modeInfo, setModeInfo] = useState<ModeInfo>({ connected: false, mode: 'offline' })
   const [connectionInfo, setConnectionInfo] = useState<ConnectionInfo>({ configured: false })
   const [licenseInfo, setLicenseInfo] = useState<{ valid: boolean; email: string | null }>({ valid: false, email: null })
@@ -213,7 +216,18 @@ export function ProfileMenu() {
   }
 
   return (
-    <div className="relative electron-no-drag" ref={menuRef}>
+    <>
+      <AboutDiagnosticsModal
+        open={aboutOpen}
+        onClose={() => setAboutOpen(false)}
+        modeInfo={modeInfo}
+        connectionInfo={connectionInfo}
+        licenseInfo={licenseInfo}
+        autoLaunchEnabled={autoLaunchEnabled}
+        closeToTrayEnabled={closeToTrayEnabled}
+      />
+
+      <div className="relative electron-no-drag" ref={menuRef}>
       <button
         onClick={() => setOpen(prev => !prev)}
         className={`flex items-center gap-1 rounded-full pl-0 pr-1 h-7 transition-all duration-200 ${
@@ -274,6 +288,15 @@ export function ProfileMenu() {
               onClick={() => openRoute('/activate')}
             />
             <MenuButton
+              icon={<Info className="w-4 h-4" />}
+              label="About & Diagnostics"
+              description="Version details, local paths, and support tools"
+              onClick={() => {
+                setOpen(false)
+                setAboutOpen(true)
+              }}
+            />
+            <MenuButton
               icon={updateBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
               label="Check for Updates"
               description="Look for the latest Mission Control desktop build"
@@ -318,7 +341,8 @@ export function ProfileMenu() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
 

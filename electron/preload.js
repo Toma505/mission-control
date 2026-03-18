@@ -13,6 +13,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Platform info
   getPlatform: () => ipcRenderer.invoke('get-platform'),
+  getDesktopDiagnostics: () => ipcRenderer.invoke('get-desktop-diagnostics'),
+  openDataDirectory: () => ipcRenderer.invoke('open-data-directory'),
+  openLogsDirectory: () => ipcRenderer.invoke('open-logs-directory'),
+  copyText: (text) => ipcRenderer.invoke('copy-text', text),
 
   // Auto-launch (start on login)
   getAutoLaunch: () => ipcRenderer.invoke('get-auto-launch'),

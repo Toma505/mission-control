@@ -6,7 +6,7 @@
  * Cross-platform: Windows, macOS, Linux.
  */
 
-const { app, BrowserWindow, Tray, Menu, shell, ipcMain, nativeImage, dialog } = require('electron')
+const { app, BrowserWindow, Tray, Menu, shell, ipcMain, nativeImage, dialog, clipboard } = require('electron')
 const { fork, spawn } = require('child_process')
 const path = require('path')
 const net = require('net')
@@ -32,6 +32,9 @@ function getUserDataPath() {
 const userDataPath = getUserDataPath()
 try { fs.mkdirSync(userDataPath, { recursive: true }) } catch {}
 app.setPath('userData', userDataPath)
+const logsPath = path.join(userDataPath, 'logs')
+try { fs.mkdirSync(logsPath, { recursive: true }) } catch {}
+app.setAppLogsPath(logsPath)
 
 let mainWindow = null
 let splashWindow = null
@@ -100,6 +103,10 @@ function getIconPath() {
 // Connection config and budget data persist in userData, not the app bundle
 function getDataDir() {
   return path.join(userDataPath, 'data')
+}
+
+function getLogsPath() {
+  return app.getPath('logs')
 }
 
 function ensureDataDir() {
@@ -190,6 +197,53 @@ ipcMain.handle('activate-license', (_, { key, email }) => {
 })
 
 ipcMain.handle('get-platform', () => process.platform)
+
+async function getDesktopDiagnostics() {
+  let autoLaunchEnabled = false
+  try { autoLaunchEnabled = await autoLauncher.isEnabled() } catch {}
+
+  return {
+    appName: app.getName(),
+    appVersion: app.getVersion(),
+    electronVersion: process.versions.electron,
+    chromiumVersion: process.versions.chrome,
+    nodeVersion: process.versions.node,
+    platform: process.platform,
+    arch: process.arch,
+    isPackaged: app.isPackaged,
+    port: PORT,
+    paths: {
+      appPath: app.getAppPath(),
+      execPath: process.execPath,
+      userData: userDataPath,
+      data: getDataDir(),
+      logs: getLogsPath(),
+      settingsFile: DESKTOP_SETTINGS_FILE,
+      licenseFile: LICENSE_FILE,
+    },
+    features: {
+      autoLaunchEnabled,
+      closeToTrayEnabled: isCloseToTrayEnabled(),
+    },
+    updateStatus,
+  }
+}
+
+ipcMain.handle('get-desktop-diagnostics', () => getDesktopDiagnostics())
+ipcMain.handle('open-data-directory', async () => {
+  try { fs.mkdirSync(getDataDir(), { recursive: true }) } catch {}
+  const result = await shell.openPath(getDataDir())
+  return result ? { ok: false, error: result } : { ok: true }
+})
+ipcMain.handle('open-logs-directory', async () => {
+  try { fs.mkdirSync(getLogsPath(), { recursive: true }) } catch {}
+  const result = await shell.openPath(getLogsPath())
+  return result ? { ok: false, error: result } : { ok: true }
+})
+ipcMain.handle('copy-text', (_, text) => {
+  clipboard.writeText(String(text || ''))
+  return { ok: true }
+})
 
 // ─── Auto Launch ────────────────────────────────────────────
 
