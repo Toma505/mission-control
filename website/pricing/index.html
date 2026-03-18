@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing — Mission Control for OpenClaw | From $29 One-Time</title>
+  <meta name="description" content="Mission Control pricing starts at $29 one-time. Personal, Pro, and Team plans. All include auto-throttle, agent monitoring, and a 7-day free trial. No subscription.">
+  <meta name="keywords" content="Mission Control pricing, OpenClaw pricing, AI agent dashboard cost, one-time purchase, no subscription">
+  <meta name="author" content="Mission Control">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://missioncontrol.openclaw.dev/pricing/">
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Pricing — Mission Control for OpenClaw | From $29 One-Time">
+  <meta property="og:description" content="Mission Control pricing starts at $29 one-time. Personal, Pro, and Team plans. All include auto-throttle, agent monitoring, and a 7-day free trial. No subscription.">
+  <meta property="og:url" content="https://missioncontrol.openclaw.dev/pricing/">
+  <meta property="og:image" content="https://missioncontrol.openclaw.dev/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="Mission Control">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Pricing — Mission Control for OpenClaw | From $29 One-Time">
+  <meta name="twitter:description" content="Mission Control pricing starts at $29 one-time. Personal, Pro, and Team plans. All include auto-throttle, agent monitoring, and a 7-day free trial. No subscription.">
+  <meta name="twitter:image" content="https://missioncontrol.openclaw.dev/og-image.png">
+
+  <!-- Structured Data: BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://missioncontrol.openclaw.dev/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Pricing",
+        "item": "https://missioncontrol.openclaw.dev/pricing/"
+      }
+    ]
+  }
+  </script>
+
+  <!-- Structured Data: Offers -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Mission Control",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Windows 10+, macOS 12+, Linux",
+    "url": "https://missioncontrol.openclaw.dev/pricing/",
+    "offers": [
+      {
+        "@type": "Offer",
+        "name": "Personal",
+        "price": "29",
+        "priceCurrency": "USD",
+        "description": "1 OpenClaw instance, 1 machine, all dashboard features, auto-throttle & budget, 1 year updates",
+        "priceValidUntil": "2027-12-31",
+        "availability": "https://schema.org/InStock"
+      },
+      {
+        "@type": "Offer",
+        "name": "Pro",
+        "price": "59",
+        "priceCurrency": "USD",
+        "description": "Unlimited instances, 3 machines, everything in Personal, pipeline job tracking, priority support, 1 year updates",
+        "priceValidUntil": "2027-12-31",
+        "availability": "https://schema.org/InStock"
+      },
+      {
+        "@type": "Offer",
+        "name": "Team",
+        "price": "149",
+        "priceCurrency": "USD",
+        "description": "Unlimited everything, 10 machines, everything in Pro, multi-user (coming soon), lifetime updates",
+        "priceValidUntil": "2027-12-31",
+        "availability": "https://schema.org/InStock"
+      }
+    ]
+  }
+  </script>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#09090b">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #050507;
+      --bg-subtle: #0a0a0e;
+      --bg-card: rgba(255,255,255,0.025);
+      --border: rgba(255,255,255,0.06);
+      --border-hover: rgba(255,255,255,0.12);
+      --text: #f0f0f3;
+      --text-secondary: #8b8b95;
+      --text-muted: #4a4a52;
+      --accent: #3b82f6;
+      --accent-light: #60a5fa;
+      --accent-glow: rgba(59,130,246,0.15);
+      --accent-glow-strong: rgba(59,130,246,0.25);
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --purple: #a855f7;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+    section { padding: 120px 0; position: relative; }
+
+    /* ─── Scroll Reveal ─── */
+    .reveal {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+    .reveal-delay-6 { transition-delay: 0.6s; }
+    .reveal-delay-7 { transition-delay: 0.7s; }
+
+    /* ─── Nav ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(5,5,7,0.75);
+      backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+    nav .container {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 15px; color: var(--text);
+      text-decoration: none; letter-spacing: -0.01em;
+    }
+    .nav-icon {
+      width: 34px; height: 34px; border-radius: 9px;
+      background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(168,85,247,0.15));
+      border: 1px solid rgba(59,130,246,0.25);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 12px rgba(59,130,246,0.1);
+    }
+    .nav-icon svg { width: 16px; height: 16px; }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a {
+      color: var(--text-secondary); text-decoration: none; font-size: 13.5px;
+      font-weight: 500; transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-links a.active { color: var(--text); }
+    .nav-cta {
+      background: var(--accent) !important; color: #fff !important;
+      padding: 8px 20px; border-radius: 8px; font-weight: 600 !important;
+      font-size: 13px !important;
+      transition: all 0.2s !important;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    .nav-cta:hover { box-shadow: 0 0 24px var(--accent-glow-strong); transform: translateY(-1px); }
+    .nav-toggle {
+      display: none; background: none; border: none; color: var(--text);
+      cursor: pointer; padding: 4px;
+    }
+
+    /* ─── Breadcrumbs ─── */
+    .breadcrumbs {
+      padding-top: 88px; padding-bottom: 0;
+    }
+    .breadcrumbs ol {
+      list-style: none; display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--text-muted);
+    }
+    .breadcrumbs a {
+      color: var(--text-muted); text-decoration: none; transition: color 0.2s;
+    }
+    .breadcrumbs a:hover { color: var(--text-secondary); }
+    .breadcrumbs .sep { color: var(--text-muted); }
+    .breadcrumbs .current { color: var(--text-secondary); }
+
+    /* ─── Page Header ─── */
+    .page-header {
+      text-align: center;
+      padding: 80px 0 0;
+    }
+    .page-header h1 {
+      font-size: 44px; font-weight: 800; letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0.7) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .page-header .subtitle {
+      font-size: 18px; color: var(--text-secondary); max-width: 500px;
+      margin: 0 auto; line-height: 1.6;
+    }
+
+    /* ─── Section labels ─── */
+    .section-label {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+      color: var(--accent); text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .section-label .line {
+      width: 20px; height: 1px; background: var(--accent); opacity: 0.5;
+    }
+
+    /* ─── Pricing Grid ─── */
+    .pricing { padding-top: 80px; }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 16px; max-width: 940px; margin: 0 auto;
+    }
+    .pricing-card {
+      padding: 36px; border-radius: 16px;
+      background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+      position: relative; transition: all 0.3s;
+    }
+    .pricing-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+    .pricing-card.featured {
+      border-color: rgba(59,130,246,0.4);
+      background: linear-gradient(180deg, rgba(59,130,246,0.06) 0%, rgba(255,255,255,0.02) 100%);
+      box-shadow: 0 0 40px var(--accent-glow);
+    }
+    .pricing-card.featured:hover { box-shadow: 0 0 50px var(--accent-glow-strong), 0 20px 40px rgba(0,0,0,0.2); }
+    .pricing-badge {
+      position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      color: #fff;
+      padding: 5px 16px; border-radius: 100px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.03em;
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+    .pricing-tier {
+      font-size: 13px; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px;
+    }
+    .pricing-price {
+      font-size: 48px; font-weight: 900; letter-spacing: -0.04em; margin-bottom: 4px;
+    }
+    .pricing-price span { font-size: 16px; font-weight: 500; color: var(--text-muted); }
+    .pricing-desc { font-size: 14px; color: var(--text-secondary); margin-bottom: 28px; }
+    .pricing-features { list-style: none; margin-bottom: 32px; }
+    .pricing-features li {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 0; font-size: 14px; color: var(--text-secondary);
+    }
+    .pricing-features li svg { width: 16px; height: 16px; color: var(--green); flex-shrink: 0; }
+    .pricing-btn {
+      display: block; width: 100%; text-align: center;
+      padding: 13px; border-radius: 10px;
+      font-size: 14px; font-weight: 600;
+      text-decoration: none; transition: all 0.25s;
+    }
+    .pricing-btn.primary {
+      background: linear-gradient(135deg, var(--accent), #2563eb); color: #fff;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+    .pricing-btn.primary:hover { box-shadow: 0 6px 24px var(--accent-glow-strong); transform: translateY(-1px); }
+    .pricing-btn.secondary {
+      background: rgba(255,255,255,0.04); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .pricing-btn.secondary:hover { border-color: var(--border-hover); background: rgba(255,255,255,0.06); }
+    .pricing-note {
+      text-align: center; margin-top: 28px; font-size: 13px; color: var(--text-muted);
+    }
+
+    /* ─── Included Features Grid ─── */
+    .included {
+      padding: 100px 0;
+    }
+    .included h2 {
+      font-size: 32px; font-weight: 800; letter-spacing: -0.03em;
+      text-align: center; margin-bottom: 48px;
+    }
+    .included-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 16px; max-width: 940px; margin: 0 auto;
+    }
+    .included-card {
+      padding: 28px 24px; border-radius: 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .included-card:hover {
+      border-color: var(--border-hover);
+      background: rgba(255,255,255,0.035);
+      transform: translateY(-2px);
+    }
+    .included-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: rgba(59,130,246,0.08);
+      border: 1px solid rgba(59,130,246,0.15);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px;
+    }
+    .included-icon svg { width: 20px; height: 20px; color: var(--accent-light); }
+    .included-card h3 {
+      font-size: 14px; font-weight: 600; margin-bottom: 6px;
+    }
+    .included-card p {
+      font-size: 12.5px; color: var(--text-muted); line-height: 1.5;
+    }
+
+    /* ─── Comparison Table ─── */
+    .comparison {
+      padding: 80px 0 100px;
+    }
+    .comparison h2 {
+      font-size: 32px; font-weight: 800; letter-spacing: -0.03em;
+      text-align: center; margin-bottom: 48px;
+    }
+    .comparison-table {
+      max-width: 800px; margin: 0 auto;
+      border-collapse: collapse; width: 100%;
+    }
+    .comparison-table thead th {
+      padding: 16px 20px; font-size: 13px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-muted); text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .comparison-table thead th:first-child { text-align: left; }
+    .comparison-table thead th.featured-col { color: var(--accent-light); }
+    .comparison-table tbody td {
+      padding: 14px 20px; font-size: 14px; color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+    .comparison-table tbody td:first-child {
+      text-align: left; font-weight: 500; color: var(--text);
+    }
+    .comparison-table tbody tr:hover {
+      background: rgba(255,255,255,0.015);
+    }
+    .check {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(34,197,94,0.1);
+    }
+    .check svg { width: 14px; height: 14px; color: var(--green); }
+    .dash {
+      color: var(--text-muted); font-size: 18px;
+    }
+
+    /* ─── FAQ ─── */
+    .faq h2 {
+      font-size: 32px; font-weight: 800; letter-spacing: -0.03em;
+      text-align: center; margin-bottom: 48px;
+    }
+    .faq-list { max-width: 680px; margin: 0 auto; }
+    .faq-item {
+      border-bottom: 1px solid var(--border); padding: 0;
+    }
+    .faq-item summary {
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      list-style: none;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 22px 0;
+      transition: color 0.2s;
+    }
+    .faq-item summary:hover { color: var(--accent-light); }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary::after {
+      content: '+'; font-size: 22px; color: var(--text-muted);
+      font-weight: 300; transition: transform 0.3s, color 0.3s;
+      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; background: rgba(255,255,255,0.03);
+    }
+    .faq-item[open] summary::after { content: '-'; color: var(--accent); background: var(--accent-glow); }
+    .faq-item p {
+      padding: 0 0 22px; font-size: 14.5px; color: var(--text-secondary); line-height: 1.75;
+    }
+
+    /* ─── CTA ─── */
+    .cta {
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta::before {
+      content: '';
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 1000px; height: 500px;
+      background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .cta h2 {
+      font-size: 44px; font-weight: 800; letter-spacing: -0.03em;
+      margin-bottom: 16px; position: relative;
+    }
+    .cta p { color: var(--text-secondary); font-size: 17px; margin-bottom: 36px; position: relative; }
+    .gradient-text {
+      background: linear-gradient(135deg, var(--accent-light), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ─── Buttons ─── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 32px; border-radius: 12px;
+      font-size: 15px; font-weight: 600; text-decoration: none;
+      transition: all 0.25s;
+    }
+    .btn svg { width: 18px; height: 18px; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #2563eb); color: #fff;
+      box-shadow: 0 4px 24px var(--accent-glow);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 32px var(--accent-glow-strong);
+      transform: translateY(-2px);
+    }
+    .hero-buttons { display: flex; gap: 16px; justify-content: center; position: relative; }
+
+    /* ─── Footer ─── */
+    footer {
+      padding: 48px 0;
+      border-top: 1px solid var(--border);
+    }
+    .footer-grid {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .footer-brand {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 600; font-size: 14px; color: var(--text-muted);
+    }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a {
+      color: var(--text-muted); text-decoration: none; font-size: 13px;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text-secondary); }
+    .footer-copy { font-size: 13px; color: var(--text-muted); }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 1024px) {
+      .included-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .pricing-grid { grid-template-columns: 1fr; max-width: 380px; }
+      .included-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .comparison-table { font-size: 13px; }
+      .comparison-table thead th,
+      .comparison-table tbody td { padding: 12px 10px; }
+      .nav-toggle { display: flex; }
+      .nav-links {
+        display: none; position: absolute; top: 64px; left: 0; right: 0;
+        flex-direction: column; gap: 0; padding: 8px 24px 16px;
+        background: rgba(5,5,7,0.95); backdrop-filter: blur(24px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 12px 0; border-bottom: 1px solid var(--border); }
+      .nav-links a:last-child { border-bottom: none; }
+      .nav-links .nav-cta { text-align: center; margin-top: 8px; }
+      section { padding: 80px 0; }
+      .page-header { padding: 60px 0 0; }
+      .page-header h1 { font-size: 32px; }
+      .cta h2 { font-size: 32px; }
+      .footer-grid { flex-direction: column; gap: 16px; text-align: center; }
+    }
+    @media (max-width: 480px) {
+      .included-grid { grid-template-columns: 1fr; max-width: 320px; margin: 0 auto; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── Nav ─── -->
+<nav>
+  <div class="container">
+    <a href="/" class="nav-brand">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+      </div>
+      Mission Control
+    </a>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle menu">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/features/">Features</a>
+      <a href="/pricing/" class="active">Pricing</a>
+      <a href="/faq/">FAQ</a>
+      <a href="/download/" class="nav-cta">Download</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── Breadcrumbs ─── -->
+<div class="breadcrumbs container">
+  <ol>
+    <li><a href="/">Home</a></li>
+    <li class="sep">/</li>
+    <li class="current">Pricing</li>
+  </ol>
+</div>
+
+<!-- ─── Page Header ─── -->
+<section class="page-header">
+  <div class="container">
+    <h1 class="reveal">Simple, honest pricing for OpenClaw operators</h1>
+    <p class="subtitle reveal reveal-delay-1">Pay once, use forever. Free updates for a year.</p>
+  </div>
+</section>
+
+<!-- ─── Pricing Grid ─── -->
+<section class="pricing">
+  <div class="container">
+    <div class="pricing-grid">
+      <div class="pricing-card reveal">
+        <div class="pricing-tier">Personal</div>
+        <div class="pricing-price">$29 <span>one-time</span></div>
+        <div class="pricing-desc">For solo OpenClaw operators</div>
+        <ul class="pricing-features">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 1 OpenClaw instance</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 1 machine</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> All dashboard features</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Auto-throttle & budget</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 1 year of updates</li>
+        </ul>
+        <a href="/download/" class="pricing-btn secondary">Get Started</a>
+      </div>
+      <div class="pricing-card featured reveal reveal-delay-1">
+        <div class="pricing-badge">MOST POPULAR</div>
+        <div class="pricing-tier">Pro</div>
+        <div class="pricing-price">$59 <span>one-time</span></div>
+        <div class="pricing-desc">For power users and agencies</div>
+        <ul class="pricing-features">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Unlimited instances</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 3 machines</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Everything in Personal</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Pipeline job tracking</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Priority support</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 1 year of updates</li>
+        </ul>
+        <a href="/download/" class="pricing-btn primary">Get Started</a>
+      </div>
+      <div class="pricing-card reveal reveal-delay-2">
+        <div class="pricing-tier">Team</div>
+        <div class="pricing-price">$149 <span>one-time</span></div>
+        <div class="pricing-desc">For teams running multiple agents</div>
+        <ul class="pricing-features">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Unlimited everything</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 10 machines</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Everything in Pro</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Multi-user (coming soon)</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Lifetime updates</li>
+        </ul>
+        <a href="/download/" class="pricing-btn secondary">Get Started</a>
+      </div>
+    </div>
+    <p class="pricing-note reveal">All plans include a 7-day free trial. No credit card required.</p>
+  </div>
+</section>
+
+<!-- ─── What's Included ─── -->
+<section class="included">
+  <div class="container">
+    <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> EVERY PLAN <span class="line"></span></div>
+    <h2 class="reveal">What's included in every plan</h2>
+    <div class="included-grid">
+      <div class="included-card reveal">
+        <div class="included-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <h3>Agent monitoring</h3>
+        <p>Real-time status, heartbeat, and latency tracking</p>
+      </div>
+      <div class="included-card reveal reveal-delay-1">
+        <div class="included-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h3>Auto-throttle</h3>
+        <p>Automatic model switching when budgets are hit</p>
+      </div>
+      <div class="included-card reveal reveal-delay-2">
+        <div class="included-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <h3>Cost analytics</h3>
+        <p>OpenRouter spend tracking with CSV import</p>
+      </div>
+      <div class="included-card reveal reveal-delay-3">
+        <div class="included-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h3>Mode switching</h3>
+        <p>One-click Performance, Standard, Budget modes</p>
+      </div>
+      <div class="included-card reveal reveal-delay-4">
+        <div class="included-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        <h3>Setup wizard</h3>
+        <p>Guided onboarding in under 2 minutes</p>
+      </div>
+      <div class="included-card reveal reveal-delay-5">
+        <div class="included-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </div>
+        <h3>Themes & customization</h3>
+        <p>3 themes with customizable accent colors</p>
+      </div>
+      <div class="included-card reveal reveal-delay-6">
+        <div class="included-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        </div>
+        <h3>Offline operation</h3>
+        <p>Works without internet, syncs when connected</p>
+      </div>
+      <div class="included-card reveal reveal-delay-7">
+        <div class="included-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </div>
+        <h3>Auto-updates</h3>
+        <p>Seamless updates during your plan period</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Comparison Table ─── -->
+<section class="comparison">
+  <div class="container">
+    <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> COMPARE <span class="line"></span></div>
+    <h2 class="reveal">Compare plans side by side</h2>
+    <div style="overflow-x: auto;">
+      <table class="comparison-table reveal">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Personal</th>
+            <th class="featured-col">Pro</th>
+            <th>Team</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Price</td>
+            <td>$29</td>
+            <td>$59</td>
+            <td>$149</td>
+          </tr>
+          <tr>
+            <td>OpenClaw instances</td>
+            <td>1</td>
+            <td>Unlimited</td>
+            <td>Unlimited</td>
+          </tr>
+          <tr>
+            <td>Machines</td>
+            <td>1</td>
+            <td>3</td>
+            <td>10</td>
+          </tr>
+          <tr>
+            <td>Agent monitoring</td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+          </tr>
+          <tr>
+            <td>Auto-throttle & budget</td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+          </tr>
+          <tr>
+            <td>Cost analytics</td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+          </tr>
+          <tr>
+            <td>Mode switching</td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+          </tr>
+          <tr>
+            <td>Setup wizard</td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+          </tr>
+          <tr>
+            <td>Themes & customization</td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+          </tr>
+          <tr>
+            <td>Pipeline job tracking</td>
+            <td><span class="dash">&mdash;</span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+          </tr>
+          <tr>
+            <td>Priority support</td>
+            <td><span class="dash">&mdash;</span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+            <td><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></td>
+          </tr>
+          <tr>
+            <td>Multi-user support</td>
+            <td><span class="dash">&mdash;</span></td>
+            <td><span class="dash">&mdash;</span></td>
+            <td>Coming soon</td>
+          </tr>
+          <tr>
+            <td>Updates</td>
+            <td>1 year</td>
+            <td>1 year</td>
+            <td>Lifetime</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Pricing FAQ ─── -->
+<section class="faq">
+  <div class="container">
+    <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> FAQ <span class="line"></span></div>
+    <h2 class="reveal">Pricing questions</h2>
+    <div class="faq-list">
+      <details class="faq-item reveal">
+        <summary>Is this a subscription?</summary>
+        <p>No. Mission Control is a one-time purchase. You pay once and use the app forever. There are no monthly or annual fees required to keep using it.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>What happens after the update year?</summary>
+        <p>Your app keeps working forever &mdash; you own it. You just stop receiving new feature updates after the first year. You can renew for $19/year anytime to get back on the latest version with the newest features.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>Is there a free trial?</summary>
+        <p>Yes. Every plan comes with a 7-day free trial. No credit card required. Download the app, connect your OpenClaw instance, and try everything out before you buy.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>Can I upgrade later?</summary>
+        <p>Yes. You can upgrade from Personal to Pro or from Pro to Team at any time. You only pay the difference between the plans. Your license and settings carry over seamlessly.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>What's your refund policy?</summary>
+        <p>We offer a 30-day money-back guarantee, no questions asked. If Mission Control isn't right for you, email support@openclaw.dev and we'll refund your purchase in full.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Final CTA ─── -->
+<section class="cta">
+  <div class="container" style="position: relative;">
+    <h2 class="reveal">Start your <span class="gradient-text">free trial</span></h2>
+    <p class="reveal reveal-delay-1">7 days, all features, no credit card. See the difference in your first week.</p>
+    <div class="hero-buttons reveal reveal-delay-2">
+      <a href="/download/" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Start Free Trial
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Footer ─── -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        Mission Control
+      </div>
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="/features/">Features</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/faq/">FAQ</a>
+        <a href="mailto:support@openclaw.dev">Support</a>
+      </div>
+      <div class="footer-copy">&copy; 2026 Mission Control</div>
+    </div>
+  </div>
+</footer>
+
+<!-- ─── Scroll Reveal Script ─── -->
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

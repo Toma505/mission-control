@@ -32,8 +32,8 @@ The Windows packaging path remains verified end-to-end. This pass completed the 
 - [ ] `npm run dist:mac` still cannot complete on Windows because Electron Builder only supports macOS output on macOS
 - [ ] `npm run dist:linux` still cannot complete the AppImage target on this Windows machine because AppImage creation requires symlink privileges not available in this environment
 - [ ] Debian packaging now gets past metadata validation but still requires `fpm`, which is not available on this Windows host
-- [ ] Server-side license validation still not implemented
-- [ ] Auto-updater still not implemented
+- [x] HMAC-SHA256 license key validation implemented in `electron/main.prod.js` (offline, cryptographic, machine-fingerprinted)
+- [x] Auto-updater implemented via `electron-updater` with GitHub Releases provider, native dialogs, and tray menu integration
 - [ ] Release signing still needs a proper Windows/macOS certificate setup
 
 Packaging fixes now in place:
@@ -57,6 +57,21 @@ Packaging fixes now in place:
 | `electron/icon.icns` | Generated macOS application icon |
 | `electron/icon.png` | Generated high-resolution Linux application icon |
 | `.github/workflows/desktop-builds.yml` | Builds desktop artifacts on native GitHub Actions runners and uploads the generated installers/packages |
+
+### License & Auto-Updater
+| File | Change |
+|------|--------|
+| `electron/main.prod.js` | Added HMAC-SHA256 license validation, machine fingerprinting, `electron-updater` auto-update lifecycle, tray menu "Check for Updates" |
+| `electron/preload.js` | Added updater IPC: `updaterCheck()`, `updaterDownload()`, `updaterInstall()`, `updaterStatus()`, `onUpdateStatus()` |
+| `scripts/generate-license.js` | CLI tool for generating and validating HMAC-signed license keys |
+| `src/app/activate/page.tsx` | Updated key format from 4-group to 5-group (`MC-XXXXX-XXXXX-XXXXX-XXXXX`) |
+
+### Landing Page & SEO
+| File | Change |
+|------|--------|
+| `website/index.html` | Full product landing page with premium dark theme, GEO optimization, structured data (SoftwareApplication, FAQPage, Organization), Open Graph, Twitter Cards |
+| `website/robots.txt` | Allow all crawlers, sitemap reference |
+| `website/sitemap.xml` | Single URL entry for landing page |
 
 ### Existing Packaging Path Confirmed
 | File | Role |
@@ -138,15 +153,18 @@ npm run dist:linux
 ## Open Questions
 1. Should `win.signAndEditExecutable: false` remain only as a local-build workaround, or should Windows packaging move to a proper signing-capable setup immediately?
 2. Should `asarUnpack` be used for just the standalone server instead of `asar: false`?
-3. License validation: keep offline-only or build a simple validation server?
-4. Auto-updater: GitHub Releases plus `electron-updater`, or a custom update server?
-5. Do we already have Windows Authenticode and Apple Developer ID certificates?
-6. Distribution: GitHub Releases, own website, or something like Gumroad?
+3. Do we already have Windows Authenticode and Apple Developer ID certificates?
+4. Distribution: GitHub Releases, own website, or something like Gumroad/LemonSqueezy?
+
+## Completed Decisions
+- **License validation**: Offline HMAC-SHA256 with machine fingerprinting. Keys are format `MC-XXXXX-XXXXX-XXXXX-XXXXX`, generated via `npm run generate:keys`. Secret is `MC_LICENSE_SECRET` env var. See `scripts/generate-license.js` and `electron/main.prod.js`.
+- **Auto-updater**: `electron-updater` with GitHub Releases provider. Native dialogs for download/restart prompts. "Check for Updates" in tray menu. 5-second delayed check on app ready (packaged builds only).
 
 ## Next Steps
-1. Decide whether to keep or replace the local Windows `signAndEditExecutable: false` workaround before release builds
-2. Run the `Desktop Builds` GitHub Actions workflow via `workflow_dispatch` or a release tag to produce native Windows/macOS/Linux artifacts
-3. If local cross-building is still required, install WSL or another Linux environment plus `fpm`, and enable Windows symlink privileges for AppImage creation
-4. Revisit `asar` vs `asarUnpack` to reduce package size
-5. Add real license validation and fulfillment
-6. Add auto-updater and release/distribution plumbing
+1. Run the `Desktop Builds` GitHub Actions workflow via `workflow_dispatch` or a release tag to produce native Windows/macOS/Linux artifacts
+2. Decide whether to keep or replace the local Windows `signAndEditExecutable: false` workaround before release builds
+3. Revisit `asar` vs `asarUnpack` to reduce package size
+4. Create dashboard screenshot and OG image for the landing page
+5. Set up payment integration (LemonSqueezy/Stripe) for license key fulfillment
+6. Deploy landing page to production (Vercel/Netlify)
+7. Change `MC_LICENSE_SECRET` from placeholder before shipping

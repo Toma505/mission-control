@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ — Mission Control for OpenClaw | Common Questions</title>
+  <meta name="description" content="Frequently asked questions about Mission Control for OpenClaw. Learn about features, pricing, platform support, data security, and how auto-throttle saves money on AI API costs.">
+  <meta name="author" content="Mission Control">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://missioncontrol.openclaw.dev/faq/">
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="FAQ — Mission Control for OpenClaw">
+  <meta property="og:description" content="Frequently asked questions about Mission Control for OpenClaw. Learn about features, pricing, platform support, data security, and how auto-throttle saves money on AI API costs.">
+  <meta property="og:url" content="https://missioncontrol.openclaw.dev/faq/">
+  <meta property="og:image" content="https://missioncontrol.openclaw.dev/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="Mission Control">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="FAQ — Mission Control for OpenClaw">
+  <meta name="twitter:description" content="Frequently asked questions about Mission Control for OpenClaw. Learn about features, pricing, platform support, data security, and how auto-throttle saves money on AI API costs.">
+  <meta name="twitter:image" content="https://missioncontrol.openclaw.dev/og-image.png">
+
+  <!-- Structured Data: BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://missioncontrol.openclaw.dev/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "FAQ",
+        "item": "https://missioncontrol.openclaw.dev/faq/"
+      }
+    ]
+  }
+  </script>
+
+  <!-- Structured Data: FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is Mission Control?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Mission Control is a desktop app that gives you a visual dashboard for your OpenClaw AI agent. It provides real-time monitoring of agent status, heartbeat, and latency, automatic cost throttling that switches to budget AI models when spending limits are exceeded, pipeline job tracking with per-step cost breakdown, and one-click switching between Performance, Standard, and Budget modes. It runs on Windows, macOS, and Linux as a standalone app."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need to install Node.js or use the terminal?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Mission Control is a standalone desktop app. Download the installer for your platform, run it, and you're ready to go. No terminal, no Node.js, no command-line setup required."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What platforms are supported?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Windows 10 and later (NSIS installer), macOS 12 and later for both Intel and Apple Silicon (DMG), and Linux including Ubuntu 20.04+, Debian, and most distributions via AppImage or .deb package."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I connect to my OpenClaw instance?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Open the app and the setup wizard will guide you through connecting. Enter your OpenClaw URL and setup password, and Mission Control will establish a direct connection to your server. The wizard validates the connection before saving."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does auto-throttle save me money?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You set a daily spend limit (e.g., $5/day). When your OpenRouter spend approaches that limit, Mission Control automatically switches your OpenClaw agent to cheaper models. This typically saves users around $48 per week while the same workload continues to run."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I connect multiple OpenClaw instances?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The Personal plan supports 1 OpenClaw instance. The Pro and Team plans support unlimited instances, making them ideal for agencies or power users managing multiple projects."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What AI models does auto-throttle switch to?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Budget mode typically uses DeepSeek V3 at $0.20 per million tokens instead of more expensive models like Claude Sonnet at $3 per million tokens. You can configure which models are used for each mode in the settings."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I import my OpenRouter billing data?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Mission Control supports CSV import from OpenRouter for historical cost analytics. This lets you see spending trends, identify expensive operations, and set more accurate budget limits."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How much does Mission Control cost?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Mission Control is a one-time purchase. Personal is $29, Pro is $59, and Team is $149. All plans include 1 year of updates. No subscriptions, no recurring fees."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is there a free trial?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Mission Control offers a 7-day free trial with full access to all features. No credit card required to start."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What happens after my update year expires?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The app keeps working forever — you own it. You just stop receiving new feature updates after the first year. You can renew for $19 per year anytime to get back on the latest version."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use my license on multiple computers?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "It depends on your plan. Personal allows 1 machine, Pro allows up to 3 machines, and Team allows up to 10 machines."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is my OpenClaw data secure?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Mission Control runs entirely on your local machine. Your credentials are stored locally and the app connects directly to your OpenClaw server. No data passes through third-party servers."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does Mission Control send data to third parties?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. All data stays on your machine. Mission Control connects directly to your OpenClaw instance and does not send telemetry, analytics, or any other data to external services."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does Mission Control compare to Langfuse or Helicone?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Unlike cloud-based observability tools like Langfuse and Helicone, Mission Control is a local desktop app where no data leaves your machine. It also goes beyond monitoring — it can actively control your OpenClaw agent by switching AI models, setting budget limits, and auto-throttling costs. Cloud tools typically require code integration and charge based on usage volume."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does Mission Control work with OpenRouter?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Mission Control tracks your OpenRouter credits and spending in real time. When your daily spend approaches your budget limit, it can automatically switch your OpenClaw agent to cheaper models. You can also import OpenRouter CSV billing data for detailed cost analytics."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why not just use the OpenRouter dashboard?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The OpenRouter dashboard shows your credit balance and usage history, but it cannot switch models automatically, set spend alerts, or auto-throttle your agent when costs get too high. Mission Control adds active cost controls on top of passive monitoring."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Shared Styles -->
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<!-- ─── Navigation ─── -->
+<nav>
+  <div class="container">
+    <a href="/" class="nav-brand">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+      </div>
+      Mission Control
+    </a>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle navigation menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/features/">Features</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/faq/" class="active">FAQ</a>
+      <a href="/download/" class="nav-cta">Download</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── Breadcrumbs ─── -->
+<section class="breadcrumbs">
+  <div class="container">
+    <a href="/">Home</a>
+    <span class="breadcrumb-sep">/</span>
+    <span>FAQ</span>
+  </div>
+</section>
+
+<!-- ─── Page Header ─── -->
+<section class="page-header">
+  <div class="container">
+    <h1 class="reveal">Frequently asked questions about Mission Control</h1>
+    <p class="page-subtitle reveal">Everything you need to know about monitoring your OpenClaw agent, controlling costs, and getting started.</p>
+  </div>
+</section>
+
+<!-- ─── FAQ: Getting Started ─── -->
+<section class="faq-section">
+  <div class="container">
+    <h2 class="faq-category reveal">Getting Started</h2>
+
+    <details class="faq-item reveal">
+      <summary>What is Mission Control?</summary>
+      <div class="faq-answer">
+        <p>Mission Control is a desktop app that gives you a visual dashboard for your OpenClaw AI agent. It provides real-time monitoring of agent status, heartbeat, and latency, automatic cost throttling that switches to budget AI models when spending limits are exceeded, pipeline job tracking with per-step cost breakdown, and one-click switching between Performance, Standard, and Budget modes. It runs on Windows, macOS, and Linux as a standalone app.</p>
+      </div>
+    </details>
+
+    <details class="faq-item reveal">
+      <summary>Do I need to install Node.js or use the terminal?</summary>
+      <div class="faq-answer">
+        <p>No. Mission Control is a standalone desktop app. Download the installer for your platform, run it, and you're ready to go. No terminal, no Node.js, no command-line setup required.</p>
+      </div>
+    </details>
+
+    <details class="faq-item reveal">
+      <summary>What platforms are supported?</summary>
+      <div class="faq-answer">
+        <p>Windows 10 and later (NSIS installer), macOS 12 and later for both Intel and Apple Silicon (DMG), and Linux including Ubuntu 20.04+, Debian, and most distributions via AppImage or .deb package.</p>
+      </div>
+    </details>
+
+    <details class="faq-item reveal">
+      <summary>How do I connect to my OpenClaw instance?</summary>
+      <div class="faq-answer">
+        <p>Open the app and the setup wizard will guide you through connecting. Enter your OpenClaw URL and setup password, and Mission Control will establish a direct connection to your server. The wizard validates the connection before saving.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ─── FAQ: Features & Usage ─── -->
+<section class="faq-section">
+  <div class="container">
+    <h2 class="faq-category reveal">Features &amp; Usage</h2>
+
+    <details class="faq-item reveal">
+      <summary>How does auto-throttle save me money?</summary>
+      <div class="faq-answer">
+        <p>You set a daily spend limit (e.g., $5/day). When your OpenRouter spend approaches that limit, Mission Control automatically switches your OpenClaw agent to cheaper models. This typically saves users around $48 per week while the same workload continues to run.</p>
+      </div>
+    </details>
+
+    <details class="faq-item reveal">
+      <summary>Can I connect multiple OpenClaw instances?</summary>
+      <div class="faq-answer">
+        <p>The Personal plan supports 1 instance. The Pro and Team plans support unlimited instances, making them ideal for agencies or power users managing multiple projects.</p>
+      </div>
+    </details>
+
+    <details class="faq-item reveal">
+      <summary>What AI models does auto-throttle switch to?</summary>
+      <div class="faq-answer">
+        <p>Budget mode typically uses DeepSeek V3 at $0.20 per million tokens instead of more expensive models like Claude Sonnet at $3 per million tokens. You can configure which models are used for each mode in the settings.</p>
+      </div>
+    </details>
+
+    <details class="faq-item reveal">
+      <summary>Can I import my OpenRouter billing data?</summary>
+      <div class="faq-answer">
+        <p>Yes. Mission Control supports CSV import from OpenRouter for historical cost analytics. This lets you see spending trends, identify expensive operations, and set more accurate budget limits.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ─── FAQ: Pricing & Licensing ─── -->
+<section class="faq-section">
+  <div class="container">
+    <h2 class="faq-category reveal">Pricing &amp; Licensing</h2>
+
+    <details class="faq-item reveal">
+      <summary>How much does Mission Control cost?</summary>
+      <div class="faq-answer">
+        <p>Mission Control is a one-time purchase. Personal is $29, Pro is $59, and Team is $149. All plans include 1 year of updates. No subscriptions, no recurring fees.</p>
+      </div>
+    </details>
+
+    <details class="faq-item reveal">
+      <summary>Is there a free trial?</summary>
+      <div class="faq-answer">
+        <p>Yes. Mission Control offers a 7-day free trial with full access to all features. No credit card required to start.</p>
+      </div>
+    </details>
+
+    <details class="faq-item reveal">
+      <summary>What happens after my update year expires?</summary>
+      <div class="faq-answer">
+        <p>The app keeps working forever -- you own it. You just stop receiving new feature updates after the first year. You can renew for $19 per year anytime to get back on the latest version.</p>
+      </div>
+    </details>
+
+    <details class="faq-item reveal">
+      <summary>Can I use my license on multiple computers?</summary>
+      <div class="faq-answer">
+        <p>It depends on your plan. Personal allows 1 machine, Pro allows up to 3 machines, and Team allows up to 10 machines.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ─── FAQ: Security & Privacy ─── -->
+<section class="faq-section">
+  <div class="container">
+    <h2 class="faq-category reveal">Security &amp; Privacy</h2>
+
+    <details class="faq-item reveal">
+      <summary>Is my OpenClaw data secure?</summary>
+      <div class="faq-answer">
+        <p>Yes. Mission Control runs entirely on your local machine. Your credentials are stored locally and the app connects directly to your OpenClaw server. No data passes through third-party servers.</p>
+      </div>
+    </details>
+
+    <details class="faq-item reveal">
+      <summary>Does Mission Control send data to third parties?</summary>
+      <div class="faq-answer">
+        <p>No. All data stays on your machine. Mission Control connects directly to your OpenClaw instance and does not send telemetry, analytics, or any other data to external services.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ─── FAQ: Comparisons ─── -->
+<section class="faq-section">
+  <div class="container">
+    <h2 class="faq-category reveal">Comparisons</h2>
+
+    <details class="faq-item reveal">
+      <summary>How does Mission Control compare to Langfuse or Helicone?</summary>
+      <div class="faq-answer">
+        <p>Unlike cloud-based observability tools like Langfuse and Helicone, Mission Control is a local desktop app where no data leaves your machine. It also goes beyond monitoring -- it can actively control your OpenClaw agent by switching AI models, setting budget limits, and auto-throttling costs. Cloud tools typically require code integration and charge based on usage volume.</p>
+      </div>
+    </details>
+
+    <details class="faq-item reveal">
+      <summary>Does Mission Control work with OpenRouter?</summary>
+      <div class="faq-answer">
+        <p>Yes. Mission Control tracks your OpenRouter credits and spending in real time. When your daily spend approaches your budget limit, it can automatically switch your OpenClaw agent to cheaper models. You can also import OpenRouter CSV billing data for detailed cost analytics.</p>
+      </div>
+    </details>
+
+    <details class="faq-item reveal">
+      <summary>Why not just use the OpenRouter dashboard?</summary>
+      <div class="faq-answer">
+        <p>The OpenRouter dashboard shows your credit balance and usage history, but it cannot switch models automatically, set spend alerts, or auto-throttle your agent when costs get too high. Mission Control adds active cost controls on top of passive monitoring.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ─── CTA ─── -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-box reveal">
+      <h2>Still have questions?</h2>
+      <p>We're here to help. Reach out and we'll get back to you within 24 hours.</p>
+      <div class="cta-buttons">
+        <a href="mailto:support@openclaw.dev" class="btn btn-secondary">Contact Support</a>
+        <a href="/download/" class="btn btn-primary">Download Mission Control</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Footer ─── -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        Mission Control
+      </div>
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="/features/">Features</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/faq/">FAQ</a>
+        <a href="mailto:support@openclaw.dev">Support</a>
+      </div>
+      <div class="footer-copy">&copy; 2026 Mission Control</div>
+    </div>
+  </div>
+</footer>
+
+<!-- ─── Scroll Reveal Script ─── -->
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

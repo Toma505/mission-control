@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Features — Mission Control AI Agent Dashboard for OpenClaw</title>
+  <meta name="description" content="Real-time agent monitoring, auto-throttle cost controls, pipeline tracking, one-click mode switching, and cost analytics. See all Mission Control features.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://missioncontrol.openclaw.dev/features/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Features — Mission Control AI Agent Dashboard for OpenClaw">
+  <meta property="og:description" content="Real-time agent monitoring, auto-throttle cost controls, pipeline tracking, one-click mode switching, and cost analytics. See all Mission Control features.">
+  <meta property="og:url" content="https://missioncontrol.openclaw.dev/features/">
+  <meta property="og:image" content="https://missioncontrol.openclaw.dev/og-image.png">
+
+  <!-- Structured Data: BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://missioncontrol.openclaw.dev"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Features",
+        "item": "https://missioncontrol.openclaw.dev/features/"
+      }
+    ]
+  }
+  </script>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#09090b">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<!-- ─── Nav ─── -->
+<nav>
+  <div class="container">
+    <a href="/" class="nav-brand">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+      </div>
+      Mission Control
+    </a>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle navigation menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/features/" style="color: var(--text);">Features</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/faq/">FAQ</a>
+      <a href="/download/" class="nav-cta">Download</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── Breadcrumbs ─── -->
+<section style="padding: 100px 0 0;">
+  <div class="container">
+    <div style="font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
+      <a href="/" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--text-secondary)'" onmouseout="this.style.color='var(--text-muted)'">Home</a>
+      <span style="color: var(--text-muted);">/</span>
+      <span style="color: var(--text-secondary);">Features</span>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Page Header ─── -->
+<section style="padding: 48px 0 80px; text-align: center; position: relative; overflow: hidden;">
+  <div class="hero-grid"></div>
+  <div class="hero-glow hero-glow-1"></div>
+  <div class="container" style="position: relative;">
+    <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> FEATURES <span class="line"></span></div>
+    <h1 class="reveal" style="font-size: clamp(36px, 5vw, 56px); font-weight: 900; letter-spacing: -0.04em; line-height: 1.08; margin-bottom: 20px;">Every feature you need to manage<br><span class="gradient-text">OpenClaw agents</span></h1>
+    <p class="reveal reveal-delay-1" style="font-size: 18px; color: var(--text-secondary); max-width: 560px; margin: 0 auto; line-height: 1.75;">Built by an OpenClaw user who got tired of SSH-ing into Railway to check if things were working. Here is everything Mission Control can do.</p>
+  </div>
+</section>
+
+<!-- ─── Feature Cards ─── -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="feature-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <h3>Live Agent Monitoring</h3>
+        <p>See your OpenClaw agent's status in real time — heartbeat, latency, active sessions, and connection health. Get instant alerts when something goes wrong. No more SSH-ing into Railway or checking server logs.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>Auto-Throttle</h3>
+        <p>Set daily and monthly spend limits on your OpenRouter API usage. When your spend approaches the limit, Mission Control automatically switches your OpenClaw agent to cheaper models like DeepSeek V3 ($0.20/MTok) instead of Claude Sonnet ($3/MTok). Users save an average of $48 per week.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon amber">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h3>Pipeline Tracking</h3>
+        <p>Follow every pipeline job step-by-step as it moves through Scout, Editor, Narrator, and Assembly stages. See per-step cost breakdown, execution time, and model usage. Catch bottlenecks before they become expensive problems.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <h3>One-Click Mode Switch</h3>
+        <p>Switch between Performance, Standard, and Budget modes with a single click. Performance mode uses top-tier models for quality-critical tasks. Budget mode cuts costs by 85% for routine work. No SSH, no config files, no terminal — just click.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon red">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+        </div>
+        <h3>Cost Analytics</h3>
+        <p>Track spending by model, by day, by pipeline step, and by channel. Import your OpenRouter CSV billing data for historical analysis. Visualize cost trends, identify the most expensive operations, and see exactly where every dollar goes.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-3">
+        <div class="feature-icon cyan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <h3>Multi-Channel View</h3>
+        <p>See all your agent's activity across every channel in one unified view — Discord servers, direct messages, automated pipelines, and scheduled tasks. Filter by channel, search by keyword, and never miss what your agent is doing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── How It Works ─── -->
+<section class="how-it-works reveal" style="border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--bg-subtle);">
+  <div class="container">
+    <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> HOW IT WORKS <span class="line"></span></div>
+    <h2 class="reveal" style="font-size: 40px; font-weight: 800; letter-spacing: -0.03em; text-align: center; margin-bottom: 64px;">Up and running in 3 minutes</h2>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; max-width: 960px; margin: 0 auto;">
+      <div class="reveal" style="text-align: center;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 20px; font-weight: 800; color: var(--accent);">1</div>
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">Download</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Grab the installer for Windows, macOS, or Linux. Double-click to install.</p>
+      </div>
+      <div class="reveal reveal-delay-1" style="text-align: center;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 20px; font-weight: 800; color: var(--green);">2</div>
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">Connect</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Enter your OpenClaw URL and setup password. The wizard tests the connection for you.</p>
+      </div>
+      <div class="reveal reveal-delay-2" style="text-align: center;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 20px; font-weight: 800; color: var(--amber);">3</div>
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">Set Budget</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Set your daily and monthly spend limits. Auto-throttle kicks in when you get close.</p>
+      </div>
+      <div class="reveal reveal-delay-3" style="text-align: center;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 20px; font-weight: 800; color: var(--purple);">4</div>
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">Monitor</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Watch your agents work in real time. Get alerts, track costs, and switch modes with one click.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Why Mission Control (Competitor Positioning) ─── -->
+<section class="why-mc reveal">
+  <div class="container">
+    <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> WHY MISSION CONTROL <span class="line"></span></div>
+    <h2 class="reveal" style="font-size: 40px; font-weight: 800; letter-spacing: -0.03em; text-align: center; margin-bottom: 12px;">Built different</h2>
+    <p class="reveal reveal-delay-1" style="text-align: center; color: var(--text-secondary); font-size: 17px; margin-bottom: 48px; max-width: 560px; margin-left: auto; margin-right: auto; line-height: 1.7;">Unlike cloud-based observability tools, Mission Control is a local desktop app. Your data never leaves your machine.</p>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 900px; margin: 0 auto;">
+      <div class="reveal" style="padding: 28px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+        <div style="font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">Cloud dashboards</div>
+        <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.65;">Tools like Langfuse and Helicone are great for observability, but they're cloud-hosted, require integration code, and charge based on usage volume. They also don't manage your agent — they only watch it.</p>
+      </div>
+      <div class="reveal reveal-delay-1" style="padding: 28px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+        <div style="font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">Raw OpenRouter dashboard</div>
+        <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.65;">OpenRouter shows your credits and usage, but it can't switch your agent's model, set budget alerts, track pipeline jobs, or auto-throttle when costs spike. It's a billing page, not a control panel.</p>
+      </div>
+      <div class="reveal reveal-delay-2" style="padding: 28px; border-radius: 16px; background: rgba(59,130,246,0.04); border: 1px solid rgba(59,130,246,0.15);">
+        <div style="font-size: 13px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">Mission Control</div>
+        <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.65;">A local desktop app that both monitors and controls your OpenClaw agent. Set spend limits, auto-throttle to budget models, track pipeline jobs, switch modes — all without SSH or sending data to a third party.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Final CTA ─── -->
+<section class="cta reveal">
+  <div class="container" style="position: relative;">
+    <h2 class="reveal">Ready to take control?</h2>
+    <p class="reveal reveal-delay-1">Download the free trial and see the difference in your first week.</p>
+    <div class="hero-buttons reveal reveal-delay-2">
+      <a href="/download/" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Free Trial
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Footer ─── -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        Mission Control
+      </div>
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="/features/">Features</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/faq/">FAQ</a>
+        <a href="/download/">Download</a>
+        <a href="mailto:support@openclaw.dev">Support</a>
+      </div>
+      <div class="footer-copy">&copy; 2026 Mission Control</div>
+    </div>
+  </div>
+</footer>
+
+<!-- ─── Scroll Reveal Script ─── -->
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
