@@ -6,7 +6,7 @@
  * Cross-platform: Windows, macOS, Linux.
  */
 
-const { app, BrowserWindow, Tray, Menu, shell, ipcMain, nativeImage } = require('electron')
+const { app, BrowserWindow, Tray, Menu, shell, ipcMain, nativeImage, dialog } = require('electron')
 const { fork, spawn } = require('child_process')
 const path = require('path')
 const net = require('net')
@@ -14,6 +14,7 @@ const fs = require('fs')
 const os = require('os')
 const crypto = require('crypto')
 const AutoLaunch = require('auto-launch')
+const { autoUpdater } = require('electron-updater')
 
 // ─── Cross-platform user data path ──────────────────────────
 function getUserDataPath() {
@@ -176,6 +177,88 @@ ipcMain.handle('set-auto-launch', async (_, enabled) => {
     return { ok: false, error: err.message }
   }
 })
+
+// ─── Auto-Updater ───────────────────────────────────────────
+
+autoUpdater.autoDownload = false
+autoUpdater.autoInstallOnAppQuit = true
+
+let updateStatus = { status: 'idle', info: null, error: null, progress: null }
+
+function setupAutoUpdater() {
+  autoUpdater.on('checking-for-update', () => {
+    updateStatus = { status: 'checking', info: null, error: null, progress: null }
+    mainWindow?.webContents.send('update-status', updateStatus)
+  })
+
+  autoUpdater.on('update-available', (info) => {
+    updateStatus = { status: 'available', info, error: null, progress: null }
+    mainWindow?.webContents.send('update-status', updateStatus)
+
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Update Available',
+      message: `A new version (${info.version}) is available.`,
+      detail: 'Would you like to download it now?',
+      buttons: ['Download', 'Later'],
+      defaultId: 0,
+    }).then(({ response }) => {
+      if (response === 0) autoUpdater.downloadUpdate()
+    })
+  })
+
+  autoUpdater.on('update-not-available', (info) => {
+    updateStatus = { status: 'up-to-date', info, error: null, progress: null }
+    mainWindow?.webContents.send('update-status', updateStatus)
+  })
+
+  autoUpdater.on('download-progress', (progress) => {
+    updateStatus = { ...updateStatus, status: 'downloading', progress }
+    mainWindow?.webContents.send('update-status', updateStatus)
+  })
+
+  autoUpdater.on('update-downloaded', (info) => {
+    updateStatus = { status: 'downloaded', info, error: null, progress: null }
+    mainWindow?.webContents.send('update-status', updateStatus)
+
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Update Ready',
+      message: 'Update has been downloaded.',
+      detail: 'The application will restart to apply the update.',
+      buttons: ['Restart Now', 'Later'],
+      defaultId: 0,
+    }).then(({ response }) => {
+      if (response === 0) {
+        app.isQuitting = true
+        autoUpdater.quitAndInstall()
+      }
+    })
+  })
+
+  autoUpdater.on('error', (err) => {
+    updateStatus = { status: 'error', info: null, error: err.message, progress: null }
+    mainWindow?.webContents.send('update-status', updateStatus)
+  })
+}
+
+ipcMain.handle('updater-check', () => {
+  if (!app.isPackaged) return { status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null }
+  autoUpdater.checkForUpdates()
+  return updateStatus
+})
+
+ipcMain.handle('updater-download', () => {
+  autoUpdater.downloadUpdate()
+  return updateStatus
+})
+
+ipcMain.handle('updater-install', () => {
+  app.isQuitting = true
+  autoUpdater.quitAndInstall()
+})
+
+ipcMain.handle('updater-status', () => updateStatus)
 
 // ─── Splash Screen ──────────────────────────────────────────
 
@@ -342,6 +425,10 @@ async function createTray() {
         else await autoLauncher.disable()
       } catch {}
     }},
+    { label: 'Check for Updates...', click: () => {
+      if (app.isPackaged) autoUpdater.checkForUpdates()
+      else dialog.showMessageBox(mainWindow, { type: 'info', title: 'Updates', message: 'Updates are disabled in development mode.' })
+    }},
     { type: 'separator' },
     { label: 'Quit', click: () => { app.isQuitting = true; app.quit() }},
   ])
@@ -471,6 +558,13 @@ app.on('ready', async () => {
   }
 
   createWindow()
+
+  // Auto-update: set up listeners and check for updates (packaged builds only)
+  setupAutoUpdater()
+  if (app.isPackaged) {
+    // Delay initial check to let the app finish loading
+    setTimeout(() => autoUpdater.checkForUpdates(), 5000)
+  }
 })
 
 app.on('window-all-closed', () => {

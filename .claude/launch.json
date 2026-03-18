@@ -12,6 +12,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "db:studio"],
       "port": 5555
+    },
+    {
+      "name": "Romeos Site",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "website", "-l", "4000"],
+      "port": 4000
     }
   ]
 }

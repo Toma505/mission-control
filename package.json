@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "Desktop dashboard for OpenClaw AI agent platform",
   "productName": "Mission Control",
-  "author": "Tomas",
+  "author": {
+    "name": "Tomas",
+    "email": "tomasthoma4@gmail.com"
+  },
   "private": true,
   "main": "electron/main.prod.js",
   "scripts": {
@@ -85,7 +88,7 @@
           ]
         }
       ],
-      "icon": "electron/icon.png",
+      "icon": "electron/icon.icns",
       "category": "public.app-category.developer-tools",
       "darkModeSupport": true
     },
@@ -121,6 +124,7 @@
     "auto-launch": "^5.0.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "electron-updater": "^6.8.3",
     "jszip": "^3.10.1",
     "lucide-react": "^0.577.0",
     "next": "16.1.6",
