@@ -14,10 +14,10 @@
       "port": 5555
     },
     {
-      "name": "Romeos Site",
+      "name": "MC Website",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "website", "-l", "4000"],
-      "port": 4000
+      "runtimeArgs": ["serve", "C:/Users/tomas/mission-control/website", "-l", "4200"],
+      "port": 4200
     }
   ]
 }
