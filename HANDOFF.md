@@ -4,18 +4,18 @@
 Package Mission Control (Next.js 16 + Electron desktop app) as a consumer-grade downloadable product for OpenClaw users. Double-click install, no terminal, no Node.js, no dev setup. Ship on Windows, macOS, and Linux.
 
 ## Current Owner
-Codex - macOS/Linux packaging prep completed; Windows-only host limitations isolated.
+Codex - cross-platform CI packaging verified on GitHub Actions.
 
 ## Repo Location
 `C:\Users\tomas\mission-control`
 
 ## Git State
 - Branch: `mission-control-v2`
-- Latest verified base commit: `0786c28`
-- Note: `npm run dist:mac` and `npm run dist:linux` were re-run on this clean branch head after the cross-platform icon and auto-updater commits landed.
+- Latest verified base commit: `1a883fe`
+- Note: GitHub Actions run `23226926821` completed successfully for `mission-control-v2` after CI fixes in commits `6afd518` and `1a883fe`.
 
 ## Status
-The Windows packaging path remains verified end-to-end. This pass completed the missing cross-platform icon assets and validated that the remaining macOS/Linux build failures on this Windows machine are host-environment limitations rather than missing repo configuration. The same outcomes were re-verified on top of commit `0786c28`.
+The Windows packaging path remains verified end-to-end. Cross-platform packaging is now also verified on native GitHub runners: Desktop Builds run `23226926821` passed on Windows, macOS, and Linux for commit `1a883fe`.
 
 - [x] Next.js `output: 'standalone'`
 - [x] Electron production main process forks `.next/standalone/server.js`
@@ -29,6 +29,7 @@ The Windows packaging path remains verified end-to-end. This pass completed the 
 - [x] `package.json` now points macOS packaging at `electron/icon.icns`
 - [x] Linux packaging metadata now includes an author email for Debian packages
 - [x] GitHub Actions workflow now exists to build Windows, macOS, and Linux artifacts on native runners
+- [x] GitHub Actions `Desktop Builds` run `23226926821` passed on all 3 platforms for `mission-control-v2`
 - [ ] `npm run dist:mac` still cannot complete on Windows because Electron Builder only supports macOS output on macOS
 - [ ] `npm run dist:linux` still cannot complete the AppImage target on this Windows machine because AppImage creation requires symlink privileges not available in this environment
 - [ ] Debian packaging now gets past metadata validation but still requires `fpm`, which is not available on this Windows host
@@ -44,6 +45,8 @@ Packaging fixes now in place:
 - Updated dist scripts to regenerate the icon set automatically
 - Updated top-level package metadata so Debian packaging has an author email
 - Added `.github/workflows/desktop-builds.yml` so Windows, macOS, and Linux builds can run on native GitHub-hosted runners with Linux `fpm` installed
+- Excluded `prisma/seed.ts` from the app TypeScript project so packaging CI does not typecheck a dev-only seed script
+- Added Prisma client generation to the normal install/build path so fresh CI runners can typecheck and package the app successfully
 - Set `win.signAndEditExecutable: false` so local Windows builds do not fail on this machine's broken `winCodeSign` extraction path
 
 ## Files Changed
@@ -56,6 +59,8 @@ Packaging fixes now in place:
 | `electron/generate-icon.js` | Generates the full cross-platform icon set for Windows, macOS, and Linux |
 | `electron/icon.icns` | Generated macOS application icon |
 | `electron/icon.png` | Generated high-resolution Linux application icon |
+| `tsconfig.json` | Excludes `prisma/seed.ts` from the Next.js/TypeScript app build |
+| `package.json` | Adds `db:generate` and `postinstall`, and runs Prisma client generation before packaging builds |
 | `.github/workflows/desktop-builds.yml` | Builds desktop artifacts on native GitHub Actions runners and uploads the generated installers/packages |
 
 ### License & Auto-Updater
@@ -148,6 +153,31 @@ npm run dist:linux
 # - macOS job builds DMG artifacts on macos-latest
 # - Linux job installs fpm and builds AppImage + deb on ubuntu-latest
 # - Workflow uses `--publish never` so CI builds artifacts without requiring release publication
+
+# GitHub Actions verification
+gh workflow run "Desktop Builds" --ref mission-control-v2
+gh run watch 23226926821 --exit-status
+
+# Result:
+# - build-windows: passed
+# - build-macos: passed
+# - build-linux: passed
+# - fixes needed before green run:
+#   - 6afd518: exclude prisma/seed.ts from the app typecheck
+#   - 1a883fe: generate Prisma client during install/build for fresh CI runners
+# - artifact bundle sizes from GitHub:
+#   - mission-control-windows: 257026521 bytes
+#   - mission-control-macos: 595835993 bytes
+#   - mission-control-linux: 608528439 bytes
+# - downloaded artifact files:
+#   - Mission Control Setup 1.0.0.exe: 258384684 bytes
+#   - Mission Control Setup 1.0.0.exe.blockmap: 251015 bytes
+#   - Mission Control-1.0.0.dmg: 300170462 bytes
+#   - Mission Control-1.0.0.dmg.blockmap: 313379 bytes
+#   - Mission Control-1.0.0-arm64.dmg: 296430729 bytes
+#   - Mission Control-1.0.0-arm64.dmg.blockmap: 308633 bytes
+#   - Mission Control-1.0.0.AppImage: 345236107 bytes
+#   - mission-control_1.0.0_amd64.deb: 264607540 bytes
 ```
 
 ## Open Questions
@@ -161,10 +191,10 @@ npm run dist:linux
 - **Auto-updater**: `electron-updater` with GitHub Releases provider. Native dialogs for download/restart prompts. "Check for Updates" in tray menu. 5-second delayed check on app ready (packaged builds only).
 
 ## Next Steps
-1. Run the `Desktop Builds` GitHub Actions workflow via `workflow_dispatch` or a release tag to produce native Windows/macOS/Linux artifacts
-2. Decide whether to keep or replace the local Windows `signAndEditExecutable: false` workaround before release builds
-3. Revisit `asar` vs `asarUnpack` to reduce package size
-4. Create dashboard screenshot and OG image for the landing page
-5. Set up payment integration (LemonSqueezy/Stripe) for license key fulfillment
-6. Deploy landing page to production (Vercel/Netlify)
-7. Change `MC_LICENSE_SECRET` from placeholder before shipping
+1. Decide whether to keep or replace the local Windows `signAndEditExecutable: false` workaround before release builds
+2. Revisit `asar` vs `asarUnpack` to reduce package size
+3. Create dashboard screenshot and OG image for the landing page
+4. Set up payment integration (LemonSqueezy/Stripe) for license key fulfillment
+5. Deploy landing page to production (Vercel/Netlify)
+6. Change `MC_LICENSE_SECRET` from placeholder before shipping
+7. Consider updating GitHub Actions versions before the Node 20 runner deprecation date noted in CI annotations
