@@ -292,7 +292,7 @@ export function PreferencesModal({ open, onClose }: Props) {
                     </span>
                     {connectionInfo.source && (
                       <span className="text-text-muted text-xs ml-auto">
-                        via {connectionInfo.source === 'file' ? 'setup' : '.env'}
+                        via {connectionInfo.source === 'file' ? 'setup' : 'legacy config'}
                       </span>
                     )}
                   </div>

@@ -1,4 +1,5 @@
 import { Users, Bot, Activity } from 'lucide-react'
+import { getAppBaseUrl } from '@/lib/app-url'
 
 interface Agent {
   name: string
@@ -13,7 +14,7 @@ interface Session {
 }
 
 async function getAgents(): Promise<{ connected: boolean; agents: Agent[]; sessions: Session[]; agentInfo: string; memory: string }> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000'
+  const baseUrl = getAppBaseUrl()
   try {
     const res = await fetch(`${baseUrl}/api/agents`, { cache: 'no-store' })
     if (!res.ok) return { connected: false, agents: [], sessions: [], agentInfo: '', memory: '' }
@@ -52,7 +53,7 @@ export default async function AgentsPage() {
           <p className="text-sm text-text-secondary max-w-md">
             {connected
               ? 'Configure agents in your OpenClaw instance and they will appear here automatically.'
-              : 'Connect OpenClaw by setting OPENCLAW_API_URL and OPENCLAW_SETUP_PASSWORD in .env.local'}
+              : 'Connect your OpenClaw instance in Connection Settings to view agent definitions and live sessions.'}
           </p>
         </div>
       ) : (

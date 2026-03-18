@@ -1,5 +1,6 @@
 import { DollarSign, Cpu, Database, Wifi, HardDrive, Zap, Server, CreditCard, Globe, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { getAppBaseUrl } from '@/lib/app-url'
 import { CsvUpload } from '@/components/costs/csv-upload'
 import { ModeSwitcher } from '@/components/costs/mode-switcher'
 import { BudgetControls } from '@/components/costs/budget-controls'
@@ -44,7 +45,7 @@ interface Subscription {
 }
 
 async function getCosts() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000'
+  const baseUrl = getAppBaseUrl()
   try {
     const res = await fetch(`${baseUrl}/api/costs`, { cache: 'no-store' })
     if (!res.ok) return { railway: null, anthropicCosts: null, openrouter: null, subscriptions: [] }
@@ -192,7 +193,7 @@ export default async function CostsPage() {
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-text-muted">Add OPENROUTER_API_KEY to connect</p>
+              <p className="text-xs text-text-muted">Add your OpenRouter API key in Connection Settings to connect</p>
             )}
           </div>
         </div>
@@ -206,7 +207,7 @@ export default async function CostsPage() {
           <div className="glass rounded-2xl p-8 text-center">
             <Server className="w-8 h-8 text-text-muted mx-auto mb-3" />
             <p className="text-sm text-text-secondary">
-              Add RAILWAY_API_TOKEN to .env.local to see live usage data.
+              Railway live usage is optional and is not configured for this workspace yet.
             </p>
           </div>
         ) : (

@@ -1,4 +1,5 @@
 import { Wrench, Activity } from 'lucide-react'
+import { getAppBaseUrl } from '@/lib/app-url'
 
 interface Session {
   key: string
@@ -6,7 +7,7 @@ interface Session {
 }
 
 async function getWorkshop(): Promise<{ connected: boolean; sessions: Session[]; agentInfo: string }> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000'
+  const baseUrl = getAppBaseUrl()
   try {
     const res = await fetch(`${baseUrl}/api/agents`, { cache: 'no-store' })
     if (!res.ok) return { connected: false, sessions: [], agentInfo: '' }

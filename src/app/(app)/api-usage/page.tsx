@@ -1,4 +1,5 @@
 import { BarChart3, Zap, Globe } from 'lucide-react'
+import { getAppBaseUrl } from '@/lib/app-url'
 import { formatUsd, formatTokens } from '@/lib/format'
 
 interface TokenRow {
@@ -46,7 +47,7 @@ interface OpenRouterData {
 }
 
 async function getUsageData() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000'
+  const baseUrl = getAppBaseUrl()
   try {
     const res = await fetch(`${baseUrl}/api/costs`, { cache: 'no-store' })
     if (!res.ok) return { anthropicCosts: null, anthropicTokens: null, openrouter: null }
@@ -252,7 +253,7 @@ export default async function ApiUsagePage() {
             <div className="glass rounded-2xl p-8 text-center">
               <Globe className="w-8 h-8 text-text-muted mx-auto mb-3" />
               <p className="text-sm text-text-secondary">
-                Add OPENROUTER_API_KEY to .env.local to see OpenRouter usage.
+                Add your OpenRouter API key in Connection Settings to see live OpenRouter usage.
               </p>
             </div>
           ) : (

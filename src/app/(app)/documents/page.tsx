@@ -1,4 +1,5 @@
 import { FileText, Folder, File } from 'lucide-react'
+import { getAppBaseUrl } from '@/lib/app-url'
 
 interface Document {
   name: string
@@ -8,7 +9,7 @@ interface Document {
 }
 
 async function getDocuments(): Promise<{ connected: boolean; documents: Document[] }> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000'
+  const baseUrl = getAppBaseUrl()
   try {
     const res = await fetch(`${baseUrl}/api/documents`, { cache: 'no-store' })
     if (!res.ok) return { connected: false, documents: [] }

@@ -53,7 +53,7 @@ export async function GET() {
         status: {
           online: false,
           value: 'Not Connected',
-          subtitle: 'Add OpenClaw credentials to .env.local',
+          subtitle: 'Complete setup to connect your OpenClaw instance',
         },
         sessions: [],
         channels: [],

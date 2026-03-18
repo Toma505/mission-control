@@ -1,4 +1,5 @@
 import { Briefcase, MessageSquare } from 'lucide-react'
+import { getAppBaseUrl } from '@/lib/app-url'
 
 interface Client {
   name: string
@@ -7,7 +8,7 @@ interface Client {
 }
 
 async function getClients(): Promise<{ connected: boolean; clients: Client[] }> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000'
+  const baseUrl = getAppBaseUrl()
   try {
     const res = await fetch(`${baseUrl}/api/clients`, { cache: 'no-store' })
     if (!res.ok) return { connected: false, clients: [] }

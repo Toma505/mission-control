@@ -12,7 +12,7 @@ import {
 export async function GET() {
   if (!(await isConfigured())) {
     return NextResponse.json(
-      { connected: false, error: 'OpenClaw not configured. Set OPENCLAW_API_URL and OPENCLAW_SETUP_PASSWORD in .env.local' },
+      { connected: false, error: 'OpenClaw is not configured yet. Complete setup in Mission Control to continue.' },
       { status: 200 }
     )
   }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Search,
@@ -18,7 +18,6 @@ import {
   Shield,
   Clapperboard,
   ArrowRight,
-  Command,
   Settings,
 } from 'lucide-react'
 
@@ -27,13 +26,13 @@ interface SearchItem {
   title: string
   subtitle?: string
   href?: string
-  icon: React.ReactNode
+  icon: ReactNode
   category: 'page' | 'action' | 'agent'
   keywords: string[]
-  onSelect?: () => void
+  onSelect?: () => void | Promise<void>
 }
 
-const SEARCH_ITEMS: SearchItem[] = [
+const PAGE_ITEMS: SearchItem[] = [
   { id: 'dashboard', title: 'Dashboard', subtitle: 'System overview', href: '/', icon: <LayoutDashboard className="w-4 h-4" />, category: 'page', keywords: ['home', 'overview', 'status'] },
   { id: 'operations', title: 'Operations', subtitle: 'Pipeline jobs and automation', href: '/operations', icon: <Clapperboard className="w-4 h-4" />, category: 'page', keywords: ['jobs', 'pipeline', 'real estate', 'video', 'automation'] },
   { id: 'agents', title: 'Agents', subtitle: 'Agent management', href: '/agents', icon: <Users className="w-4 h-4" />, category: 'page', keywords: ['bot', 'agent', 'sessions', 'model'] },
@@ -47,39 +46,94 @@ const SEARCH_ITEMS: SearchItem[] = [
   { id: 'clients', title: 'Clients', subtitle: 'Integrations', href: '/clients', icon: <Briefcase className="w-4 h-4" />, category: 'page', keywords: ['discord', 'channels', 'integrations'] },
   { id: 'cron-jobs', title: 'Cron Jobs', subtitle: 'Scheduled tasks', href: '/cron-jobs', icon: <Clock className="w-4 h-4" />, category: 'page', keywords: ['schedule', 'cron', 'timer', 'automated'] },
   { id: 'weekly-recaps', title: 'Weekly Recaps', subtitle: 'Activity summaries', href: '/weekly-recaps', icon: <Calendar className="w-4 h-4" />, category: 'page', keywords: ['recap', 'summary', 'weekly'] },
-  // Actions
-  { id: 'switch-best', title: 'Switch to Best Mode', subtitle: 'Opus 4.6', href: '/costs', icon: <Shield className="w-4 h-4 text-amber-400" />, category: 'action', keywords: ['mode', 'best', 'opus', 'premium'] },
-  { id: 'switch-budget', title: 'Switch to Budget Mode', subtitle: 'Deepseek v3 via OpenRouter', href: '/costs', icon: <DollarSign className="w-4 h-4 text-emerald-400" />, category: 'action', keywords: ['mode', 'budget', 'cheap', 'save'] },
-  { id: 'switch-auto', title: 'Switch to Auto Mode', subtitle: 'Smart routing per task', href: '/costs', icon: <Brain className="w-4 h-4 text-violet-400" />, category: 'action', keywords: ['mode', 'auto', 'smart', 'routing'] },
-  { id: 'preferences', title: 'Preferences', subtitle: 'Open settings', icon: <Settings className="w-4 h-4" />, category: 'action', keywords: ['settings', 'preferences', 'config', 'options'], onSelect: () => window.dispatchEvent(new CustomEvent('open-preferences')) },
 ]
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [busyItemId, setBusyItemId] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
+  async function switchMode(mode: 'best' | 'budget' | 'auto') {
+    const response = await fetch('/api/mode', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Mode switch failed' }))
+      throw new Error(error.error || 'Mode switch failed')
+    }
+
+    router.push('/costs')
+    router.refresh()
+  }
+
+  const searchItems: SearchItem[] = [
+    ...PAGE_ITEMS,
+    {
+      id: 'switch-best',
+      title: 'Switch to Best Mode',
+      subtitle: 'Apply premium quality mode now',
+      icon: <Shield className="w-4 h-4 text-amber-400" />,
+      category: 'action',
+      keywords: ['mode', 'best', 'opus', 'premium'],
+      onSelect: () => switchMode('best'),
+    },
+    {
+      id: 'switch-budget',
+      title: 'Switch to Budget Mode',
+      subtitle: 'Apply lower-cost routing now',
+      icon: <DollarSign className="w-4 h-4 text-emerald-400" />,
+      category: 'action',
+      keywords: ['mode', 'budget', 'cheap', 'save'],
+      onSelect: () => switchMode('budget'),
+    },
+    {
+      id: 'switch-auto',
+      title: 'Switch to Auto Mode',
+      subtitle: 'Apply smart task-based routing now',
+      icon: <Brain className="w-4 h-4 text-violet-400" />,
+      category: 'action',
+      keywords: ['mode', 'auto', 'smart', 'routing'],
+      onSelect: () => switchMode('auto'),
+    },
+    {
+      id: 'preferences',
+      title: 'Preferences',
+      subtitle: 'Open settings',
+      icon: <Settings className="w-4 h-4" />,
+      category: 'action',
+      keywords: ['settings', 'preferences', 'config', 'options'],
+      onSelect: () => {
+        window.dispatchEvent(new CustomEvent('open-preferences'))
+      },
+    },
+  ]
+
   const filtered = query.length === 0
-    ? SEARCH_ITEMS.filter(i => i.category === 'page')
-    : SEARCH_ITEMS.filter(item => {
+    ? searchItems.filter(item => item.category === 'page')
+    : searchItems.filter((item) => {
         const q = query.toLowerCase()
         return (
           item.title.toLowerCase().includes(q) ||
           item.subtitle?.toLowerCase().includes(q) ||
-          item.keywords.some(k => k.includes(q))
+          item.keywords.some(keyword => keyword.includes(q))
         )
       })
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-      e.preventDefault()
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+      event.preventDefault()
       setOpen(prev => !prev)
       setQuery('')
       setSelectedIndex(0)
     }
-    if (e.key === 'Escape') {
+
+    if (event.key === 'Escape') {
       setOpen(false)
     }
   }, [])
@@ -99,25 +153,31 @@ export function CommandPalette() {
     setSelectedIndex(0)
   }, [query])
 
-  function navigate(item: SearchItem) {
-    if (item.onSelect) {
-      item.onSelect()
-    } else if (item.href) {
-      router.push(item.href)
+  async function navigate(item: SearchItem) {
+    try {
+      if (item.onSelect) {
+        setBusyItemId(item.id)
+        await item.onSelect()
+      } else if (item.href) {
+        router.push(item.href)
+      }
+
+      setOpen(false)
+      setQuery('')
+    } finally {
+      setBusyItemId(null)
     }
-    setOpen(false)
-    setQuery('')
   }
 
-  function handleInputKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setSelectedIndex(i => Math.min(i + 1, filtered.length - 1))
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setSelectedIndex(i => Math.max(i - 1, 0))
-    } else if (e.key === 'Enter' && filtered[selectedIndex]) {
-      navigate(filtered[selectedIndex])
+  function handleInputKeyDown(event: React.KeyboardEvent) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setSelectedIndex(index => Math.min(index + 1, filtered.length - 1))
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setSelectedIndex(index => Math.max(index - 1, 0))
+    } else if (event.key === 'Enter' && filtered[selectedIndex]) {
+      void navigate(filtered[selectedIndex])
     }
   }
 
@@ -125,19 +185,16 @@ export function CommandPalette() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
 
-      {/* Palette */}
       <div className="relative w-full max-w-lg mx-4 rounded-2xl border border-white/[0.08] bg-[#1a1a1e]/95 backdrop-blur-xl shadow-2xl shadow-black/40 overflow-hidden">
-        {/* Search input */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-white/[0.06]">
           <Search className="w-4 h-4 text-text-muted shrink-0" />
           <input
             ref={inputRef}
             type="text"
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}
             placeholder="Search pages, actions..."
             className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted/50 focus:outline-none"
@@ -147,7 +204,6 @@ export function CommandPalette() {
           </kbd>
         </div>
 
-        {/* Results */}
         <div className="max-h-80 overflow-y-auto py-2">
           {filtered.length === 0 ? (
             <div className="px-4 py-8 text-center">
@@ -155,14 +211,15 @@ export function CommandPalette() {
             </div>
           ) : (
             <>
-              {filtered.map((item, i) => (
+              {filtered.map((item, index) => (
                 <button
                   key={item.id}
-                  onClick={() => navigate(item)}
-                  onMouseEnter={() => setSelectedIndex(i)}
+                  onClick={() => void navigate(item)}
+                  onMouseEnter={() => setSelectedIndex(index)}
+                  disabled={busyItemId !== null}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
-                    i === selectedIndex ? 'bg-white/[0.06]' : 'hover:bg-white/[0.03]'
-                  }`}
+                    index === selectedIndex ? 'bg-white/[0.06]' : 'hover:bg-white/[0.03]'
+                  } ${busyItemId === item.id ? 'opacity-60' : ''}`}
                 >
                   <div className="w-8 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center shrink-0 text-text-muted">
                     {item.icon}
@@ -175,7 +232,7 @@ export function CommandPalette() {
                   </div>
                   {item.category === 'action' && (
                     <span className="px-1.5 py-0.5 rounded text-[10px] font-medium text-violet-400 bg-violet-400/10">
-                      Action
+                      {busyItemId === item.id ? 'Working' : 'Action'}
                     </span>
                   )}
                   <ArrowRight className="w-3.5 h-3.5 text-text-muted/30 shrink-0" />
@@ -185,10 +242,9 @@ export function CommandPalette() {
           )}
         </div>
 
-        {/* Footer */}
         <div className="px-4 py-2 border-t border-white/[0.06] flex items-center gap-4 text-[10px] text-text-muted/50">
-          <span className="flex items-center gap-1"><kbd className="px-1 py-0.5 rounded bg-white/[0.06] border border-white/[0.08]">↑↓</kbd> Navigate</span>
-          <span className="flex items-center gap-1"><kbd className="px-1 py-0.5 rounded bg-white/[0.06] border border-white/[0.08]">↵</kbd> Open</span>
+          <span className="flex items-center gap-1"><kbd className="px-1 py-0.5 rounded bg-white/[0.06] border border-white/[0.08]">Up/Down</kbd> Navigate</span>
+          <span className="flex items-center gap-1"><kbd className="px-1 py-0.5 rounded bg-white/[0.06] border border-white/[0.08]">Enter</kbd> Open</span>
           <span className="flex items-center gap-1"><kbd className="px-1 py-0.5 rounded bg-white/[0.06] border border-white/[0.08]">Esc</kbd> Close</span>
         </div>
       </div>

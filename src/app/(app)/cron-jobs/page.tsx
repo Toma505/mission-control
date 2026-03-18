@@ -1,4 +1,5 @@
 import { Clock, Play, Pause } from 'lucide-react'
+import { getAppBaseUrl } from '@/lib/app-url'
 
 interface CronJob {
   name: string
@@ -9,7 +10,7 @@ interface CronJob {
 }
 
 async function getCronJobs(): Promise<{ connected: boolean; jobs: CronJob[] }> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000'
+  const baseUrl = getAppBaseUrl()
   try {
     const res = await fetch(`${baseUrl}/api/cron-jobs`, { cache: 'no-store' })
     if (!res.ok) return { connected: false, jobs: [] }

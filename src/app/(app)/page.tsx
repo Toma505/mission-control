@@ -2,10 +2,10 @@ import { StatusCard } from '@/components/dashboard/status-card'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
 import { QuickLinks } from '@/components/dashboard/quick-links'
 import { CostWidget } from '@/components/dashboard/bandwidth-widget'
+import { getAppBaseUrl } from '@/lib/app-url'
 
 async function getDashboardData() {
-  const port = process.env.PORT || '3000'
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `http://127.0.0.1:${port}`
+  const baseUrl = getAppBaseUrl()
 
   try {
     const res = await fetch(`${baseUrl}/api/activities`, { cache: 'no-store' })
