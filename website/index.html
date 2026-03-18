@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mission Control — AI Agent Dashboard for OpenClaw | Monitor, Control Costs, Manage Pipelines</title>
+  <title>Mission Control — AI Agent Dashboard for OpenClaw</title>
   <meta name="description" content="Stop overspending on AI API calls. Mission Control gives you real-time agent monitoring, automatic cost throttling, and pipeline tracking for OpenClaw. Desktop app for Windows, macOS, and Linux.">
   <meta name="keywords" content="OpenClaw, AI agent dashboard, AI cost management, OpenRouter cost control, AI agent monitoring, auto-throttle AI spending, pipeline tracking, desktop app, AI operations, LLM cost optimization">
   <meta name="author" content="Mission Control">
@@ -96,6 +96,38 @@
           "@type": "Answer",
           "text": "Mission Control is a commercial desktop application built with Next.js and Electron. It connects to your OpenClaw instance via its setup API. All data stays on your local machine — credentials are stored locally and communication goes directly between your computer and your OpenClaw server."
         }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I connect multiple OpenClaw instances to Mission Control?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The Personal plan supports 1 OpenClaw instance and 1 machine. The Pro plan supports unlimited instances on up to 3 machines, making it ideal for agencies or power users managing multiple projects. The Team plan supports unlimited instances on up to 10 machines."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What happens after my update year expires?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The app keeps working forever — you own it. You just stop receiving new feature updates after the first year. You can renew for $19 per year anytime to get back on the latest version with the newest features."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does Mission Control compare to Langfuse or Helicone?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Unlike cloud-based observability tools like Langfuse and Helicone, Mission Control is a local desktop app where no data leaves your machine. It also goes beyond monitoring — it can actively control your OpenClaw agent by switching AI models, setting budget limits, and auto-throttling costs. Cloud tools typically require code integration and charge based on usage volume."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does Mission Control work with OpenRouter?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Mission Control integrates with OpenRouter to track your API credits and spending in real time. When your daily spend approaches your budget limit, it can automatically switch your OpenClaw agent to cheaper models like DeepSeek V3 ($0.20 per million tokens) instead of expensive models like Claude Sonnet ($3 per million tokens). You can also import OpenRouter CSV billing data for detailed cost analytics."
+        }
       }
     ]
   }
@@ -110,6 +142,10 @@
     "url": "https://missioncontrol.openclaw.dev",
     "description": "Makers of Mission Control, the desktop dashboard for OpenClaw AI agent management.",
     "foundingDate": "2026",
+    "sameAs": [
+      "https://github.com/tomaslau/mission-control",
+      "https://openclaw.dev"
+    ],
     "contactPoint": {
       "@type": "ContactPoint",
       "email": "support@openclaw.dev",
@@ -125,7 +161,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -213,6 +249,14 @@
       box-shadow: 0 0 16px var(--accent-glow);
     }
     .nav-cta:hover { box-shadow: 0 0 24px var(--accent-glow-strong); transform: translateY(-1px); }
+    .nav-toggle {
+      display: none; background: none; border: none; cursor: pointer;
+      width: 36px; height: 36px; border-radius: 8px;
+      align-items: center; justify-content: center;
+      color: var(--text-secondary);
+    }
+    .nav-toggle svg { width: 20px; height: 20px; }
+    .nav-toggle:hover { color: var(--text); background: rgba(255,255,255,0.05); }
 
     /* ─── Hero ─── */
     .hero {
@@ -384,15 +428,15 @@
       display: grid; grid-template-columns: repeat(4, 1fr);
       gap: 40px; text-align: center;
     }
-    .stat-item h3 {
+    .stat-number {
       font-size: 36px; font-weight: 800; letter-spacing: -0.03em;
       margin-bottom: 4px;
     }
-    .stat-item h3 .gradient-text-green {
+    .stat-number .gradient-text-green {
       background: linear-gradient(135deg, #22c55e, #16a34a);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
-    .stat-item h3 .gradient-text-blue {
+    .stat-number .gradient-text-blue {
       background: linear-gradient(135deg, var(--accent-light), var(--accent));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
@@ -695,10 +739,22 @@
       .pricing-grid { grid-template-columns: 1fr; max-width: 380px; }
       .testimonial-grid { grid-template-columns: 1fr; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .nav-links a:not(.nav-cta) { display: none; }
+      .nav-toggle { display: flex; }
+      .nav-links {
+        display: none; position: absolute; top: 64px; left: 0; right: 0;
+        flex-direction: column; gap: 0; padding: 8px 24px 16px;
+        background: rgba(5,5,7,0.95); backdrop-filter: blur(24px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 12px 0; border-bottom: 1px solid var(--border); }
+      .nav-links a:last-child { border-bottom: none; }
+      .nav-links .nav-cta { text-align: center; margin-top: 8px; }
       section { padding: 80px 0; }
       .hero { padding: 140px 0 80px; }
       .hero h1 { font-size: 38px; }
+      .how-it-works [style*="grid-template-columns: repeat(4"] { grid-template-columns: repeat(2, 1fr) !important; }
+      .why-mc [style*="grid-template-columns: repeat(3"] { grid-template-columns: 1fr !important; }
       .footer-grid { flex-direction: column; gap: 16px; text-align: center; }
       .footer-links { justify-content: center; }
     }
@@ -717,6 +773,9 @@
       </div>
       Mission Control
     </a>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle navigation menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
     <div class="nav-links">
       <a href="#features">Features</a>
       <a href="#pricing">Pricing</a>
@@ -738,12 +797,16 @@
       Built for OpenClaw
     </div>
     <h1 class="reveal reveal-delay-1">
-      Your AI agents.<br>
-      <span class="gradient-text">Under control.</span>
+      The AI Agent Dashboard<br>
+      <span class="gradient-text">for OpenClaw.</span>
     </h1>
     <p class="hero-subtitle reveal reveal-delay-2">
       Monitor agents, prevent cost overruns, and manage your entire OpenClaw
       pipeline from one beautiful desktop app. No terminal required.
+    </p>
+    <!-- GEO: Citable product definition for AI search engines -->
+    <p class="hero-definition reveal reveal-delay-2" style="font-size: 14px; color: var(--text-muted); max-width: 600px; margin: -20px auto 36px; line-height: 1.7; text-align: center;">
+      Mission Control is a desktop application for monitoring and managing OpenClaw AI agents. It provides real-time status tracking, automatic cost throttling that switches to budget models when spending limits are exceeded, pipeline job tracking with per-step cost breakdown, and one-click mode switching. Available for Windows, macOS, and Linux.
     </p>
     <div class="hero-buttons reveal reveal-delay-3">
       <a href="#pricing" class="btn btn-primary">
@@ -783,20 +846,20 @@
   <div class="container">
     <div class="stats-grid">
       <div class="stat-item reveal">
-        <h3><span class="gradient-text-green">$48</span>/wk</h3>
-        <p>Average savings</p>
+        <div class="stat-number"><span class="gradient-text-green">$48</span>/wk</div>
+        <p>Average savings on AI API costs with auto-throttle enabled</p>
       </div>
       <div class="stat-item reveal reveal-delay-1">
-        <h3><span class="gradient-text-blue">280</span>ms</h3>
-        <p>Agent response time</p>
+        <div class="stat-number"><span class="gradient-text-blue">280</span>ms</div>
+        <p>Average agent response time monitored in real time</p>
       </div>
       <div class="stat-item reveal reveal-delay-2">
-        <h3><span class="gradient-text-green">3</span></h3>
-        <p>Platforms supported</p>
+        <div class="stat-number"><span class="gradient-text-green">3</span></div>
+        <p>Platforms supported: Windows, macOS, and Linux</p>
       </div>
       <div class="stat-item reveal reveal-delay-3">
-        <h3><span class="gradient-text-blue">24/7</span></h3>
-        <p>Monitoring uptime</p>
+        <div class="stat-number"><span class="gradient-text-blue">24/7</span></div>
+        <p>Continuous agent monitoring and cost tracking uptime</p>
       </div>
     </div>
   </div>
@@ -891,6 +954,59 @@
         </div>
         <h3>Multi-Channel View</h3>
         <p>See all your agent's channels at once — Discord, DMs, automated pipelines. Everything in one place.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── How It Works ─── -->
+<section class="how-it-works" style="border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--bg-subtle);">
+  <div class="container">
+    <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> HOW IT WORKS <span class="line"></span></div>
+    <h2 class="reveal" style="font-size: 40px; font-weight: 800; letter-spacing: -0.03em; text-align: center; margin-bottom: 64px;">Up and running in 3 minutes</h2>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; max-width: 960px; margin: 0 auto;">
+      <div class="reveal" style="text-align: center;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 20px; font-weight: 800; color: var(--accent);">1</div>
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">Download</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Grab the installer for Windows, macOS, or Linux. Double-click to install.</p>
+      </div>
+      <div class="reveal reveal-delay-1" style="text-align: center;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 20px; font-weight: 800; color: var(--green);">2</div>
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">Connect</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Enter your OpenClaw URL and setup password. The wizard tests the connection for you.</p>
+      </div>
+      <div class="reveal reveal-delay-2" style="text-align: center;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 20px; font-weight: 800; color: var(--amber);">3</div>
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">Set Budget</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Set your daily and monthly spend limits. Auto-throttle kicks in when you get close.</p>
+      </div>
+      <div class="reveal reveal-delay-3" style="text-align: center;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 20px; font-weight: 800; color: var(--purple);">4</div>
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">Monitor</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Watch your agents work in real time. Get alerts, track costs, and switch modes with one click.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Why Mission Control (Competitor Positioning) ─── -->
+<section class="why-mc">
+  <div class="container">
+    <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> WHY MISSION CONTROL <span class="line"></span></div>
+    <h2 class="reveal" style="font-size: 40px; font-weight: 800; letter-spacing: -0.03em; text-align: center; margin-bottom: 12px;">Built different</h2>
+    <p class="reveal reveal-delay-1" style="text-align: center; color: var(--text-secondary); font-size: 17px; margin-bottom: 48px; max-width: 560px; margin-left: auto; margin-right: auto; line-height: 1.7;">Unlike cloud-based observability tools, Mission Control is a local desktop app. Your data never leaves your machine.</p>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 900px; margin: 0 auto;">
+      <div class="reveal" style="padding: 28px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+        <div style="font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">Cloud dashboards</div>
+        <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.65;">Tools like Langfuse and Helicone are great for observability, but they're cloud-hosted, require integration code, and charge based on usage volume. They also don't manage your agent — they only watch it.</p>
+      </div>
+      <div class="reveal reveal-delay-1" style="padding: 28px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+        <div style="font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">Raw OpenRouter dashboard</div>
+        <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.65;">OpenRouter shows your credits and usage, but it can't switch your agent's model, set budget alerts, track pipeline jobs, or auto-throttle when costs spike. It's a billing page, not a control panel.</p>
+      </div>
+      <div class="reveal reveal-delay-2" style="padding: 28px; border-radius: 16px; background: rgba(59,130,246,0.04); border: 1px solid rgba(59,130,246,0.15);">
+        <div style="font-size: 13px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">Mission Control</div>
+        <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.65;">A local desktop app that both monitors and controls your OpenClaw agent. Set spend limits, auto-throttle to budget models, track pipeline jobs, switch modes — all without SSH or sending data to a third party.</p>
       </div>
     </div>
   </div>
