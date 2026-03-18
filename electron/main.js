@@ -32,6 +32,17 @@ let tray = null
 let nextProcess = null
 const PORT = 3000
 
+function showMainWindow() {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    if (!mainWindow.isVisible()) mainWindow.show()
+    mainWindow.focus()
+    return
+  }
+
+  createWindow()
+}
+
 function getIconPath() {
   if (process.platform === 'win32') return path.join(__dirname, 'icon.ico')
   const pngPath = path.join(__dirname, 'icon.png')
@@ -71,6 +82,13 @@ function createWindow() {
     return { action: 'deny' }
   })
 
+  mainWindow.on('close', (event) => {
+    if (!app.isQuitting) {
+      event.preventDefault()
+      mainWindow.hide()
+    }
+  })
+
   mainWindow.on('closed', () => {
     mainWindow = null
   })
@@ -90,19 +108,14 @@ function createTray() {
   tray = new Tray(trayIcon)
 
   const contextMenu = Menu.buildFromTemplate([
-    { label: 'Open Mission Control', click: () => {
-      if (mainWindow) { mainWindow.show(); mainWindow.focus() }
-      else createWindow()
-    }},
+    { label: 'Open Mission Control', click: () => showMainWindow() },
     { type: 'separator' },
     { label: 'Quit', click: () => { app.isQuitting = true; app.quit() }},
   ])
 
   tray.setToolTip('Mission Control')
   tray.setContextMenu(contextMenu)
-  tray.on('double-click', () => {
-    if (mainWindow) { mainWindow.show(); mainWindow.focus() }
-  })
+  tray.on('double-click', () => showMainWindow())
 }
 
 function waitForServer(port, retries = 30) {
@@ -185,7 +198,7 @@ app.on('window-all-closed', () => {
 })
 
 app.on('activate', () => {
-  if (mainWindow === null) createWindow()
+  showMainWindow()
 })
 
 app.on('before-quit', () => {

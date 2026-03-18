@@ -39,6 +39,17 @@ let tray = null
 let serverProcess = null
 const PORT = 3847
 
+function showMainWindow() {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    if (!mainWindow.isVisible()) mainWindow.show()
+    mainWindow.focus()
+    return
+  }
+
+  createWindow()
+}
+
 // ─── Paths ──────────────────────────────────────────────────
 
 function getAppRoot() {
@@ -389,6 +400,13 @@ function createWindow() {
     return { action: 'deny' }
   })
 
+  mainWindow.on('close', (event) => {
+    if (!app.isQuitting) {
+      event.preventDefault()
+      mainWindow.hide()
+    }
+  })
+
   mainWindow.on('closed', () => {
     mainWindow = null
   })
@@ -414,10 +432,7 @@ async function createTray() {
   try { autoLaunchEnabled = await autoLauncher.isEnabled() } catch {}
 
   const contextMenu = Menu.buildFromTemplate([
-    { label: 'Open Mission Control', click: () => {
-      if (mainWindow) { mainWindow.show(); mainWindow.focus() }
-      else createWindow()
-    }},
+    { label: 'Open Mission Control', click: () => showMainWindow() },
     { type: 'separator' },
     { label: 'Start on Login', type: 'checkbox', checked: autoLaunchEnabled, click: async (item) => {
       try {
@@ -435,9 +450,7 @@ async function createTray() {
 
   tray.setToolTip('Mission Control')
   tray.setContextMenu(contextMenu)
-  tray.on('double-click', () => {
-    if (mainWindow) { mainWindow.show(); mainWindow.focus() }
-  })
+  tray.on('double-click', () => showMainWindow())
 }
 
 // ─── Server ─────────────────────────────────────────────────
@@ -533,11 +546,7 @@ if (!gotLock) {
 } else {
   app.on('second-instance', () => {
     // Someone tried to open a second instance — focus the existing window
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore()
-      mainWindow.show()
-      mainWindow.focus()
-    }
+    showMainWindow()
   })
 }
 
@@ -572,7 +581,7 @@ app.on('window-all-closed', () => {
 })
 
 app.on('activate', () => {
-  if (mainWindow === null) createWindow()
+  showMainWindow()
 })
 
 app.on('before-quit', () => {
