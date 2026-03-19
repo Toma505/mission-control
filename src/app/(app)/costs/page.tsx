@@ -111,7 +111,7 @@ export default async function CostsPage() {
           <p className="text-xs text-text-muted mt-1">{subscriptions.length} active</p>
         </div>
 
-        <Link href="/api-usage" className="glass rounded-2xl p-5 hover:bg-white/[0.04] transition-colors group">
+        <Link href="/api-usage" className="glass rounded-2xl p-5 hover:bg-[var(--glass-bg)] transition-colors group">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 rounded-xl bg-accent-highlight/10">
               <Zap className="w-5 h-5 text-accent-highlight" />
@@ -189,7 +189,7 @@ export default async function CostsPage() {
                   <span className="text-xs text-text-muted">Credits remaining</span>
                   <span className="text-lg font-bold text-emerald-400">{formatUsd(openrouter.remaining)}</span>
                 </div>
-                <div className="w-full bg-white/[0.06] rounded-full h-1.5">
+                <div className="w-full bg-[var(--glass-bg)] rounded-full h-1.5">
                   <div
                     className="bg-violet-400 h-1.5 rounded-full transition-all"
                     style={{ width: `${openrouter.totalCredits > 0 ? Math.min((openrouter.totalUsage / openrouter.totalCredits) * 100, 100) : 0}%` }}
@@ -318,7 +318,7 @@ export default async function CostsPage() {
         <div className="flex flex-wrap gap-4">
           {subscriptions.map((sub) => (
             <div key={sub.id} className="flex items-center gap-3 p-3 rounded-xl bg-background-elevated">
-              <div className="w-8 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-[var(--glass-bg)] flex items-center justify-center">
                 <span className="text-xs font-bold text-text-primary">
                   {sub.provider === 'anthropic' ? 'A' : sub.name[0]}
                 </span>

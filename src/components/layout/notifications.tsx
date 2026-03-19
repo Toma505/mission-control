@@ -372,7 +372,7 @@ export function Notifications() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-white/[0.06] transition-all duration-200 relative"
+        className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-[var(--glass-bg)] transition-all duration-200 relative"
         title="Notifications"
       >
         <Bell className="w-[15px] h-[15px] text-text-muted" />
@@ -384,8 +384,8 @@ export function Notifications() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-[360px] rounded-xl border border-white/[0.08] bg-[#1a1a1e]/95 backdrop-blur-xl shadow-2xl shadow-black/40 overflow-hidden z-50">
-          <div className="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between gap-3">
+        <div className="absolute right-0 top-full mt-2 w-[360px] rounded-xl border border-[var(--glass-border)] bg-[var(--background-card)] backdrop-blur-xl shadow-2xl shadow-black/40 overflow-hidden z-50">
+          <div className="px-4 py-3 border-b border-[var(--glass-border)] flex items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-medium text-text-primary">Notifications</h3>
               <p className="text-[11px] text-text-muted">Alerts that help you recover quickly, not just observe.</p>
@@ -393,7 +393,7 @@ export function Notifications() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => void fetchNotifications()}
-                className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-text-muted hover:bg-white/[0.04] hover:text-text-primary"
+                className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-text-muted hover:bg-[var(--glass-bg)] hover:text-text-primary"
                 title="Refresh notifications"
               >
                 <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
@@ -417,8 +417,8 @@ export function Notifications() {
               visibleNotifications.map(notification => (
                 <div
                   key={notification.id}
-                  className={`px-4 py-3 border-b border-white/[0.04] transition-colors ${
-                    notification.read ? 'hover:bg-white/[0.03]' : 'bg-white/[0.02] hover:bg-white/[0.04]'
+                  className={`px-4 py-3 border-b border-[var(--glass-border)] transition-colors ${
+                    notification.read ? 'hover:bg-[var(--glass-bg)]' : 'bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-hover)]'
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -436,7 +436,7 @@ export function Notifications() {
                           <button
                             onClick={() => void runAction(notification)}
                             disabled={busyActionId !== null}
-                            className="inline-flex items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-[11px] text-text-primary hover:bg-white/[0.08] disabled:opacity-60"
+                            className="inline-flex items-center gap-1 rounded-lg border border-[var(--glass-border)] bg-[var(--glass-bg)] px-2.5 py-1 text-[11px] text-text-primary hover:bg-[var(--glass-bg-hover)] disabled:opacity-60"
                           >
                             {busyActionId === notification.id ? <RefreshCw className="w-3 h-3 animate-spin" /> : null}
                             {notification.actionLabel}
