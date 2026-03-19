@@ -61,12 +61,16 @@ export default async function CostsPage() {
   const anthropicCosts: CostData | null = data.anthropicCosts
   const subscriptions: Subscription[] = data.subscriptions || []
   const openrouter: OpenRouterData | null = data.openrouter
+  const providerCosts: Record<string, CostData> = data.providerCosts || {}
 
   const anthropicUsageTotal = anthropicCosts?.days?.reduce((s, d) => s + d.total, 0) ?? 0
   const openrouterUsage = openrouter?.usageMonthly ?? 0
+  const providerCostTotal = Object.values(providerCosts).reduce(
+    (sum, pc) => sum + (pc?.days?.reduce((s, d) => s + d.total, 0) ?? 0), 0
+  )
   const railwayEstimated = railway?.estimated?.total ?? 0
   const subscriptionTotal = subscriptions.reduce((s, sub) => s + sub.cost, 0)
-  const totalCombined = anthropicUsageTotal + openrouterUsage + railwayEstimated + subscriptionTotal
+  const totalCombined = anthropicUsageTotal + openrouterUsage + providerCostTotal + railwayEstimated + subscriptionTotal
 
   return (
     <div className="space-y-6">
@@ -116,9 +120,9 @@ export default async function CostsPage() {
             <ArrowRight className="w-3.5 h-3.5 text-text-muted ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
           <p className="text-3xl font-bold text-text-primary">
-            {anthropicCosts || openrouter ? formatUsd(anthropicUsageTotal + openrouterUsage) : '—'}
+            {anthropicCosts || openrouter || Object.keys(providerCosts).length > 0 ? formatUsd(anthropicUsageTotal + openrouterUsage + providerCostTotal) : '—'}
           </p>
-          <p className="text-xs text-text-muted mt-1">Anthropic + OpenRouter</p>
+          <p className="text-xs text-text-muted mt-1">All API providers</p>
         </Link>
 
         <div className="glass rounded-2xl p-5">
@@ -196,6 +200,27 @@ export default async function CostsPage() {
               <p className="text-xs text-text-muted">Add your OpenRouter API key in Connection Settings to connect</p>
             )}
           </div>
+
+          {/* Uploaded provider cost snapshots */}
+          {Object.entries(providerCosts).map(([provider, costData]) => {
+            const total = costData?.days?.reduce((s, d) => s + d.total, 0) ?? 0
+            const label = provider.charAt(0).toUpperCase() + provider.slice(1)
+            return (
+              <div key={provider} className="p-4 rounded-xl bg-background-elevated">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="w-4 h-4 text-cyan-400" />
+                  <span className="text-sm font-medium text-text-primary">{label}</span>
+                  <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-medium bg-cyan-400/10 text-cyan-400">
+                    CSV
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-text-muted">{costData.period}</span>
+                  <span className="text-lg font-bold text-cyan-400">{formatUsd(total)}</span>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
 

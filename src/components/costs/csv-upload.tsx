@@ -108,7 +108,7 @@ export function CsvUpload() {
             {status === 'uploading' ? 'Processing...' : 'Drop CSV here or click to upload'}
           </p>
           <p className="text-xs text-text-muted mt-1">
-            Accepts cost or token CSVs from Anthropic or OpenAI
+            Accepts cost CSVs from Anthropic, OpenAI, OpenRouter, or any provider
           </p>
         </>
       ) : status === 'success' ? (

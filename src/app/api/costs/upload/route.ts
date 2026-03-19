@@ -128,11 +128,84 @@ function parseOpenAiTokenCsv(text: string): TokenRow[] {
   return rows
 }
 
+// ─── Generic CSV parser (any provider) ─────────────────
+
+function parseGenericCostCsv(text: string, fileName: string): { rows: CostRow[]; provider: string } | null {
+  const lines = text.trim().split('\n')
+  if (lines.length < 2) return null
+
+  const headers = lines[0].split(',').map((h) => h.trim().toLowerCase())
+
+  // Find a cost column — prefer exact matches first
+  const costPatterns = ['cost_total', 'cost_usd', 'total_cost', 'cost', 'amount', 'usd', 'charge', 'spend']
+  let costIdx = -1
+  for (const pattern of costPatterns) {
+    costIdx = headers.findIndex((h) => h === pattern)
+    if (costIdx >= 0) break
+  }
+  // Fallback: partial match
+  if (costIdx === -1) {
+    costIdx = headers.findIndex((h) => /cost|amount|usd|charge|spend|price/.test(h))
+  }
+  if (costIdx === -1) return null
+
+  // Find a date column
+  const datePatterns = ['created_at', 'date', 'usage_date', 'usage_date_utc', 'timestamp', 'time']
+  let dateIdx = -1
+  for (const pattern of datePatterns) {
+    dateIdx = headers.findIndex((h) => h === pattern)
+    if (dateIdx >= 0) break
+  }
+  if (dateIdx === -1) {
+    dateIdx = headers.findIndex((h) => /date|created|time/.test(h))
+  }
+  if (dateIdx === -1) return null
+
+  // Find a model column (optional)
+  const modelIdx = headers.findIndex((h) => /model|model_permaslug|snapshot/.test(h))
+
+  // Find a type/category column (optional)
+  const typeIdx = headers.findIndex((h) => /type|category|operation|variant/.test(h))
+
+  // Infer provider from filename or headers
+  let provider = 'other'
+  const lowerName = fileName.toLowerCase()
+  if (lowerName.includes('openrouter')) provider = 'openrouter'
+  else if (lowerName.includes('together')) provider = 'together'
+  else if (lowerName.includes('fireworks')) provider = 'fireworks'
+  else if (lowerName.includes('groq')) provider = 'groq'
+  else if (lowerName.includes('deepseek')) provider = 'deepseek'
+  else if (headers.includes('generation_id') || headers.includes('model_permaslug')) provider = 'openrouter'
+  else if (headers.includes('provider_name')) provider = 'openrouter'
+
+  const rows: CostRow[] = []
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',')
+    const rawDate = cols[dateIdx]?.trim()
+    if (!rawDate) continue
+
+    // Normalize date: "2026-03-18 21:55:31.664" → "2026-03-18"
+    const date = rawDate.split(/[T ]/)[0]
+
+    const cost = parseFloat(cols[costIdx]?.trim() || '0')
+    if (isNaN(cost)) continue
+
+    const model = modelIdx >= 0 ? (cols[modelIdx]?.trim() || 'Unknown') : 'Unknown'
+    const type = typeIdx >= 0 ? (cols[typeIdx]?.trim() || 'Usage') : 'Usage'
+
+    rows.push({ date, model, type, cost })
+  }
+
+  return rows.length > 0 ? { rows, provider } : null
+}
+
 // ─── Helpers ────────────────────────────────────────────
 
 function formatDate(iso: string): string {
   try {
-    const d = new Date(iso + 'T00:00:00')
+    // Handle both "2026-03-18" and "2026-03-18 21:55:31.664" formats
+    const dateOnly = iso.split(/[T ]/)[0]
+    const d = new Date(dateOnly + 'T00:00:00')
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   } catch {
     return iso
@@ -239,42 +312,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, type: 'tokens', provider: 'openai', rows: rows.length })
     }
 
-    // ─── Fallback: try to auto-detect ───────────────────
-    if (isCostFile) {
-      // Default to Anthropic format if we can't determine provider
-      const rows = parseAnthropicCostCsv(text)
-      if (rows.length > 0) {
-        const costData = groupCostsByDate(rows)
-        await writeFile(path.join(dataDir, 'anthropic-costs.json'), JSON.stringify(costData, null, 2))
-        return NextResponse.json({ ok: true, type: 'costs', provider: 'anthropic', days: costData.days.length, total: costData.days.reduce((s, d) => s + d.total, 0) })
-      }
+    // ─── Fallback: generic CSV (OpenRouter, Together, etc.) ──
+    const generic = parseGenericCostCsv(text, fileName)
+    if (generic && generic.rows.length > 0) {
+      const costData = groupCostsByDate(generic.rows)
+      const outFile = `${generic.provider}-costs.json`
+      await writeFile(path.join(dataDir, outFile), JSON.stringify(costData, null, 2))
+      return NextResponse.json({ ok: true, type: 'costs', provider: generic.provider, days: costData.days.length, total: costData.days.reduce((s, d) => s + d.total, 0) })
     }
 
-    if (isTokenFile) {
-      const rows = parseAnthropicTokenCsv(text)
-      if (rows.length > 0) {
-        const tokenData = {
-          rows: rows.map((r) => ({ ...r, date: formatDate(r.date) })),
-          updatedAt: new Date().toISOString(),
-        }
-        await writeFile(path.join(dataDir, 'anthropic-tokens.json'), JSON.stringify(tokenData, null, 2))
-        return NextResponse.json({ ok: true, type: 'tokens', provider: 'anthropic', rows: rows.length })
-      }
-    }
-
-    // Build a specific error message based on what we could detect
+    // Nothing worked — build a helpful error
     const parts: string[] = []
-    if (!isAnthropic && !isOpenAi) {
-      parts.push('Could not detect the provider (Anthropic or OpenAI) from the CSV headers or filename.')
-    }
-    if (!isCostFile && !isTokenFile) {
-      parts.push('Could not determine if this is a cost or token CSV.')
-    }
-    if (isAnthropic || isOpenAi) {
-      // We detected provider but parsing returned zero rows
-      parts.push(`The file was detected as ${isAnthropic ? 'Anthropic' : 'OpenAI'} but could not parse any data rows. The format may have changed.`)
-    }
-    parts.push('Expected a cost or token CSV exported from console.anthropic.com or platform.openai.com.')
+    parts.push('Could not parse the CSV. Make sure it has at least a date column and a cost column.')
+    parts.push('Supported: Anthropic, OpenAI, OpenRouter, or any CSV with "date" and "cost" headers.')
 
     return NextResponse.json({ error: parts.join(' ') }, { status: 400 })
   } catch (error) {

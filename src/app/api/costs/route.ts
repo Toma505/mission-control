@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { isRailwayConfigured, getRailwayUsage } from '@/lib/railway'
-import { readFile } from 'fs/promises'
+import { readFile, readdir } from 'fs/promises'
 import path from 'path'
 import { getEffectiveConfig, DATA_DIR } from '@/lib/connection-config'
 
@@ -89,9 +89,27 @@ async function getOpenRouterData() {
   }
 }
 
+async function getUploadedProviderCosts(): Promise<Record<string, unknown>> {
+  const result: Record<string, unknown> = {}
+  try {
+    const files = await readdir(DATA_DIR)
+    for (const file of files) {
+      // Match pattern: <provider>-costs.json (skip anthropic/openai — handled separately)
+      const match = file.match(/^(.+)-costs\.json$/)
+      if (match && match[1] !== 'anthropic' && match[1] !== 'openai') {
+        const data = await readJson(file)
+        if (data) result[match[1]] = data
+      }
+    }
+  } catch {
+    // DATA_DIR may not exist yet
+  }
+  return result
+}
+
 export async function GET() {
   try {
-    const [anthropicCosts, anthropicTokens, savedSubscriptions, openrouter, railway] = await Promise.all([
+    const [anthropicCosts, anthropicTokens, savedSubscriptions, openrouter, railway, providerCosts] = await Promise.all([
       readJson('anthropic-costs.json'),
       readJson('anthropic-tokens.json'),
       readJson('subscriptions.json'),
@@ -99,10 +117,11 @@ export async function GET() {
       isRailwayConfigured()
         ? getRailwayUsage().catch((e) => ({ error: e instanceof Error ? e.message : 'Failed to fetch Railway data' }))
         : Promise.resolve(null),
+      getUploadedProviderCosts(),
     ])
     const subscriptions = savedSubscriptions ?? DEFAULT_SUBSCRIPTIONS
 
-    return NextResponse.json({ railway, anthropicCosts, anthropicTokens, subscriptions, openrouter })
+    return NextResponse.json({ railway, anthropicCosts, anthropicTokens, subscriptions, openrouter, providerCosts })
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch cost data' }, { status: 500 })
   }
