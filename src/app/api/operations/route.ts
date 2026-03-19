@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { sanitizeError } from '@/lib/sanitize-error'
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -125,10 +126,12 @@ export async function GET() {
     }
 
     // Parse directory listing — one entry per line, skip empty lines
+    // Sanitize: only allow safe directory names to prevent shell injection
+    const SAFE_DIR_NAME = /^[a-zA-Z0-9._\-]+$/
     const dirNames = lsOutput
       .split('\n')
       .map((l) => l.trim())
-      .filter((l) => l && l !== '[]')
+      .filter((l) => l && l !== '[]' && SAFE_DIR_NAME.test(l))
 
     if (dirNames.length === 0) {
       return NextResponse.json(EMPTY_RESPONSE)
@@ -194,10 +197,7 @@ export async function GET() {
     return NextResponse.json(response)
   } catch (error) {
     // If OpenClaw is unreachable or anything else fails, return empty
-    console.error(
-      '[operations] Failed to fetch jobs:',
-      error instanceof Error ? error.message : error
-    )
+    console.error('[operations] Failed to fetch jobs:', sanitizeError(error, 'unknown error'))
     return NextResponse.json(EMPTY_RESPONSE)
   }
 }

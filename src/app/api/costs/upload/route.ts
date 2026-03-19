@@ -316,7 +316,9 @@ export async function POST(request: NextRequest) {
     const generic = parseGenericCostCsv(text, fileName)
     if (generic && generic.rows.length > 0) {
       const costData = groupCostsByDate(generic.rows)
-      const outFile = `${generic.provider}-costs.json`
+      // Sanitize provider name — alphanumeric + hyphens only
+      const safeProvider = generic.provider.replace(/[^a-z0-9-]/g, '').slice(0, 50) || 'other'
+      const outFile = `${safeProvider}-costs.json`
       await writeFile(path.join(dataDir, outFile), JSON.stringify(costData, null, 2))
       return NextResponse.json({ ok: true, type: 'costs', provider: generic.provider, days: costData.days.length, total: costData.days.reduce((s, d) => s + d.total, 0) })
     }

@@ -11,9 +11,10 @@ import { NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
 
-const DATA_DIR = process.env.MC_DATA_DIR || join(process.cwd(), 'data')
-// license.json lives one level above the data dir (in userData root)
-const LICENSE_PATH = join(DATA_DIR, '..', 'license.json')
+// License path: Electron sets MC_USER_DATA_DIR to the userData root.
+// Fallback for dev mode uses cwd/data (same level).
+const USER_DATA_DIR = process.env.MC_USER_DATA_DIR || process.env.MC_DATA_DIR || join(process.cwd(), 'data')
+const LICENSE_PATH = join(USER_DATA_DIR, 'license.json')
 
 export async function GET() {
   try {
