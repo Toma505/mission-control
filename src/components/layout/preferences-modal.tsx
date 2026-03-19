@@ -64,14 +64,14 @@ export function PreferencesModal({ open, onClose }: Props) {
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[var(--background-card)] shadow-2xl shadow-black/40 overflow-hidden">
+      <div className="relative w-full max-w-lg rounded-2xl border border-[var(--glass-border)] bg-[var(--background-card)] shadow-2xl shadow-black/40 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--glass-border)]">
           <h2 className="text-base font-semibold text-[var(--text-primary)]">Preferences</h2>
           <div className="flex items-center gap-2">
             <button
               onClick={resetSettings}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-white/[0.04] transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)] transition-colors"
               title="Reset to defaults"
             >
               <RotateCcw className="w-3 h-3" />
@@ -79,7 +79,7 @@ export function PreferencesModal({ open, onClose }: Props) {
             </button>
             <button
               onClick={onClose}
-              className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/[0.06] transition-colors"
+              className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--glass-bg)] transition-colors"
             >
               <X className="w-4 h-4 text-[var(--text-muted)]" />
             </button>
@@ -87,7 +87,7 @@ export function PreferencesModal({ open, onClose }: Props) {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 px-6 pt-3 border-b border-white/[0.06]">
+        <div className="flex gap-1 px-6 pt-3 border-b border-[var(--glass-border)]">
           {[
             { id: 'appearance' as const, label: 'Appearance', icon: <Palette className="w-3.5 h-3.5" /> },
             { id: 'layout' as const, label: 'Layout', icon: <Layout className="w-3.5 h-3.5" /> },
@@ -99,7 +99,7 @@ export function PreferencesModal({ open, onClose }: Props) {
               onClick={() => { setTab(t.id); if (t.id === 'connection') loadConnectionInfo(); }}
               className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-t-lg transition-colors ${
                 tab === t.id
-                  ? 'text-[var(--text-primary)] bg-white/[0.04] border-b-2 border-[var(--accent-primary,#3b82f6)]'
+                  ? 'text-[var(--text-primary)] bg-[var(--glass-bg)] border-b-2 border-[var(--accent-primary,#3b82f6)]'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >
@@ -131,11 +131,11 @@ export function PreferencesModal({ open, onClose }: Props) {
                       className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${
                         settings.theme === t.value
                           ? 'border-[var(--accent-primary,#3b82f6)] bg-[var(--accent-primary,#3b82f6)]/10'
-                          : 'border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.02]'
+                          : 'border-[var(--glass-border)] hover:border-[var(--text-muted)] hover:bg-[var(--glass-bg)]'
                       }`}
                     >
                       <div
-                        className="w-full h-8 rounded-lg border border-white/[0.1]"
+                        className="w-full h-8 rounded-lg border border-[var(--glass-border)]"
                         style={{ backgroundColor: t.preview }}
                       />
                       <div className="flex items-center gap-1.5">
@@ -211,7 +211,7 @@ export function PreferencesModal({ open, onClose }: Props) {
                       className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border transition-all ${
                         settings.sidebarPosition === pos
                           ? 'border-[var(--accent-primary,#3b82f6)] bg-[var(--accent-primary,#3b82f6)]/10'
-                          : 'border-white/[0.06] hover:border-white/[0.12]'
+                          : 'border-[var(--glass-border)] hover:border-[var(--text-muted)]'
                       }`}
                     >
                       {/* Mini layout preview */}
@@ -219,11 +219,11 @@ export function PreferencesModal({ open, onClose }: Props) {
                         {pos === 'left' ? (
                           <>
                             <div className="w-3 h-full rounded-sm bg-[var(--accent-primary,#3b82f6)]/40" />
-                            <div className="flex-1 h-full rounded-sm bg-white/[0.06]" />
+                            <div className="flex-1 h-full rounded-sm bg-[var(--glass-bg)]" />
                           </>
                         ) : (
                           <>
-                            <div className="flex-1 h-full rounded-sm bg-white/[0.06]" />
+                            <div className="flex-1 h-full rounded-sm bg-[var(--glass-bg)]" />
                             <div className="w-3 h-full rounded-sm bg-[var(--accent-primary,#3b82f6)]/40" />
                           </>
                         )}
@@ -339,7 +339,7 @@ export function PreferencesModal({ open, onClose }: Props) {
                   <p className="text-sm text-[var(--text-secondary)]">Could not load connection info</p>
                   <button
                     onClick={loadConnectionInfo}
-                    className="px-4 py-1.5 rounded-lg bg-white/[0.06] text-[var(--text-secondary)] text-xs hover:bg-white/[0.1] transition-colors"
+                    className="px-4 py-1.5 rounded-lg bg-[var(--glass-bg)] text-[var(--text-secondary)] text-xs hover:bg-[var(--glass-bg-hover)] transition-colors"
                   >
                     Retry
                   </button>
@@ -372,12 +372,13 @@ function ToggleSetting({ label, description, checked, onChange }: {
       <button
         onClick={() => onChange(!checked)}
         className={`relative w-10 h-[22px] rounded-full transition-colors ${
-          checked ? 'bg-[var(--accent-primary,#3b82f6)]' : 'bg-white/[0.1]'
+          checked ? 'bg-[var(--accent-primary,#3b82f6)]' : 'bg-[var(--text-muted)]/30'
         }`}
+        style={!checked ? { backgroundColor: 'color-mix(in srgb, var(--text-muted) 30%, transparent)' } : undefined}
       >
         <div
-          className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${
-            checked ? 'left-[22px]' : 'left-[3px]'
+          className={`absolute top-[3px] w-4 h-4 rounded-full shadow-sm transition-transform ${
+            checked ? 'left-[22px] bg-white' : 'left-[3px] bg-[var(--text-secondary)]'
           }`}
         />
       </button>

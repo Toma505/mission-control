@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Key, Loader2, CheckCircle2, AlertCircle, Zap } from 'lucide-react'
 import { FramelessPageChrome } from '@/components/layout/frameless-page-chrome'
-import { BackButton } from '@/components/layout/back-button'
 
 declare global {
   interface Window {
@@ -98,10 +97,6 @@ export default function ActivatePage() {
     <div className="min-h-screen relative flex items-center justify-center p-6 pt-16" style={{ background: 'var(--background)' }}>
       <FramelessPageChrome />
       <div className="w-full max-w-md space-y-8">
-        <div className="flex justify-start">
-          <BackButton fallbackHref="/" />
-        </div>
-
         {/* Branding */}
         <div className="text-center space-y-3">
           <div className="w-16 h-16 rounded-2xl glass flex items-center justify-center mx-auto">

@@ -146,6 +146,16 @@
 .compact h1 { font-size: 1.25rem !important; }
 .compact h2 { font-size: 1rem !important; }
 
+/* Light theme: override glass variables */
+[data-theme="light"] {
+  --glass-bg: rgba(0, 0, 0, 0.04);
+  --glass-bg-hover: rgba(0, 0, 0, 0.07);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --glass-border-hover: rgba(0, 0, 0, 0.15);
+  --glass-shadow: 0 2px 20px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.04) inset;
+  --text-muted: #94949c;
+}
+
 /* Light theme scrollbar */
 [data-theme="light"] ::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.12);

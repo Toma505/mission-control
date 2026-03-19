@@ -150,13 +150,17 @@ export default function SetupPage() {
     <div className="min-h-screen relative flex items-center justify-center p-6 pt-16" style={{ background: 'var(--background)' }}>
       <FramelessPageChrome />
       <div className="w-full max-w-lg space-y-8">
-        <div className="flex justify-start">
-          <BackButton
-            fallbackHref={isReconfiguring ? '/' : undefined}
-            onBack={goBack}
-            disabled={!isReconfiguring && step === 1 && !hasHistory}
-          />
-        </div>
+        {/* Show Back button only when there's somewhere meaningful to go:
+            - During reconfigure: always (goes back to dashboard)
+            - During first-launch setup step 2: goes back to step 1 */}
+        {(isReconfiguring || step > 1) && (
+          <div className="flex justify-start">
+            <BackButton
+              fallbackHref={isReconfiguring ? '/' : undefined}
+              onBack={goBack}
+            />
+          </div>
+        )}
 
         {/* Init warning */}
         {initError && (
