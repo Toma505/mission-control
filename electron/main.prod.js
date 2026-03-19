@@ -16,6 +16,7 @@ const crypto = require('crypto')
 const AutoLaunch = require('auto-launch')
 const { autoUpdater } = require('electron-updater')
 const { resolveLicenseSecret } = require('./license-secret')
+const { createSessionToken, loadOrCreateConfigEncryptionKey } = require('./security-context')
 
 // ─── Cross-platform user data path ──────────────────────────
 function getUserDataPath() {
@@ -42,10 +43,13 @@ let splashWindow = null
 let tray = null
 let serverProcess = null
 const PORT = 3847
+const APP_HOSTS = new Set(['127.0.0.1', 'localhost'])
 const DESKTOP_SETTINGS_FILE = path.join(userDataPath, 'desktop-settings.json')
 const DEFAULT_DESKTOP_SETTINGS = {
   closeToTray: true,
 }
+let sessionToken = ''
+let configEncryptionKey = ''
 
 function showMainWindow() {
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -98,6 +102,55 @@ function getIconPath() {
   const pngPath = path.join(__dirname, 'icon.png')
   if (fs.existsSync(pngPath)) return pngPath
   return path.join(__dirname, 'icon.ico')
+}
+
+function isTrustedAppUrl(target) {
+  try {
+    const url = new URL(target)
+    return url.protocol === 'http:' && APP_HOSTS.has(url.hostname) && url.port === String(PORT)
+  } catch {
+    return false
+  }
+}
+
+function isAllowedExternalUrl(target) {
+  try {
+    const url = new URL(target)
+    return url.protocol === 'https:' || url.protocol === 'mailto:'
+  } catch {
+    return false
+  }
+}
+
+function openExternalSafely(target) {
+  if (isAllowedExternalUrl(target)) {
+    return shell.openExternal(target)
+  }
+
+  console.warn('[mc] Blocked external URL:', target)
+  return Promise.resolve()
+}
+
+function hardenWindow(window) {
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    if (isTrustedAppUrl(url)) {
+      return { action: 'allow' }
+    }
+
+    void openExternalSafely(url)
+    return { action: 'deny' }
+  })
+
+  window.webContents.on('will-navigate', (event, url) => {
+    if (isTrustedAppUrl(url)) return
+
+    event.preventDefault()
+    void openExternalSafely(url)
+  })
+
+  window.webContents.session.setPermissionRequestHandler((_webContents, _permission, callback) => {
+    callback(false)
+  })
 }
 
 // ─── Data directory ─────────────────────────────────────────
@@ -222,6 +275,7 @@ ipcMain.handle('activate-license', (_, { key, email }) => {
 })
 
 ipcMain.handle('get-platform', () => process.platform)
+ipcMain.handle('get-session-token', () => sessionToken)
 
 async function getDesktopDiagnostics() {
   let autoLaunchEnabled = false
@@ -401,7 +455,13 @@ function createSplashWindow() {
     resizable: false,
     skipTaskbar: true,
     alwaysOnTop: true,
-    webPreferences: { nodeIntegration: false, contextIsolation: true },
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+    },
     icon: getIconPath(),
   })
 
@@ -493,6 +553,9 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
       preload: path.join(__dirname, 'preload.js'),
     },
     show: false,
@@ -500,6 +563,7 @@ function createWindow() {
   })
 
   mainWindow.loadURL(`http://127.0.0.1:${PORT}`)
+  hardenWindow(mainWindow)
 
   mainWindow.once('ready-to-show', () => {
     // Close splash and show main window
@@ -512,11 +576,6 @@ function createWindow() {
 
   mainWindow.webContents.on('did-fail-load', () => {
     setTimeout(() => mainWindow?.loadURL(`http://127.0.0.1:${PORT}`), 2000)
-  })
-
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url)
-    return { action: 'deny' }
   })
 
   mainWindow.on('close', (event) => {
@@ -646,6 +705,8 @@ function startServer() {
         NODE_ENV: 'production',
         // Point data directory to user's persistent storage
         MC_DATA_DIR: dataDir,
+        MC_SESSION_TOKEN: sessionToken,
+        MC_CONFIG_ENCRYPTION_KEY: configEncryptionKey,
       },
       cwd: path.dirname(serverPath),
       stdio: 'pipe',
@@ -658,7 +719,13 @@ function startServer() {
     serverProcess = spawn(npmCmd, ['run', 'dev', '--', '-H', '127.0.0.1', '-p', String(PORT)], {
       cwd: appRoot,
       stdio: 'pipe',
-      env: { ...process.env, PORT: String(PORT) },
+      env: {
+        ...process.env,
+        PORT: String(PORT),
+        MC_DATA_DIR: dataDir,
+        MC_SESSION_TOKEN: sessionToken,
+        MC_CONFIG_ENCRYPTION_KEY: configEncryptionKey,
+      },
     })
   }
 
@@ -710,6 +777,16 @@ if (!gotLock) {
 app.on('ready', async () => {
   if (!ensurePackagedLicenseSecret()) return
 
+  sessionToken = createSessionToken()
+  configEncryptionKey = loadOrCreateConfigEncryptionKey(userDataPath)
+  if (!configEncryptionKey) {
+    dialog.showErrorBox(
+      'Mission Control Security Error',
+      'Secure credential storage is unavailable on this system. Mission Control cannot start because it would have to store credentials insecurely.',
+    )
+    app.quit()
+    return
+  }
   ensureDataDir()
   createSplashWindow()
   createTray()

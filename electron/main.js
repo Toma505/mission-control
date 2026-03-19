@@ -10,6 +10,7 @@ const net = require('net')
 const fs = require('fs')
 const os = require('os')
 const AutoLaunch = require('auto-launch')
+const { createSessionToken, loadOrCreateConfigEncryptionKey } = require('./security-context')
 
 // ─── Cross-platform user data path ──────────────────────────
 function getUserDataPath() {
@@ -35,10 +36,13 @@ let mainWindow = null
 let tray = null
 let nextProcess = null
 const PORT = 3000
+const APP_HOSTS = new Set(['127.0.0.1', 'localhost'])
 const DESKTOP_SETTINGS_FILE = path.join(userDataPath, 'desktop-settings.json')
 const DEFAULT_DESKTOP_SETTINGS = {
   closeToTray: true,
 }
+let sessionToken = ''
+let configEncryptionKey = ''
 
 function showMainWindow() {
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -86,6 +90,55 @@ function getLogsPath() {
   return app.getPath('logs')
 }
 
+function isTrustedAppUrl(target) {
+  try {
+    const url = new URL(target)
+    return url.protocol === 'http:' && APP_HOSTS.has(url.hostname) && url.port === String(PORT)
+  } catch {
+    return false
+  }
+}
+
+function isAllowedExternalUrl(target) {
+  try {
+    const url = new URL(target)
+    return url.protocol === 'https:' || url.protocol === 'mailto:'
+  } catch {
+    return false
+  }
+}
+
+function openExternalSafely(target) {
+  if (isAllowedExternalUrl(target)) {
+    return shell.openExternal(target)
+  }
+
+  console.warn('[mc] Blocked external URL:', target)
+  return Promise.resolve()
+}
+
+function hardenWindow(window) {
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    if (isTrustedAppUrl(url)) {
+      return { action: 'allow' }
+    }
+
+    void openExternalSafely(url)
+    return { action: 'deny' }
+  })
+
+  window.webContents.on('will-navigate', (event, url) => {
+    if (isTrustedAppUrl(url)) return
+
+    event.preventDefault()
+    void openExternalSafely(url)
+  })
+
+  window.webContents.session.setPermissionRequestHandler((_webContents, _permission, callback) => {
+    callback(false)
+  })
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
@@ -100,6 +153,9 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
       preload: path.join(__dirname, 'preload.js'),
     },
     show: true,
@@ -107,15 +163,11 @@ function createWindow() {
   })
 
   mainWindow.loadURL(`http://127.0.0.1:${PORT}`)
+  hardenWindow(mainWindow)
 
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
     console.error('Page failed to load:', errorCode, errorDescription)
     setTimeout(() => mainWindow?.loadURL(`http://127.0.0.1:${PORT}`), 2000)
-  })
-
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url)
-    return { action: 'deny' }
   })
 
   mainWindow.on('close', (event) => {
@@ -234,11 +286,17 @@ function waitForServer(port, retries = 30) {
 function startNextServer() {
   const projectDir = path.join(__dirname, '..')
   const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+  const dataDir = getDataDir()
 
   nextProcess = spawn(npmCmd, ['run', 'dev', '--', '-H', '127.0.0.1'], {
     cwd: projectDir,
     stdio: 'pipe',
-    env: { ...process.env },
+    env: {
+      ...process.env,
+      MC_DATA_DIR: dataDir,
+      MC_SESSION_TOKEN: sessionToken,
+      MC_CONFIG_ENCRYPTION_KEY: configEncryptionKey,
+    },
   })
 
   nextProcess.stdout?.on('data', (data) => process.stdout.write(`[next] ${data}`))
@@ -265,6 +323,7 @@ ipcMain.on('window-maximize', () => {
 })
 ipcMain.on('window-close', () => mainWindow?.close())
 ipcMain.handle('get-platform', () => process.platform)
+ipcMain.handle('get-session-token', () => sessionToken)
 ipcMain.handle('get-desktop-diagnostics', async () => {
   let autoLaunchEnabled = false
   try { autoLaunchEnabled = await autoLauncher.isEnabled() } catch {}
@@ -347,6 +406,11 @@ ipcMain.handle('updater-install', () => ({ status: 'dev', info: null, error: 'Up
 ipcMain.handle('updater-status', () => ({ status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null }))
 
 app.on('ready', async () => {
+  sessionToken = createSessionToken()
+  configEncryptionKey = loadOrCreateConfigEncryptionKey(userDataPath)
+  if (!configEncryptionKey) {
+    console.warn('[mc] Secure credential storage is unavailable; development mode will fall back to plaintext connection storage.')
+  }
   createTray()
 
   const running = await checkServerRunning()

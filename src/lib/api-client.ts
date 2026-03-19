@@ -8,21 +8,44 @@
 let cachedToken: string | null = null
 let tokenPromise: Promise<string> | null = null
 
+async function getTokenFromElectron(): Promise<string> {
+  if (typeof window === 'undefined') return ''
+
+  const electronApi = (window as typeof window & {
+    electronAPI?: {
+      getSessionToken?: () => Promise<string>
+    }
+  }).electronAPI
+
+  if (!electronApi?.getSessionToken) return ''
+
+  try {
+    return await electronApi.getSessionToken()
+  } catch {
+    return ''
+  }
+}
+
 async function getToken(): Promise<string> {
   if (cachedToken) return cachedToken
 
   // Deduplicate concurrent requests for the token
   if (!tokenPromise) {
-    tokenPromise = fetch('/api/auth/token')
-      .then((r) => r.json())
-      .then((d) => {
-        cachedToken = d.token
+    tokenPromise = (async () => {
+      const electronToken = await getTokenFromElectron()
+      if (electronToken) {
+        cachedToken = electronToken
+        return electronToken
+      }
+
+      const response = await fetch('/api/auth/token')
+      const data = await response.json()
+      cachedToken = data.token
+      return data.token as string
+    })()
+      .catch(() => '')
+      .finally(() => {
         tokenPromise = null
-        return d.token as string
-      })
-      .catch(() => {
-        tokenPromise = null
-        return ''
       })
   }
 

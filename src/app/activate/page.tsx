@@ -76,7 +76,7 @@ export default function ActivatePage() {
         } else if (rawError.toLowerCase().includes('machine') || rawError.toLowerCase().includes('fingerprint')) {
           setError('This key is already activated on another device. Contact support@openclaw.dev for help.')
         } else {
-          setError(rawError)
+          setError('Activation could not be completed. Verify your license details and try again.')
         }
       }
     } catch {
