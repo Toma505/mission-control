@@ -356,8 +356,7 @@ export default function SetupPage() {
                   disabled={!canSave || saving}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   style={{
-                    background: canSave ? 'var(--accent-primary)' : undefined,
-                    opacity: canSave ? 1 : 0.4,
+                    background: 'var(--accent-primary)',
                   }}
                 >
                   {saving ? (
