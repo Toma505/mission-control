@@ -2,6 +2,7 @@
 
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { apiFetch } from '@/lib/api-client'
 import {
   AlertTriangle,
   Search,
@@ -97,7 +98,7 @@ export function CommandPalette() {
   }
 
   async function switchMode(mode: 'best' | 'budget' | 'auto') {
-    const response = await fetch('/api/mode', {
+    const response = await apiFetch('/api/mode', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode }),

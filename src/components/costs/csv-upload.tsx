@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { Upload, Check, AlertCircle } from 'lucide-react'
+import { apiFetch } from '@/lib/api-client'
 
 export function CsvUpload() {
   const [dragging, setDragging] = useState(false)
@@ -28,7 +29,7 @@ export function CsvUpload() {
     formData.append('file', file)
 
     try {
-      const res = await fetch('/api/costs/upload', { method: 'POST', body: formData })
+      const res = await apiFetch('/api/costs/upload', { method: 'POST', body: formData })
       const data = await res.json()
 
       if (!res.ok) {

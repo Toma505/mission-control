@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
 import { getEffectiveConfig } from '@/lib/connection-config'
 
 async function getAuth() {
@@ -98,14 +99,22 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  if (!isAuthorized(request)) return unauthorizedResponse()
+
   const { url: OPENCLAW_URL, header } = await getAuth()
   if (!OPENCLAW_URL) {
     return NextResponse.json({ error: 'Not configured' }, { status: 500 })
   }
 
   try {
-    const { mode } = (await request.json()) as { mode: string }
+    let body: { mode?: string }
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    }
+    const { mode } = body as { mode: string }
     if (!MODES[mode as ModeName]) {
       return NextResponse.json({ error: 'Invalid mode' }, { status: 400 })
     }

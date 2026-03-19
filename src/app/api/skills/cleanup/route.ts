@@ -1,9 +1,11 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { sanitizeError } from '@/lib/sanitize-error'
+import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
 import { isConfigured, getOpenClawConfig } from '@/lib/openclaw'
 import { getEffectiveConfig } from '@/lib/connection-config'
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  if (!isAuthorized(request)) return unauthorizedResponse()
   if (!(await isConfigured())) {
     return NextResponse.json({ error: 'OpenClaw not configured' }, { status: 400 })
   }

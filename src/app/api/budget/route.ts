@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { sanitizeError } from '@/lib/sanitize-error'
+import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { getEffectiveConfig, DATA_DIR } from '@/lib/connection-config'
@@ -153,17 +154,36 @@ export async function GET() {
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
+  if (!isAuthorized(request)) return unauthorizedResponse()
+
   try {
-    const body = await request.json()
+    let body: Record<string, unknown>
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    }
+
     const current = await readBudget()
 
+    // Validate numeric inputs — reject NaN, Infinity, negative values
+    const dailyLimit = body.dailyLimit != null ? Number(body.dailyLimit) : current.dailyLimit
+    const monthlyLimit = body.monthlyLimit != null ? Number(body.monthlyLimit) : current.monthlyLimit
+
+    if (!Number.isFinite(dailyLimit) || dailyLimit < 0 || dailyLimit > 1_000_000) {
+      return NextResponse.json({ error: 'Daily limit must be between 0 and 1,000,000' }, { status: 400 })
+    }
+    if (!Number.isFinite(monthlyLimit) || monthlyLimit < 0 || monthlyLimit > 10_000_000) {
+      return NextResponse.json({ error: 'Monthly limit must be between 0 and 10,000,000' }, { status: 400 })
+    }
+
     const updated: BudgetConfig = {
-      dailyLimit: body.dailyLimit ?? current.dailyLimit,
-      monthlyLimit: body.monthlyLimit ?? current.monthlyLimit,
-      autoThrottle: body.autoThrottle ?? current.autoThrottle,
-      throttleMode: body.throttleMode ?? current.throttleMode,
-      alertThresholds: body.alertThresholds ?? current.alertThresholds,
+      dailyLimit,
+      monthlyLimit,
+      autoThrottle: typeof body.autoThrottle === 'boolean' ? body.autoThrottle : current.autoThrottle,
+      throttleMode: typeof body.throttleMode === 'string' ? body.throttleMode : current.throttleMode,
+      alertThresholds: Array.isArray(body.alertThresholds) ? body.alertThresholds : current.alertThresholds,
       updatedAt: new Date().toISOString(),
     }
 

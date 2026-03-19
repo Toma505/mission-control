@@ -1,5 +1,7 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { sanitizeError } from '@/lib/sanitize-error'
+import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
+import { validateExternalUrl } from '@/lib/url-validator'
 import { readConnectionConfig, writeConnectionConfig } from '@/lib/connection-config'
 
 export async function GET() {
@@ -24,7 +26,9 @@ export async function GET() {
   })
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  if (!isAuthorized(request)) return unauthorizedResponse()
+
   try {
     let body: Record<string, unknown>
     try {
@@ -44,6 +48,12 @@ export async function POST(request: Request) {
         { error: 'OpenClaw URL and Setup Password are required' },
         { status: 400 }
       )
+    }
+
+    // SSRF protection — validate URL before storing
+    const urlError = validateExternalUrl(openclawUrl)
+    if (urlError) {
+      return NextResponse.json({ error: urlError }, { status: 400 })
     }
 
     // Normalize URL — remove trailing slash

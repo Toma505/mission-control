@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Plug, CheckCircle2, XCircle, Loader2, Eye, EyeOff, ArrowRight, Zap, Shield, ExternalLink } from 'lucide-react'
 import { FramelessPageChrome } from '@/components/layout/frameless-page-chrome'
 import { BackButton } from '@/components/layout/back-button'
+import { apiFetch } from '@/lib/api-client'
 
 interface TestResults {
   openclaw: { ok: boolean; error: string; version: string }
@@ -78,7 +79,7 @@ export default function SetupPage() {
     setTesting(true)
     setTestResults(null)
     try {
-      const res = await fetch('/api/connection/test', {
+      const res = await apiFetch('/api/connection/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ openclawUrl, setupPassword, openrouterApiKey }),
@@ -98,7 +99,7 @@ export default function SetupPage() {
     setSaving(true)
     setSaveError('')
     try {
-      const res = await fetch('/api/connection', {
+      const res = await apiFetch('/api/connection', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ openclawUrl, setupPassword, openrouterApiKey }),

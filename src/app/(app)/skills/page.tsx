@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
+import { apiFetch } from '@/lib/api-client'
 import {
   Upload,
   Shield,
@@ -135,7 +136,7 @@ export default function SkillsPage() {
     const formData = new FormData()
     formData.append('file', file)
     try {
-      const res = await fetch('/api/skills/scan', { method: 'POST', body: formData })
+      const res = await apiFetch('/api/skills/scan', { method: 'POST', body: formData })
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Scan failed'); return }
       setResult(data)
@@ -171,7 +172,7 @@ export default function SkillsPage() {
     setInstallMsg('')
     setError('')
     try {
-      const res = await fetch('/api/skills/install', {
+      const res = await apiFetch('/api/skills/install', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ skillName: npmName.trim() }),

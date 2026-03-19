@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Shield, Zap, AlertTriangle, CheckCircle, Settings } from 'lucide-react'
+import { apiFetch } from '@/lib/api-client'
 
 interface BudgetData {
   budget: {
@@ -66,7 +67,7 @@ export function BudgetControls() {
     setSaving(true)
     setSaveError('')
     try {
-      const res = await fetch('/api/budget', {
+      const res = await apiFetch('/api/budget', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

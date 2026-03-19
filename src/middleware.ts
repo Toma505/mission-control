@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 /**
- * Middleware handles two things:
- * 1. Redirects unconfigured users to /activate (if unlicensed) or /setup (if licensed) on first run
- * 2. Blocks API requests from non-localhost origins (security)
+ * Middleware handles three things:
+ * 1. Redirects unconfigured users to /activate (if unlicensed) or /setup (if licensed)
+ * 2. Blocks API requests from non-localhost origins (CSRF protection)
+ * 3. Sets security headers on all responses
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -22,13 +23,10 @@ export async function middleware(request: NextRequest) {
       const data = await res.json()
 
       if (!data.configured) {
-        // Not configured — check license before deciding where to send them
         const destination = await getUnconfiguredDestination(baseUrl)
         return NextResponse.redirect(new URL(destination, request.url))
       }
     } catch {
-      // If the connection API itself is unreachable, check license to decide
-      // between /activate and /setup so users don't skip activation
       try {
         const baseUrl = request.nextUrl.origin
         const destination = await getUnconfiguredDestination(baseUrl)
@@ -38,31 +36,49 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    return NextResponse.next()
+    return addSecurityHeaders(NextResponse.next())
   }
 
-  // ─── API security: localhost only ───────────────────────────
+  // ─── API security: origin validation ──────────────────────
   if (pathname.startsWith('/api')) {
-    const host = request.headers.get('host') || ''
-    const isLocalhost = host.startsWith('localhost') || host.startsWith('127.0.0.1')
+    // Allow same-origin requests (renderer → embedded server)
+    // Block cross-origin requests from external sites (CSRF protection)
+    const origin = request.headers.get('origin')
 
-    const origin = request.headers.get('origin') || ''
-    const isInternalFetch = origin === '' || origin.includes('localhost') || origin.includes('127.0.0.1')
+    if (origin) {
+      // Browser requests always include Origin on cross-origin POSTs.
+      // Only allow requests from the same origin (localhost/127.0.0.1).
+      const requestHost = request.headers.get('host') || ''
+      let originHost: string
+      try {
+        originHost = new URL(origin).host
+      } catch {
+        return new NextResponse(
+          JSON.stringify({ error: 'Invalid origin' }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        )
+      }
 
-    if (!isLocalhost && !isInternalFetch) {
-      return new NextResponse(
-        JSON.stringify({ error: 'Access denied — localhost only' }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-      )
+      if (originHost !== requestHost) {
+        return new NextResponse(
+          JSON.stringify({ error: 'Cross-origin requests are not allowed' }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        )
+      }
     }
+
+    // Non-browser requests (curl, Electron main process) omit Origin.
+    // These are allowed through — write endpoints additionally require
+    // the session token via isAuthorized() in each route handler.
+
+    return addSecurityHeaders(NextResponse.next())
   }
 
-  return NextResponse.next()
+  return addSecurityHeaders(NextResponse.next())
 }
 
 /**
  * Checks license status to decide where unconfigured users should land.
- * Licensed users go to /setup; unlicensed users go to /activate first.
  */
 async function getUnconfiguredDestination(baseUrl: string): Promise<string> {
   try {
@@ -70,9 +86,19 @@ async function getUnconfiguredDestination(baseUrl: string): Promise<string> {
     const data = await res.json()
     return data.licensed ? '/setup' : '/activate'
   } catch {
-    // If license API is unreachable, default to /activate (safer — don't skip activation)
     return '/activate'
   }
+}
+
+/**
+ * Adds security headers to responses.
+ */
+function addSecurityHeaders(response: NextResponse): NextResponse {
+  // Prevent the API from being embedded in iframes
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'no-referrer')
+  return response
 }
 
 export const config = {

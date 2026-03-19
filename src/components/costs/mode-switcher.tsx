@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Zap, Shield, Brain, Loader2, Check, AlertCircle, Sparkles } from 'lucide-react'
+import { apiFetch } from '@/lib/api-client'
 
 type ModeName = 'best' | 'standard' | 'budget' | 'auto'
 
@@ -79,7 +80,7 @@ export function ModeSwitcher() {
     setStatus(null)
 
     try {
-      const res = await fetch('/api/mode', {
+      const res = await apiFetch('/api/mode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode }),
