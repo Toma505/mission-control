@@ -15,14 +15,14 @@ const PRICING = {
   DISK_USAGE_GB: 0.00000347,  // per GB-minute (volume)
 }
 
-async function railwayQuery(query: string): Promise<any> {
+async function railwayQuery(query: string, variables?: Record<string, unknown>): Promise<any> {
   const res = await fetch(RAILWAY_API_URL, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${RAILWAY_TOKEN}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ query, variables }),
     cache: 'no-store',
   })
 
@@ -56,25 +56,28 @@ function calcCost(measurement: string, value: number): number {
 }
 
 export async function getRailwayUsage(): Promise<RailwayUsage> {
-  const data = await railwayQuery(`{
-    project(id: "${RAILWAY_PROJECT_ID}") {
-      subscriptionType
-    }
-    estimatedUsage(
-      projectId: "${RAILWAY_PROJECT_ID}"
-      measurements: [CPU_USAGE, MEMORY_USAGE_GB, NETWORK_TX_GB, DISK_USAGE_GB]
-    ) {
-      estimatedValue
-      measurement
-    }
-    usage(
-      projectId: "${RAILWAY_PROJECT_ID}"
-      measurements: [CPU_USAGE, MEMORY_USAGE_GB, NETWORK_TX_GB, DISK_USAGE_GB]
-    ) {
-      measurement
-      value
-    }
-  }`)
+  const data = await railwayQuery(
+    `query($projectId: String!) {
+      project(id: $projectId) {
+        subscriptionType
+      }
+      estimatedUsage(
+        projectId: $projectId
+        measurements: [CPU_USAGE, MEMORY_USAGE_GB, NETWORK_TX_GB, DISK_USAGE_GB]
+      ) {
+        estimatedValue
+        measurement
+      }
+      usage(
+        projectId: $projectId
+        measurements: [CPU_USAGE, MEMORY_USAGE_GB, NETWORK_TX_GB, DISK_USAGE_GB]
+      ) {
+        measurement
+        value
+      }
+    }`,
+    { projectId: RAILWAY_PROJECT_ID }
+  )
 
   const plan = data.project?.subscriptionType || 'hobby'
   const credits = plan === 'hobby' ? 5.0 : plan === 'pro' ? 0 : 0

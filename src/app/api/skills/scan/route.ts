@@ -5,6 +5,8 @@ import { generateReport } from '@/lib/skill-scanner'
 import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
 
 const MAX_ZIP_SIZE = 50 * 1024 * 1024 // 50 MB
+const MAX_FILES_IN_ZIP = 5000           // Prevent zip bombs with thousands of entries
+const MAX_TOTAL_UNCOMPRESSED = 500 * 1024 * 1024 // 500 MB total uncompressed
 
 export async function POST(request: NextRequest) {
   if (!isAuthorized(request)) return unauthorizedResponse()
@@ -28,12 +30,28 @@ export async function POST(request: NextRequest) {
     const buffer = await file.arrayBuffer()
     const zip = await JSZip.loadAsync(buffer)
 
+    // Zip bomb protection: check file count and total uncompressed size
+    const entries = Object.entries(zip.files).filter(([, e]) => !e.dir)
+    if (entries.length > MAX_FILES_IN_ZIP) {
+      return NextResponse.json(
+        { error: `Too many files in archive (${entries.length}). Maximum is ${MAX_FILES_IN_ZIP}.` },
+        { status: 400 }
+      )
+    }
+
+    let totalUncompressed = 0
     const files: { name: string; size: number; content?: string }[] = []
 
-    for (const [name, entry] of Object.entries(zip.files)) {
-      if (entry.dir) continue
-
+    for (const [name, entry] of entries) {
       const size = (entry as any)._data?.uncompressedSize ?? 0
+      totalUncompressed += size
+
+      if (totalUncompressed > MAX_TOTAL_UNCOMPRESSED) {
+        return NextResponse.json(
+          { error: 'Archive is too large when uncompressed. Maximum total is 500 MB.' },
+          { status: 400 }
+        )
+      }
 
       // Only read text content for scannable files (skip large binaries)
       const ext = name.includes('.') ? '.' + name.split('.').pop()!.toLowerCase() : ''
