@@ -25,6 +25,7 @@ import {
   Globe,
   Package,
   UsersRound,
+  Workflow,
 } from 'lucide-react'
 
 const mainNav = [
@@ -34,6 +35,7 @@ const mainNav = [
   { name: 'Chat', href: '/chat', icon: MessageSquare },
   { name: 'Plugins', href: '/plugins', icon: Package },
   { name: 'Skills', href: '/skills', icon: Shield },
+  { name: 'Workflows', href: '/workflows', icon: Workflow },
 ]
 
 const monitorNav = [
