@@ -29,9 +29,18 @@ const RANGE_CONFIG: Record<UptimeRange, RangeConfig> = {
   '90d': { durationMs: 90 * 24 * 60 * 60 * 1000, bucketMs: 12 * 60 * 60 * 1000 },
 }
 
-function getRangeConfig(range: string | null | undefined): RangeConfig {
-  const normalized = (range || '24h') as UptimeRange
-  return RANGE_CONFIG[normalized] || RANGE_CONFIG['24h']
+function normalizeRange(range: string | null | undefined): UptimeRange {
+  if (!range) return '24h'
+  if (range in RANGE_CONFIG) return range as UptimeRange
+  return '24h'
+}
+
+function getRangeConfig(range: string | null | undefined) {
+  const normalized = normalizeRange(range)
+  return {
+    range: normalized,
+    config: RANGE_CONFIG[normalized],
+  }
 }
 
 function floorToBucket(date: Date, bucketMs: number) {
@@ -164,7 +173,10 @@ export async function maybeRecordAgentUptimeSnapshot() {
 }
 
 export async function getAgentUptimeTimeline(range: string | null | undefined) {
-  const { durationMs, bucketMs } = getRangeConfig(range)
+  const {
+    range: normalizedRange,
+    config: { durationMs, bucketMs },
+  } = getRangeConfig(range)
   const end = floorToBucket(new Date(), bucketMs)
   const start = new Date(end.getTime() - durationMs + bucketMs)
 
@@ -241,7 +253,7 @@ export async function getAgentUptimeTimeline(range: string | null | undefined) {
     })
 
   return {
-    range: (range || '24h') as UptimeRange,
+    range: normalizedRange,
     bucketMinutes: Math.round(bucketMs / 60000),
     generatedAt: new Date().toISOString(),
     agents,

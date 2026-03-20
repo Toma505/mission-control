@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "Agent" (
+CREATE TABLE IF NOT EXISTS "Agent" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "tagline" TEXT NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE "Agent" (
 );
 
 -- CreateTable
-CREATE TABLE "AgentUptimeEvent" (
+CREATE TABLE IF NOT EXISTS "AgentUptimeEvent" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "agentName" TEXT NOT NULL,
     "model" TEXT,
@@ -22,7 +22,7 @@ CREATE TABLE "AgentUptimeEvent" (
 );
 
 -- CreateTable
-CREATE TABLE "Task" (
+CREATE TABLE IF NOT EXISTS "Task" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE "Task" (
 );
 
 -- CreateTable
-CREATE TABLE "TaskAgent" (
+CREATE TABLE IF NOT EXISTS "TaskAgent" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "agentId" TEXT NOT NULL,
     "taskId" TEXT NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE "TaskAgent" (
 );
 
 -- CreateTable
-CREATE TABLE "Activity" (
+CREATE TABLE IF NOT EXISTS "Activity" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "type" TEXT NOT NULL,
     "title" TEXT NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE "Activity" (
 );
 
 -- CreateTable
-CREATE TABLE "Commit" (
+CREATE TABLE IF NOT EXISTS "Commit" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "message" TEXT NOT NULL,
     "author" TEXT NOT NULL,
@@ -72,7 +72,7 @@ CREATE TABLE "Commit" (
 );
 
 -- CreateTable
-CREATE TABLE "Document" (
+CREATE TABLE IF NOT EXISTS "Document" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "type" TEXT NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE "Document" (
 );
 
 -- CreateTable
-CREATE TABLE "Client" (
+CREATE TABLE IF NOT EXISTS "Client" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'ACTIVE',
@@ -95,7 +95,7 @@ CREATE TABLE "Client" (
 );
 
 -- CreateTable
-CREATE TABLE "CronJob" (
+CREATE TABLE IF NOT EXISTS "CronJob" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
     "schedule" TEXT NOT NULL,
@@ -107,7 +107,7 @@ CREATE TABLE "CronJob" (
 );
 
 -- CreateTable
-CREATE TABLE "SystemStatus" (
+CREATE TABLE IF NOT EXISTS "SystemStatus" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "overall" TEXT NOT NULL DEFAULT 'ACTIVE',
     "message" TEXT NOT NULL,
@@ -118,13 +118,13 @@ CREATE TABLE "SystemStatus" (
 );
 
 -- CreateIndex
-CREATE INDEX "AgentUptimeEvent_bucketStart_idx" ON "AgentUptimeEvent"("bucketStart");
+CREATE INDEX IF NOT EXISTS "AgentUptimeEvent_bucketStart_idx" ON "AgentUptimeEvent"("bucketStart");
 
 -- CreateIndex
-CREATE INDEX "AgentUptimeEvent_agentName_bucketStart_idx" ON "AgentUptimeEvent"("agentName", "bucketStart");
+CREATE INDEX IF NOT EXISTS "AgentUptimeEvent_agentName_bucketStart_idx" ON "AgentUptimeEvent"("agentName", "bucketStart");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "AgentUptimeEvent_agentName_bucketStart_key" ON "AgentUptimeEvent"("agentName", "bucketStart");
+CREATE UNIQUE INDEX IF NOT EXISTS "AgentUptimeEvent_agentName_bucketStart_key" ON "AgentUptimeEvent"("agentName", "bucketStart");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "TaskAgent_agentId_taskId_key" ON "TaskAgent"("agentId", "taskId");
+CREATE UNIQUE INDEX IF NOT EXISTS "TaskAgent_agentId_taskId_key" ON "TaskAgent"("agentId", "taskId");

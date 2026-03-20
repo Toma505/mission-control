@@ -62,7 +62,8 @@ export function ExportButton({ type }: { type: ExportType }) {
         URL.revokeObjectURL(objectUrl)
         setNotice('CSV downloaded')
       } else {
-        window.open(url, '_blank', 'noopener,noreferrer')
+        const printWindow = window.open(url, '_blank', 'noopener,noreferrer')
+        if (!printWindow) throw new Error('Print window blocked')
         setNotice('Opened print view')
       }
 
@@ -85,13 +86,13 @@ export function ExportButton({ type }: { type: ExportType }) {
       </button>
 
       {notice ? (
-        <div className="absolute right-0 top-full mt-2 rounded-lg border border-[var(--glass-border)] bg-[var(--background-card)] px-3 py-1.5 text-[11px] text-text-secondary shadow-lg">
+        <div className="absolute right-0 top-full mt-2 rounded-lg border border-[var(--glass-border)] bg-[var(--glass-bg)] px-3 py-1.5 text-[11px] text-text-secondary shadow-lg backdrop-blur-xl">
           {notice}
         </div>
       ) : null}
 
       {open ? (
-        <div className="absolute right-0 top-full mt-2 w-[260px] rounded-2xl border border-[var(--glass-border)] bg-[var(--background-card)] p-3 shadow-2xl">
+        <div className="absolute right-0 top-full mt-2 w-[260px] rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] p-3 shadow-2xl backdrop-blur-xl">
           <div className="space-y-3">
             <div>
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-text-muted">CSV</p>

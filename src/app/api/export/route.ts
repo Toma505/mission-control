@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { sanitizeError } from '@/lib/sanitize-error'
 
 type ExportType = 'costs' | 'usage' | 'operations' | 'all'
 type ExportFormat = 'csv' | 'pdf'
 type ExportRange = '7d' | '30d' | '90d'
 
 type ExportRow = Record<string, string | number | boolean | null>
+type ProviderCostDay = {
+  date: string
+  total: number
+  breakdown: { type: string; cost: number }[]
+}
+type ProviderCostRecord = {
+  days?: ProviderCostDay[]
+}
 
 const VALID_TYPES = new Set<ExportType>(['costs', 'usage', 'operations', 'all'])
 const VALID_FORMATS = new Set<ExportFormat>(['csv', 'pdf'])
@@ -44,6 +53,27 @@ async function fetchJson(origin: string, pathname: string) {
   return response.json()
 }
 
+function escapeHtml(value: string | number | boolean | null | undefined) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function isProviderCostRecord(value: unknown): value is ProviderCostRecord {
+  return typeof value === 'object' && value !== null
+}
+
+function getProviderCostEntries(providerCosts: unknown): Array<[string, ProviderCostRecord]> {
+  if (!providerCosts || typeof providerCosts !== 'object') return []
+
+  return Object.entries(providerCosts).flatMap(([provider, value]) => (
+    isProviderCostRecord(value) ? [[provider, value]] : []
+  ))
+}
+
 function escapeCsv(value: string | number | boolean | null | undefined) {
   const stringValue = value == null ? '' : String(value)
   if (/[",\n]/.test(stringValue)) {
@@ -72,7 +102,7 @@ function toCsv(rows: ExportRow[]) {
 
 function renderSection(title: string, rows: ExportRow[]) {
   if (rows.length === 0) {
-    return `<section><h2>${title}</h2><p>No data available for this section.</p></section>`
+    return `<section><h2>${escapeHtml(title)}</h2><p>No data available for this section.</p></section>`
   }
 
   const headers = Array.from(
@@ -82,14 +112,14 @@ function renderSection(title: string, rows: ExportRow[]) {
     }, new Set<string>()),
   )
 
-  const head = headers.map((header) => `<th>${header.replace(/_/g, ' ')}</th>`).join('')
+  const head = headers.map((header) => `<th>${escapeHtml(header.replace(/_/g, ' '))}</th>`).join('')
   const body = rows.map((row) => (
-    `<tr>${headers.map((header) => `<td>${String(row[header] ?? '')}</td>`).join('')}</tr>`
+    `<tr>${headers.map((header) => `<td>${escapeHtml(row[header])}</td>`).join('')}</tr>`
   )).join('')
 
   return `
     <section>
-      <h2>${title}</h2>
+      <h2>${escapeHtml(title)}</h2>
       <table>
         <thead><tr>${head}</tr></thead>
         <tbody>${body}</tbody>
@@ -145,7 +175,7 @@ function renderHtmlReport(type: ExportType, range: ExportRange, sections: { titl
       </head>
       <body>
         <h1>Mission Control Export</h1>
-        <p>Type: ${type} · Range: ${range} · Generated: ${new Date().toLocaleString()}</p>
+        <p>Type: ${escapeHtml(type)} · Range: ${escapeHtml(range)} · Generated: ${escapeHtml(new Date().toLocaleString())}</p>
         ${sections.map((section) => renderSection(section.title, section.rows)).join('')}
         <script>
           window.addEventListener('load', () => {
@@ -193,7 +223,7 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      for (const [provider, providerData] of Object.entries(costs.providerCosts || {}) as [string, { days?: { date: string; total: number; breakdown: { type: string; cost: number }[] }[] }][]) {
+      for (const [provider, providerData] of getProviderCostEntries(costs.providerCosts)) {
         for (const day of (providerData.days || []).filter((entry) => isWithinRange(entry.date, rangeDays))) {
           rows.push({
             section: 'costs',
@@ -289,7 +319,7 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to build export' },
+      { error: sanitizeError(error, 'Failed to build export') },
       { status: 500 },
     )
   }

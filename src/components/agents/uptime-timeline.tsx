@@ -100,8 +100,8 @@ export function UptimeTimeline() {
         <div className="space-y-3">
           {[0, 1, 2].map((row) => (
             <div key={row} className="space-y-2">
-              <div className="h-4 w-40 rounded bg-white/[0.06]" />
-              <div className="h-8 rounded-xl bg-white/[0.04]" />
+              <div className="h-4 w-40 rounded bg-[var(--glass-border)]" />
+              <div className="h-8 rounded-xl bg-[var(--glass-bg)]" />
             </div>
           ))}
         </div>
