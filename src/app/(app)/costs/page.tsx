@@ -4,6 +4,10 @@ import { getAppBaseUrl } from '@/lib/app-url'
 import { CsvUpload } from '@/components/costs/csv-upload'
 import { ModeSwitcher } from '@/components/costs/mode-switcher'
 import { BudgetControls } from '@/components/costs/budget-controls'
+import { CostTrendChart } from '@/components/costs/cost-trend-chart'
+import { TokenEfficiency } from '@/components/costs/token-efficiency'
+import { ExportButton } from '@/components/export/export-button'
+import { ModeSchedule } from '@/components/costs/mode-schedule'
 import { formatUsd } from '@/lib/format'
 
 interface RailwayData {
@@ -74,17 +78,20 @@ export default async function CostsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-text-primary mb-2">Costs</h1>
-        <p className="text-sm text-text-secondary">
-          Infrastructure, API spend, and subscriptions
-          {railway && (
-            <span className="ml-2 inline-flex items-center gap-1 text-xs text-status-active">
-              <span className="w-1.5 h-1.5 rounded-full bg-status-active animate-pulse" />
-              Railway live
-            </span>
-          )}
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">Costs</h1>
+          <p className="text-sm text-text-secondary">
+            Infrastructure, API spend, and subscriptions
+            {railway && (
+              <span className="ml-2 inline-flex items-center gap-1 text-xs text-status-active">
+                <span className="w-1.5 h-1.5 rounded-full bg-status-active animate-pulse" />
+                Railway live
+              </span>
+            )}
+          </p>
+        </div>
+        <ExportButton type="costs" />
       </div>
 
       {/* Summary cards */}
@@ -145,6 +152,15 @@ export default async function CostsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ModeSwitcher />
         <BudgetControls />
+      </div>
+
+      {/* Mode Schedule */}
+      <ModeSchedule />
+
+      {/* Cost Trends + Token Efficiency */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <CostTrendChart />
+        <TokenEfficiency />
       </div>
 
       {/* Quick API snapshot — compact summary with link to details */}

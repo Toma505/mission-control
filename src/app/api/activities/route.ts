@@ -7,6 +7,7 @@ import {
   parseHealthOutput,
   parseStatusOutput,
 } from '@/lib/openclaw'
+import { maybeRecordAgentUptimeSnapshot } from '@/lib/agent-uptime'
 
 interface Session {
   key: string
@@ -115,6 +116,8 @@ export async function GET() {
       sessionCount: sessions.length,
       model: agentModel,
     }
+
+    await maybeRecordAgentUptimeSnapshot().catch(() => {})
 
     return NextResponse.json({
       connected: reachable,

@@ -14,6 +14,9 @@
     --text-primary: #ececef;
     --text-secondary: #87878f;
     --text-muted: #55555e;
+    --status-active: #34d399;
+    --status-error: #f87171;
+    --status-offline: #64748b;
 
     /* Greyscale glass */
     --glass-bg: rgba(20, 20, 23, 0.6);

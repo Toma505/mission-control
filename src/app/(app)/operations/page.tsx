@@ -1,5 +1,6 @@
 import { Clapperboard, Camera, Film, Mic, Package, Mail, CheckCircle2, XCircle, Circle, Loader2 } from 'lucide-react'
 import { getAppBaseUrl } from '@/lib/app-url'
+import { ExportButton } from '@/components/export/export-button'
 
 const BUDGET_CAP = 20
 
@@ -148,11 +149,14 @@ export default async function OperationsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">Operations</h1>
-        <p className="text-sm text-text-secondary">
-          Pipeline jobs, cost tracking, and production status
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary">Operations</h1>
+          <p className="text-sm text-text-secondary">
+            Pipeline jobs, cost tracking, and production status
+          </p>
+        </div>
+        <ExportButton type="operations" />
       </div>
 
       {/* Summary cards */}

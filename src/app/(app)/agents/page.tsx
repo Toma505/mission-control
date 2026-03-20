@@ -1,6 +1,8 @@
 import { Users, Bot, Activity } from 'lucide-react'
 import { getAppBaseUrl } from '@/lib/app-url'
 import { PageEmptyState } from '@/components/layout/page-empty-state'
+import { UptimeTimeline } from '@/components/agents/uptime-timeline'
+import { ExportButton } from '@/components/export/export-button'
 
 interface Agent {
   name: string
@@ -33,9 +35,12 @@ export default async function AgentsPage() {
   if (!connected) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-text-primary mb-2">Agents</h1>
-          <p className="text-sm text-text-secondary">Manage and monitor your AI agents</p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-bold text-text-primary mb-2">Agents</h1>
+            <p className="text-sm text-text-secondary">Manage and monitor your AI agents</p>
+          </div>
+          <ExportButton type="usage" />
         </div>
         <PageEmptyState
           icon={<Users className="w-8 h-8 text-text-muted" />}
@@ -50,17 +55,20 @@ export default async function AgentsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-text-primary mb-2">Agents</h1>
-        <p className="text-sm text-text-secondary">
-          Manage and monitor your AI agents
-          {connected && (
-            <span className="ml-2 inline-flex items-center gap-1 text-xs text-status-active">
-              <span className="w-1.5 h-1.5 rounded-full bg-status-active animate-pulse" />
-              OpenClaw connected
-            </span>
-          )}
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold text-text-primary mb-2">Agents</h1>
+          <p className="text-sm text-text-secondary">
+            Manage and monitor your AI agents
+            {connected && (
+              <span className="ml-2 inline-flex items-center gap-1 text-xs text-status-active">
+                <span className="w-1.5 h-1.5 rounded-full bg-status-active animate-pulse" />
+                OpenClaw connected
+              </span>
+            )}
+          </p>
+        </div>
+        <ExportButton type="usage" />
       </div>
 
       {!hasData ? (
@@ -90,6 +98,8 @@ export default async function AgentsPage() {
               </div>
             )}
           </div>
+
+          <UptimeTimeline />
 
           {/* Agent list */}
           <div className="space-y-3">

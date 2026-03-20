@@ -24,6 +24,19 @@ model Agent {
   activities   Activity[]
 }
 
+model AgentUptimeEvent {
+  id         String   @id @default(cuid())
+  agentName  String
+  model      String?
+  status     String
+  bucketStart DateTime
+  createdAt  DateTime @default(now())
+
+  @@unique([agentName, bucketStart])
+  @@index([bucketStart])
+  @@index([agentName, bucketStart])
+}
+
 model Task {
   id          String      @id @default(cuid())
   title       String
