@@ -301,21 +301,55 @@ export function WorkflowCanvas({
     statusTimeoutRef.current = setTimeout(() => setStatus(null), 3000)
   }
 
+  function normalizePortId(nodeId: string, portId: string) {
+    return portId.startsWith(`${nodeId}-`) ? portId : `${nodeId}-${portId}`
+  }
+
+  function stripPortPrefix(nodeId: string, portId: string) {
+    return portId.startsWith(`${nodeId}-`) ? portId.slice(nodeId.length + 1) : portId
+  }
+
+  function inferNodeSubtype(nodeType: NodeType, config: Record<string, unknown>) {
+    if (typeof config._subtype === 'string' && config._subtype) return config._subtype
+
+    if (nodeType === 'trigger') {
+      return typeof config.triggerType === 'string' && config.triggerType ? config.triggerType : 'manual'
+    }
+    if (nodeType === 'action') {
+      return typeof config.action === 'string' && config.action ? config.action.replace(/_/g, '-') : 'switch-mode'
+    }
+    if (nodeType === 'transform') {
+      return typeof config.transform === 'string' && config.transform ? config.transform : 'template'
+    }
+    if (nodeType === 'output') {
+      return typeof config.output === 'string' && config.output ? config.output : 'log'
+    }
+    if (nodeType === 'agent') {
+      if (typeof config.subtype === 'string' && config.subtype) return config.subtype
+      if (typeof config.session === 'string') return 'chat'
+      if (typeof config.agent === 'string') return 'spawn'
+      return 'command'
+    }
+    if (nodeType === 'condition') return 'if'
+    return ''
+  }
+
   /** Convert backend node format (inputs: string[]) to frontend (inputs: NodePort[]) */
   function hydrateNode(raw: Record<string, unknown>): WorkflowNode {
     const node = raw as unknown as WorkflowNode
+    node.config = { ...node.config, _subtype: inferNodeSubtype(node.type, node.config) }
     // Backend stores inputs/outputs as string[] — convert to NodePort[]
     if (Array.isArray(node.inputs) && node.inputs.length > 0 && typeof node.inputs[0] === 'string') {
       node.inputs = (node.inputs as unknown as string[]).map(id => ({
-        id: id.includes('-') ? id : `${node.id}-${id}`,
-        label: id.replace(/^.*-/, ''),
+        id: normalizePortId(node.id, id),
+        label: stripPortPrefix(node.id, id),
         type: 'input' as const,
       }))
     }
     if (Array.isArray(node.outputs) && node.outputs.length > 0 && typeof node.outputs[0] === 'string') {
       node.outputs = (node.outputs as unknown as string[]).map(id => ({
-        id: id.includes('-') ? id : `${node.id}-${id}`,
-        label: id.replace(/^.*-/, ''),
+        id: normalizePortId(node.id, id),
+        label: stripPortPrefix(node.id, id),
         type: 'output' as const,
       }))
     }
@@ -323,24 +357,47 @@ export function WorkflowCanvas({
     if (Array.isArray(node.inputs)) {
       node.inputs = node.inputs.map(p => ({
         ...p,
-        id: p.id.startsWith(node.id) ? p.id : `${node.id}-${p.id}`,
+        id: normalizePortId(node.id, p.id),
       }))
     }
     if (Array.isArray(node.outputs)) {
       node.outputs = node.outputs.map(p => ({
         ...p,
-        id: p.id.startsWith(node.id) ? p.id : `${node.id}-${p.id}`,
+        id: normalizePortId(node.id, p.id),
       }))
     }
     return node
+  }
+
+  function hydrateEdge(raw: Record<string, unknown>): WorkflowEdge {
+    const edge: WorkflowEdge = {
+      id: String(raw.id || `edge-${Date.now()}`),
+      source: String(raw.source || ''),
+      sourcePort: String(raw.sourcePort || 'out'),
+      target: String(raw.target || ''),
+      targetPort: String(raw.targetPort || 'in'),
+    }
+    return {
+      ...edge,
+      sourcePort: normalizePortId(edge.source, edge.sourcePort),
+      targetPort: normalizePortId(edge.target, edge.targetPort),
+    }
   }
 
   /** Convert frontend node format to backend (inputs: string[]) */
   function dehydrateNode(node: WorkflowNode): Record<string, unknown> {
     return {
       ...node,
-      inputs: node.inputs.map(p => p.id),
-      outputs: node.outputs.map(p => p.id),
+      inputs: node.inputs.map(p => stripPortPrefix(node.id, p.id)),
+      outputs: node.outputs.map(p => stripPortPrefix(node.id, p.id)),
+    }
+  }
+
+  function dehydrateEdge(edge: WorkflowEdge): WorkflowEdge {
+    return {
+      ...edge,
+      sourcePort: stripPortPrefix(edge.source, edge.sourcePort),
+      targetPort: stripPortPrefix(edge.target, edge.targetPort),
     }
   }
 
@@ -351,8 +408,9 @@ export function WorkflowCanvas({
       const data = await res.json()
       if (data.workflow) {
         const rawNodes = (data.workflow.nodes || []) as Record<string, unknown>[]
+        const rawEdges = (data.workflow.edges || []) as Record<string, unknown>[]
         setNodes(rawNodes.map(hydrateNode))
-        setEdges(data.workflow.edges || [])
+        setEdges(rawEdges.map(hydrateEdge))
         setName(data.workflow.name || 'Untitled')
         setDescription(data.workflow.description || '')
         setWorkflowDbId(data.workflow.id)
@@ -363,7 +421,7 @@ export function WorkflowCanvas({
   async function saveWorkflow() {
     setSaving(true)
     try {
-      const workflow = { name, description, nodes: nodes.map(dehydrateNode), edges }
+      const workflow = { name, description, nodes: nodes.map(dehydrateNode), edges: edges.map(dehydrateEdge) }
       const action = workflowDbId ? 'update' : 'create'
       const body: Record<string, unknown> = { action, workflow }
       if (workflowDbId) body.workflowId = workflowDbId
@@ -555,7 +613,7 @@ export function WorkflowCanvas({
 
   function getPortPosition(node: WorkflowNode, portId: string, portType: 'input' | 'output'): { x: number; y: number } {
     const ports = portType === 'input' ? node.inputs : node.outputs
-    const idx = ports.findIndex(p => p.id === portId)
+    const idx = ports.findIndex(p => p.id === portId || p.id === normalizePortId(node.id, portId))
     const total = ports.length
     const spacing = NODE_WIDTH / (total + 1)
     const x = node.position.x + spacing * (idx + 1)
