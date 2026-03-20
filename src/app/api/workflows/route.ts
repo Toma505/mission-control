@@ -236,6 +236,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         ok: true,
         execution,
+        result: execution,
       })
     }
 

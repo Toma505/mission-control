@@ -122,12 +122,17 @@ function normalizePortList(value: unknown): string[] {
     .filter(Boolean)
 }
 
+function canonicalizePortId(nodeId: string, portId: string) {
+  return portId.startsWith(`${nodeId}-`) ? portId.slice(nodeId.length + 1) : portId
+}
+
 function normalizeNode(node: unknown): WorkflowNode {
   const source = isRecord(node) ? node : {}
   const positionSource = isRecord(source.position) ? source.position : {}
+  const nodeId = typeof source.id === 'string' && source.id ? source.id : createId('workflow-node')
 
   return {
-    id: typeof source.id === 'string' && source.id ? source.id : createId('workflow-node'),
+    id: nodeId,
     type: isWorkflowNodeType(source.type) ? source.type : 'action',
     label: typeof source.label === 'string' && source.label ? source.label : 'Untitled Node',
     position: {
@@ -135,20 +140,24 @@ function normalizeNode(node: unknown): WorkflowNode {
       y: typeof positionSource.y === 'number' ? positionSource.y : 0,
     },
     config: isRecord(source.config) ? source.config : {},
-    inputs: normalizePortList(source.inputs),
-    outputs: normalizePortList(source.outputs),
+    inputs: normalizePortList(source.inputs).map((portId) => canonicalizePortId(nodeId, portId)),
+    outputs: normalizePortList(source.outputs).map((portId) => canonicalizePortId(nodeId, portId)),
   }
 }
 
 function normalizeEdge(edge: unknown): WorkflowEdge {
   const source = isRecord(edge) ? edge : {}
+  const sourceNodeId = typeof source.source === 'string' ? source.source : ''
+  const targetNodeId = typeof source.target === 'string' ? source.target : ''
+  const rawSourcePort = typeof source.sourcePort === 'string' ? source.sourcePort : 'out'
+  const rawTargetPort = typeof source.targetPort === 'string' ? source.targetPort : 'in'
 
   return {
     id: typeof source.id === 'string' && source.id ? source.id : createId('workflow-edge'),
-    source: typeof source.source === 'string' ? source.source : '',
-    sourcePort: typeof source.sourcePort === 'string' ? source.sourcePort : 'out',
-    target: typeof source.target === 'string' ? source.target : '',
-    targetPort: typeof source.targetPort === 'string' ? source.targetPort : 'in',
+    source: sourceNodeId,
+    sourcePort: canonicalizePortId(sourceNodeId, rawSourcePort),
+    target: targetNodeId,
+    targetPort: canonicalizePortId(targetNodeId, rawTargetPort),
   }
 }
 
