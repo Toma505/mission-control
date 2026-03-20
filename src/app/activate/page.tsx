@@ -16,6 +16,7 @@ declare global {
 
 export default function ActivatePage() {
   const router = useRouter()
+  const pricingUrl = process.env.NEXT_PUBLIC_MISSION_CONTROL_PRICING_URL || 'https://missioncontrol.openclaw.dev/pricing/'
   const [licenseKey, setLicenseKey] = useState('')
   const [email, setEmail] = useState('')
   const [activating, setActivating] = useState(false)
@@ -160,7 +161,7 @@ export default function ActivatePage() {
         {/* Purchase link */}
         <p className="text-center text-[11px] text-text-muted">
           Don&apos;t have a license?{' '}
-          <a href="https://openclaw.dev/mission-control" target="_blank" rel="noreferrer" className="text-text-secondary hover:text-text-primary underline">
+          <a href={pricingUrl} target="_blank" rel="noreferrer" className="text-text-secondary hover:text-text-primary underline">
             Purchase one here
           </a>
         </p>
