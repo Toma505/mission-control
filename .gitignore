@@ -1,3 +1,14 @@
 node_modules
 .next
 .env
+.env.local
+.env*.local
+data/
+*.db
+*.db-journal
+electron/icon.ico
+electron/.generated-license-secret.json
+
+# Build output
+release/
+dist/

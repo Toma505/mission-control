@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Next.js Dev Server",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "Prisma Studio",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "db:studio"],
+      "port": 5555
+    },
+    {
+      "name": "MC Website",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "C:/Users/tomas/mission-control/website", "-l", "4200"],
+      "port": 4200
+    }
+  ]
+}

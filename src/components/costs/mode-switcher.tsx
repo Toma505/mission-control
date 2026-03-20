@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Zap, Shield, Brain, Loader2, Check, AlertCircle, Sparkles } from 'lucide-react'
+import { apiFetch } from '@/lib/api-client'
 
 type ModeName = 'best' | 'standard' | 'budget' | 'auto'
 
@@ -36,7 +37,7 @@ const MODE_UI: Record<ModeName, ModeConfig> = {
   },
   budget: {
     label: 'Budget',
-    description: 'GLM-5 → Kimi K2.5 → GPT-4.1 Mini',
+    description: 'Deepseek V3 → GPT-4.1 Nano → Gemini Flash',
     icon: <Zap className="w-5 h-5" />,
     color: 'text-emerald-400',
     bg: 'bg-emerald-400/10',
@@ -79,7 +80,7 @@ export function ModeSwitcher() {
     setStatus(null)
 
     try {
-      const res = await fetch('/api/mode', {
+      const res = await apiFetch('/api/mode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode }),
@@ -91,10 +92,10 @@ export function ModeSwitcher() {
         setCurrentModel(data.currentModel)
         setStatus({ type: 'success', message: `Switched to ${MODE_UI[mode].label} mode. Restart your agent to apply.` })
       } else {
-        setStatus({ type: 'error', message: data.error || 'Failed to switch mode' })
+        setStatus({ type: 'error', message: data.error || 'Failed to switch mode. Check that OpenClaw is running and try again.' })
       }
     } catch {
-      setStatus({ type: 'error', message: 'Failed to connect to OpenClaw' })
+      setStatus({ type: 'error', message: 'Could not reach OpenClaw. Check your connection in Settings and try again.' })
     } finally {
       setSwitching(null)
     }

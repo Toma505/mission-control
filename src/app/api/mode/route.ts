@@ -1,10 +1,13 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
+import { getEffectiveConfig } from '@/lib/connection-config'
 
-const OPENCLAW_URL = process.env.OPENCLAW_API_URL || ''
-const OPENCLAW_PASSWORD = process.env.OPENCLAW_SETUP_PASSWORD || ''
-
-function authHeader(): string {
-  return 'Basic ' + Buffer.from(':' + OPENCLAW_PASSWORD).toString('base64')
+async function getAuth() {
+  const config = await getEffectiveConfig()
+  return {
+    url: config.openclawUrl,
+    header: 'Basic ' + Buffer.from(':' + config.setupPassword).toString('base64'),
+  }
 }
 
 const MODES = {
@@ -26,10 +29,10 @@ const MODES = {
   },
   budget: {
     label: 'Budget',
-    description: 'Save 80%+ — GLM-5 & open-source models',
+    description: 'Save 80%+ — Deepseek & nano models',
     model: {
-      primary: 'openrouter/zhipu/glm-5',
-      fallbacks: ['openrouter/moonshot/kimi-k2.5', 'openrouter/openai/gpt-4.1-mini'],
+      primary: 'openrouter/deepseek/deepseek-chat-v3-0324',
+      fallbacks: ['openrouter/openai/gpt-4.1-nano', 'openrouter/google/gemini-2.5-flash'],
     },
   },
   auto: {
@@ -37,7 +40,7 @@ const MODES = {
     description: 'Smart per-task routing — prompt decides the model',
     model: {
       primary: 'anthropic/claude-sonnet-4-6',
-      fallbacks: ['openrouter/google/gemini-3.1-pro', 'openrouter/zhipu/glm-5-turbo'],
+      fallbacks: ['openrouter/google/gemini-3.1-pro', 'openrouter/deepseek/deepseek-chat-v3-0324'],
     },
   },
 } as const
@@ -67,13 +70,14 @@ function detectMode(config: Record<string, unknown>): ModeName {
 }
 
 export async function GET() {
-  if (!OPENCLAW_URL || !OPENCLAW_PASSWORD) {
+  const { url: OPENCLAW_URL, header } = await getAuth()
+  if (!OPENCLAW_URL) {
     return NextResponse.json({ connected: false, mode: 'best', modes: MODES })
   }
 
   try {
     const res = await fetch(`${OPENCLAW_URL}/setup/api/config/raw`, {
-      headers: { Authorization: authHeader() },
+      headers: { Authorization: header },
       cache: 'no-store',
     })
     if (!res.ok) throw new Error('Config fetch failed')
@@ -95,13 +99,22 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
-  if (!OPENCLAW_URL || !OPENCLAW_PASSWORD) {
+export async function POST(request: NextRequest) {
+  if (!isAuthorized(request)) return unauthorizedResponse()
+
+  const { url: OPENCLAW_URL, header } = await getAuth()
+  if (!OPENCLAW_URL) {
     return NextResponse.json({ error: 'Not configured' }, { status: 500 })
   }
 
   try {
-    const { mode } = (await request.json()) as { mode: string }
+    let body: { mode?: string }
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    }
+    const { mode } = body as { mode: string }
     if (!MODES[mode as ModeName]) {
       return NextResponse.json({ error: 'Invalid mode' }, { status: 400 })
     }
@@ -110,7 +123,7 @@ export async function POST(request: Request) {
 
     // Fetch current config
     const configRes = await fetch(`${OPENCLAW_URL}/setup/api/config/raw`, {
-      headers: { Authorization: authHeader() },
+      headers: { Authorization: header },
       cache: 'no-store',
     })
     if (!configRes.ok) throw new Error('Config fetch failed')
@@ -118,13 +131,16 @@ export async function POST(request: Request) {
     const config = JSON.parse(configData.content)
 
     // Update model — only write fields OpenClaw expects (primary + fallbacks)
+    if (!config.agents) config.agents = {}
+    if (!config.agents.defaults) config.agents.defaults = {}
     config.agents.defaults.model = { ...selectedMode.model }
+    if (!config.meta) config.meta = {}
     config.meta.lastTouchedAt = new Date().toISOString()
 
     // Save config
     const saveRes = await fetch(`${OPENCLAW_URL}/setup/api/config/raw`, {
       method: 'POST',
-      headers: { Authorization: authHeader(), 'Content-Type': 'application/json' },
+      headers: { Authorization: header, 'Content-Type': 'application/json' },
       body: JSON.stringify({ content: JSON.stringify(config, null, 2) }),
     })
     if (!saveRes.ok) {
@@ -138,8 +154,19 @@ export async function POST(request: Request) {
       currentModel: selectedMode.model.primary,
     })
   } catch (error) {
+    // Sanitize internal errors — don't leak raw HTML or server details to the client
+    let message = 'Could not update the AI mode'
+    if (error instanceof Error) {
+      if (error.message.includes('Config fetch failed')) {
+        message = 'Could not read config from OpenClaw. Make sure the instance is running.'
+      } else if (error.message.includes('Config save failed')) {
+        message = 'Could not save config to OpenClaw. The server may be temporarily unavailable.'
+      } else if (error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND')) {
+        message = 'Could not reach OpenClaw. Check your connection settings.'
+      }
+    }
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { error: message },
       { status: 500 }
     )
   }

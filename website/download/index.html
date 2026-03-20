@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download Mission Control — Desktop App for OpenClaw</title>
+  <meta name="description" content="Download Mission Control for Windows, macOS, or Linux. Free 7-day trial. No credit card, no terminal, no Node.js required. Double-click to install.">
+  <meta name="author" content="Mission Control">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://missioncontrol.openclaw.dev/download/">
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Download Mission Control — Desktop App for OpenClaw">
+  <meta property="og:description" content="Download Mission Control for Windows, macOS, or Linux. Free 7-day trial. No credit card, no terminal, no Node.js required. Double-click to install.">
+  <meta property="og:url" content="https://missioncontrol.openclaw.dev/download/">
+  <meta property="og:image" content="https://missioncontrol.openclaw.dev/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="Mission Control">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Download Mission Control — Desktop App for OpenClaw">
+  <meta name="twitter:description" content="Download Mission Control for Windows, macOS, or Linux. Free 7-day trial. No credit card, no terminal, no Node.js required.">
+  <meta name="twitter:image" content="https://missioncontrol.openclaw.dev/og-image.png">
+
+  <!-- Structured Data: BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://missioncontrol.openclaw.dev"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Download",
+        "item": "https://missioncontrol.openclaw.dev/download/"
+      }
+    ]
+  }
+  </script>
+
+  <!-- Structured Data: SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Mission Control",
+    "alternateName": "Mission Control for OpenClaw",
+    "description": "Desktop dashboard for monitoring and managing OpenClaw AI agents. Real-time agent monitoring, automatic cost throttling, and pipeline tracking.",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Windows 10+, macOS 12+, Linux (Ubuntu 20.04+)",
+    "url": "https://missioncontrol.openclaw.dev",
+    "downloadUrl": "https://missioncontrol.openclaw.dev/download/",
+    "softwareVersion": "1.0.0",
+    "fileSize": "85MB",
+    "offers": [
+      {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "description": "Free 7-day trial, no credit card required"
+      },
+      { "@type": "Offer", "name": "Personal", "price": "29", "priceCurrency": "USD" },
+      { "@type": "Offer", "name": "Pro", "price": "59", "priceCurrency": "USD" },
+      { "@type": "Offer", "name": "Team", "price": "149", "priceCurrency": "USD" }
+    ]
+  }
+  </script>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#09090b">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #050507;
+      --bg-subtle: #0a0a0e;
+      --bg-card: rgba(255,255,255,0.025);
+      --border: rgba(255,255,255,0.06);
+      --border-hover: rgba(255,255,255,0.12);
+      --text: #f0f0f3;
+      --text-secondary: #8b8b95;
+      --text-muted: #4a4a52;
+      --accent: #3b82f6;
+      --accent-light: #60a5fa;
+      --accent-glow: rgba(59,130,246,0.15);
+      --accent-glow-strong: rgba(59,130,246,0.25);
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --purple: #a855f7;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+    section { padding: 100px 0; position: relative; }
+
+    /* ─── Scroll Reveal ─── */
+    .reveal {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+
+    /* ─── Nav ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(5,5,7,0.75);
+      backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+    nav .container {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 15px; color: var(--text);
+      text-decoration: none; letter-spacing: -0.01em;
+    }
+    .nav-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--accent-glow);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav-icon svg { width: 16px; height: 16px; }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a {
+      font-size: 14px; color: var(--text-secondary); text-decoration: none;
+      transition: color 0.2s; font-weight: 500;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--accent); color: #fff !important; padding: 8px 18px;
+      border-radius: 8px; font-weight: 600; font-size: 13px;
+      transition: box-shadow 0.3s, transform 0.2s;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    .nav-cta:hover { box-shadow: 0 0 24px var(--accent-glow-strong); transform: translateY(-1px); }
+    .nav-toggle {
+      display: none; background: none; border: none; color: var(--text-secondary);
+      cursor: pointer; padding: 8px; border-radius: 6px; transition: color 0.2s, background 0.2s;
+    }
+    .nav-toggle svg { width: 20px; height: 20px; }
+    .nav-toggle:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+    /* ─── Breadcrumbs ─── */
+    .breadcrumbs {
+      padding-top: 88px;
+      padding-bottom: 0;
+    }
+    .breadcrumbs ol {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .breadcrumbs a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .breadcrumbs a:hover { color: var(--text); }
+    .breadcrumbs .separator { color: var(--text-muted); }
+    .breadcrumbs .current { color: var(--text-muted); }
+
+    /* ─── Page Header ─── */
+    .page-header {
+      padding: 48px 0 64px;
+      text-align: center;
+    }
+    .page-header h1 {
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    .page-header .subtitle {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* ─── Download Cards ─── */
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .download-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 32px;
+      text-align: center;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .download-card:hover {
+      border-color: var(--border-hover);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+    }
+    .download-card .os-icon {
+      width: 56px; height: 56px;
+      margin: 0 auto 24px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--accent-glow);
+      border-radius: 14px;
+    }
+    .download-card .os-icon svg {
+      width: 28px; height: 28px;
+    }
+    .download-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+    .download-card .os-req {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .download-card .btn-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .download-card .version-info {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* ─── Buttons ─── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.3s;
+      cursor: pointer;
+      border: none;
+    }
+    .btn:hover { transform: translateY(-1px); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .btn-primary:hover { box-shadow: 0 0 32px var(--accent-glow-strong); }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: var(--border-hover);
+    }
+
+    .btn-sm {
+      padding: 10px 18px;
+      font-size: 14px;
+      border-radius: 8px;
+    }
+
+    /* ─── System Requirements ─── */
+    .sys-req {
+      padding: 80px 0;
+    }
+    .sys-req h2 {
+      font-size: clamp(24px, 3.5vw, 32px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .sys-req-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .sys-req-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 32px;
+    }
+    .sys-req-card h4 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sys-req-card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .sys-req-card li {
+      font-size: 14px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sys-req-card li::before {
+      content: '';
+      width: 4px; height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ─── Install Steps ─── */
+    .install-steps {
+      padding: 80px 0;
+    }
+    .install-steps h2 {
+      font-size: clamp(24px, 3.5vw, 32px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+    }
+    .step {
+      text-align: center;
+    }
+    .step-number {
+      width: 48px; height: 48px;
+      margin: 0 auto 20px;
+      background: var(--accent-glow);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent-light);
+    }
+    .step h4 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .step p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ─── Trial Note ─── */
+    .trial-note {
+      text-align: center;
+      padding: 48px 0 0;
+      font-size: 15px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ─── CTA Section ─── */
+    .cta-section {
+      text-align: center;
+      padding: 64px 0 100px;
+    }
+    .cta-section .btn {
+      font-size: 16px;
+      padding: 14px 32px;
+    }
+
+    /* ─── Footer ─── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+    }
+    .footer-grid {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px;
+    }
+    .footer-brand {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 600; font-size: 14px; color: var(--text-secondary);
+    }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a {
+      font-size: 13px; color: var(--text-muted); text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text-secondary); }
+    .footer-copy { font-size: 13px; color: var(--text-muted); }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 768px) {
+      .nav-toggle { display: flex; }
+      .nav-links {
+        display: none; position: absolute; top: 64px; left: 0; right: 0;
+        flex-direction: column; background: rgba(5,5,7,0.95);
+        backdrop-filter: blur(24px); padding: 16px 24px;
+        border-bottom: 1px solid var(--border); gap: 0;
+      }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 12px 0; border-bottom: 1px solid var(--border); }
+      .nav-links a:last-child { border-bottom: none; }
+      .nav-links .nav-cta { text-align: center; margin-top: 8px; }
+
+      .download-grid,
+      .sys-req-grid,
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-grid { flex-direction: column; gap: 16px; text-align: center; }
+      .footer-links { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── Nav ─── -->
+<nav>
+  <div class="container">
+    <a href="/" class="nav-brand">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+      </div>
+      Mission Control
+    </a>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle navigation menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/features/">Features</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/faq/">FAQ</a>
+      <a href="/download/" class="nav-cta">Download</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── Breadcrumbs ─── -->
+<div class="breadcrumbs">
+  <div class="container">
+    <ol>
+      <li><a href="/">Home</a></li>
+      <li class="separator">/</li>
+      <li class="current">Download</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ─── Page Header ─── -->
+<div class="page-header">
+  <div class="container">
+    <h1 class="reveal">Download Mission Control for your platform</h1>
+    <p class="subtitle reveal reveal-delay-1">Free 7-day trial. No credit card. Double-click to install.</p>
+  </div>
+</div>
+
+<!-- ─── Download Cards ─── -->
+<section style="padding-top: 0;">
+  <div class="container">
+    <div class="download-grid">
+
+      <!-- Windows -->
+      <div class="download-card reveal reveal-delay-1">
+        <div class="os-icon">
+          <svg viewBox="0 0 24 24" fill="#3b82f6" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 5.548l7.065-0.966v6.822H3V5.548zm0 12.904l7.065 0.966v-6.822H3v5.856zm7.878 1.077L21 21v-7.404H10.878v6.933zm0-14.058v6.933H21V3L10.878 5.471z"/>
+          </svg>
+        </div>
+        <h3>Mission Control for Windows</h3>
+        <p class="os-req">Windows 10 or later, 64-bit</p>
+        <div class="btn-row">
+          <a href="https://github.com/Toma505/mission-control/releases/latest" class="btn btn-primary">Download for Windows (.exe)</a>
+        </div>
+        <p class="version-info">v1.0.0 &middot; 85 MB &middot; NSIS Installer</p>
+      </div>
+
+      <!-- macOS -->
+      <div class="download-card reveal reveal-delay-2">
+        <div class="os-icon">
+          <svg viewBox="0 0 24 24" fill="#3b82f6" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+          </svg>
+        </div>
+        <h3>Mission Control for macOS</h3>
+        <p class="os-req">macOS 12 (Monterey) or later &middot; Intel &amp; Apple Silicon</p>
+        <div class="btn-row">
+          <a href="https://github.com/Toma505/mission-control/releases/latest" class="btn btn-secondary">Download for macOS (.dmg)</a>
+        </div>
+        <p class="version-info">v1.0.0 &middot; Universal Binary</p>
+      </div>
+
+      <!-- Linux -->
+      <div class="download-card reveal reveal-delay-3">
+        <div class="os-icon">
+          <svg viewBox="0 0 24 24" fill="#3b82f6" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20.581 19.049c-.55-.446-.336-1.431-.907-1.917.553-3.365-.997-6.331-2.845-8.232-1.551-1.595-1.639-3.743-1.207-5.071.209-.642.482-1.095.625-1.829.057-.292-.038-.626-.238-.888a.997.997 0 00-.803-.399c-.855 0-1.756.673-2.282 1.608-.546.969-.709 2.169-.373 3.385-.506.707-.994 1.553-1.372 2.552a10.2 10.2 0 00-.396 1.47c-.763-.232-1.713-.322-2.543-.09-1.2.335-2.159 1.312-2.253 2.478-.049.587.099 1.148.412 1.615-.362.398-.588.901-.558 1.465.042.773.478 1.396 1.094 1.755a3.157 3.157 0 00-.086.615c0 1.108.772 2.035 1.825 2.378a5.07 5.07 0 001.926.298h6.58c.764 0 1.5-.14 2.17-.456 1.047-.488 1.702-1.39 1.702-2.423 0-.04-.005-.079-.007-.117.44-.159.803-.43 1.028-.803.34-.564.28-1.244-.098-1.748z"/>
+          </svg>
+        </div>
+        <h3>Mission Control for Linux</h3>
+        <p class="os-req">Ubuntu 20.04+, Debian, and most distributions</p>
+        <div class="btn-row">
+          <a href="https://github.com/Toma505/mission-control/releases/latest" class="btn btn-secondary btn-sm">AppImage</a>
+          <a href="https://github.com/Toma505/mission-control/releases/latest" class="btn btn-secondary btn-sm">.deb Package</a>
+        </div>
+        <p class="version-info">v1.0.0 &middot; x64</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── System Requirements ─── -->
+<section class="sys-req">
+  <div class="container">
+    <h2 class="reveal">System requirements</h2>
+    <div class="sys-req-grid">
+
+      <div class="sys-req-card reveal reveal-delay-1">
+        <h4>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#3b82f6"><path d="M3 5.548l7.065-0.966v6.822H3V5.548zm0 12.904l7.065 0.966v-6.822H3v5.856zm7.878 1.077L21 21v-7.404H10.878v6.933zm0-14.058v6.933H21V3L10.878 5.471z"/></svg>
+          Windows
+        </h4>
+        <ul>
+          <li>Windows 10 or later</li>
+          <li>4 GB RAM</li>
+          <li>200 MB available disk space</li>
+          <li>x64 processor</li>
+        </ul>
+      </div>
+
+      <div class="sys-req-card reveal reveal-delay-2">
+        <h4>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#3b82f6"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          macOS
+        </h4>
+        <ul>
+          <li>macOS 12 (Monterey) or later</li>
+          <li>4 GB RAM</li>
+          <li>200 MB available disk space</li>
+          <li>Intel or Apple Silicon</li>
+        </ul>
+      </div>
+
+      <div class="sys-req-card reveal reveal-delay-3">
+        <h4>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#3b82f6"><path d="M20.581 19.049c-.55-.446-.336-1.431-.907-1.917.553-3.365-.997-6.331-2.845-8.232-1.551-1.595-1.639-3.743-1.207-5.071.209-.642.482-1.095.625-1.829.057-.292-.038-.626-.238-.888a.997.997 0 00-.803-.399c-.855 0-1.756.673-2.282 1.608-.546.969-.709 2.169-.373 3.385-.506.707-.994 1.553-1.372 2.552a10.2 10.2 0 00-.396 1.47c-.763-.232-1.713-.322-2.543-.09-1.2.335-2.159 1.312-2.253 2.478-.049.587.099 1.148.412 1.615-.362.398-.588.901-.558 1.465.042.773.478 1.396 1.094 1.755a3.157 3.157 0 00-.086.615c0 1.108.772 2.035 1.825 2.378a5.07 5.07 0 001.926.298h6.58c.764 0 1.5-.14 2.17-.456 1.047-.488 1.702-1.39 1.702-2.423 0-.04-.005-.079-.007-.117.44-.159.803-.43 1.028-.803.34-.564.28-1.244-.098-1.748z"/></svg>
+          Linux
+        </h4>
+        <ul>
+          <li>Ubuntu 20.04+ / Debian</li>
+          <li>4 GB RAM</li>
+          <li>200 MB available disk space</li>
+          <li>x64 processor</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── How to Install ─── -->
+<section class="install-steps">
+  <div class="container">
+    <h2 class="reveal">How to install</h2>
+    <div class="steps-grid">
+
+      <div class="step reveal reveal-delay-1">
+        <div class="step-number">1</div>
+        <h4>Download the installer</h4>
+        <p>Choose the installer for your platform above. The download starts immediately.</p>
+      </div>
+
+      <div class="step reveal reveal-delay-2">
+        <div class="step-number">2</div>
+        <h4>Run the installer</h4>
+        <p>Double-click the file on Windows or Mac. On Linux, run <code style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:13px;">chmod +x</code> on the AppImage first.</p>
+      </div>
+
+      <div class="step reveal reveal-delay-3">
+        <div class="step-number">3</div>
+        <h4>Launch &amp; set up</h4>
+        <p>Open Mission Control and follow the setup wizard to connect your OpenClaw instance.</p>
+      </div>
+
+    </div>
+
+    <!-- Trial Note -->
+    <div class="trial-note reveal">
+      All downloads include a 7-day free trial. After the trial, activate with a license key from the <a href="/pricing/" style="color:var(--accent-light);text-decoration:none;">pricing page</a>.
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA ─── -->
+<section class="cta-section">
+  <div class="container">
+    <a href="/pricing/" class="btn btn-primary reveal">Get a license key</a>
+  </div>
+</section>
+
+<!-- ─── Footer ─── -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        Mission Control
+      </div>
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="/features/">Features</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/faq/">FAQ</a>
+        <a href="/download/">Download</a>
+        <a href="mailto:support@openclaw.dev">Support</a>
+      </div>
+      <div class="footer-copy">&copy; 2026 Mission Control</div>
+    </div>
+  </div>
+</footer>
+
+<!-- ─── Scroll Reveal Script ─── -->
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

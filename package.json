@@ -1,43 +1,172 @@
 {
   "name": "mission-control",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Desktop dashboard for OpenClaw AI agent platform",
+  "productName": "Mission Control",
+  "author": {
+    "name": "Tomas",
+    "email": "tomasthoma4@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Toma505/mission-control.git"
+  },
+  "homepage": "https://github.com/Toma505/mission-control",
+  "bugs": {
+    "url": "https://github.com/Toma505/mission-control/issues"
+  },
   "private": true,
+  "main": "electron/main.prod.js",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev -H 127.0.0.1",
+    "build": "npm run db:generate && next build && node electron/prepare-standalone.js",
     "start": "next start",
     "lint": "eslint",
+    "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "electron": "electron electron/main.js",
+    "electron:prod": "electron electron/main.prod.js",
+    "prepare:icon": "node electron/generate-icon.js",
+    "prepare:license": "node electron/prepare-license-secret.js",
+    "prepare:standalone": "node electron/prepare-standalone.js",
+    "desktop": "node electron/generate-icon.js && electron electron/main.js",
+    "dist": "npm run prepare:icon && npm run build && npm run prepare:license && electron-builder",
+    "dist:win": "npm run prepare:icon && npm run build && npm run prepare:license && electron-builder --win",
+    "dist:mac": "npm run prepare:icon && npm run build && npm run prepare:license && electron-builder --mac",
+    "dist:linux": "npm run prepare:icon && npm run build && npm run prepare:license && electron-builder --linux",
+    "generate:keys": "node scripts/generate-license.js",
+    "postinstall": "npm run db:generate"
+  },
+  "build": {
+    "appId": "com.openclaw.mission-control",
+    "productName": "Mission Control",
+    "toolsets": {
+      "winCodeSign": "1.1.0"
+    },
+    "copyright": "Copyright © 2026",
+    "publish": {
+      "provider": "github",
+      "owner": "Toma505",
+      "repo": "mission-control"
+    },
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      ".next/standalone/**/*",
+      "data/**/*",
+      "package.json"
+    ],
+    "extraFiles": [
+      {
+        "from": "data",
+        "to": "data",
+        "filter": [
+          "!connection.json",
+          "!*.db"
+        ]
+      }
+    ],
+    "asar": true,
+    "asarUnpack": [
+      ".next/standalone/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signAndEditExecutable": false,
+      "icon": "electron/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "electron/icon.ico",
+      "uninstallerIcon": "electron/icon.ico",
+      "installerHeaderIcon": "electron/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Mission Control"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "electron/icon.icns",
+      "category": "public.app-category.developer-tools",
+      "darkModeSupport": true
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "electron/icon.png",
+      "category": "Development",
+      "desktop": {
+        "entry": {
+          "StartupWMClass": "mission-control"
+        }
+      }
+    }
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.2.2",
+    "@prisma/adapter-better-sqlite3": "^7.5.0",
     "@prisma/client": "^7.5.0",
+    "auto-launch": "^5.0.6",
+    "better-sqlite3": "^12.8.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.36.0",
+    "electron-updater": "^6.8.3",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.577.0",
     "next": "16.1.6",
     "prisma": "^7.5.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-hook-form": "^7.71.2",
     "tailwind-merge": "^3.5.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.20",
+    "electron": "^41.0.2",
+    "electron-builder": "^26.8.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
-    "tailwindcss": "^4",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
     "tsx": "^4.21.0",
     "typescript": "^5"
   }

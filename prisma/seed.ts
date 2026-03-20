@@ -22,12 +22,12 @@ async function main() {
       tagline: 'System Orchestration & Strategy',
       description: 'To provide Tristyn with ultimate leverage through autonomous intelligence',
       status: 'ACTIVE',
-      capabilities: [
+      capabilities: JSON.stringify([
         'Task coordination',
         'Strategic planning',
         'Resource allocation',
         'System monitoring'
-      ]
+      ])
     }
   })
 
@@ -37,12 +37,12 @@ async function main() {
       tagline: 'CORE INFRASTRUCTURE',
       description: 'To maintain a dynamic foundation and keep the proactive swarm',
       status: 'ACTIVE',
-      capabilities: [
+      capabilities: JSON.stringify([
         'Infrastructure design',
         'System architecture',
         'Performance optimization',
         'Technical foundation'
-      ]
+      ])
     }
   })
 
@@ -52,11 +52,11 @@ async function main() {
       tagline: 'COMMANDER',
       description: 'Lead customers and orchestration of the teams. Blueprint for allocating skill-based....',
       status: 'IDLE',
-      capabilities: [
+      capabilities: JSON.stringify([
         'Team management',
         'Customer coordination',
         'Resource allocation'
-      ]
+      ])
     }
   })
 
@@ -70,7 +70,7 @@ async function main() {
       status: 'IN_PROGRESS',
       progress: 80,
       priority: 'HIGH',
-      tags: ['Planning', 'Client Management'],
+      tags: JSON.stringify(['Planning', 'Client Management']),
       assignedAgents: {
         connect: [{ id: jarvis.id }]
       }
@@ -84,7 +84,7 @@ async function main() {
       status: 'IN_PROGRESS',
       progress: 65,
       priority: 'HIGH',
-      tags: ['Infrastructure', 'Backup'],
+      tags: JSON.stringify(['Infrastructure', 'Backup']),
       assignedAgents: {
         connect: [{ id: architect.id }]
       }
@@ -98,7 +98,7 @@ async function main() {
       status: 'PLANNING',
       progress: 30,
       priority: 'MEDIUM',
-      tags: ['Development', 'Data'],
+      tags: JSON.stringify(['Development', 'Data']),
       assignedAgents: {
         connect: [{ id: jarvis.id }]
       }
@@ -112,7 +112,7 @@ async function main() {
       status: 'BACKLOGGED',
       progress: 0,
       priority: 'LOW',
-      tags: ['Bug Fix', 'Development']
+      tags: JSON.stringify(['Bug Fix', 'Development'])
     }
   })
 
@@ -123,7 +123,7 @@ async function main() {
       status: 'COMPLETED',
       progress: 100,
       priority: 'MEDIUM',
-      tags: ['Feature', 'UI/UX'],
+      tags: JSON.stringify(['Feature', 'UI/UX']),
       completedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
     }
   })
@@ -135,7 +135,7 @@ async function main() {
       status: 'IN_PROGRESS',
       progress: 45,
       priority: 'MEDIUM',
-      tags: ['Automation', 'Data'],
+      tags: JSON.stringify(['Automation', 'Data']),
       assignedAgents: {
         connect: [{ id: jarvis.id }]
       }
@@ -149,7 +149,7 @@ async function main() {
       status: 'ACTIVE',
       progress: 90,
       priority: 'HIGH',
-      tags: ['Core', 'Organization']
+      tags: JSON.stringify(['Core', 'Organization'])
     }
   })
 
@@ -160,7 +160,7 @@ async function main() {
       status: 'COMPLETED',
       progress: 100,
       priority: 'HIGH',
-      tags: ['Compliance', 'Policy'],
+      tags: JSON.stringify(['Compliance', 'Policy']),
       completedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
     }
   })
@@ -266,7 +266,7 @@ async function main() {
       size: 2457600,
       path: '/documents/mission-control-proposal.pdf',
       uploadedBy: 'Jarvis',
-      tags: ['Proposal', 'Strategy']
+      tags: JSON.stringify(['Proposal', 'Strategy'])
     }
   })
 
@@ -277,7 +277,7 @@ async function main() {
       size: 1024000,
       path: '/documents/architecture-diagram.png',
       uploadedBy: 'The Architect',
-      tags: ['Architecture', 'Diagram']
+      tags: JSON.stringify(['Architecture', 'Diagram'])
     }
   })
 
@@ -288,7 +288,7 @@ async function main() {
       size: 102400,
       path: '/documents/client-onboarding.docx',
       uploadedBy: 'Service Roster',
-      tags: ['Client', 'Onboarding']
+      tags: JSON.stringify(['Client', 'Onboarding'])
     }
   })
 

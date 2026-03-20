@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Zap } from 'lucide-react'
+import Link from 'next/link'
 
 interface Activity {
   id: string
@@ -27,46 +27,34 @@ function formatTimeAgo(date: Date): string {
   return `${diffDays}d ago`
 }
 
-function getStatusVariant(status: string): 'active' | 'progress' | 'idle' | 'error' {
-  switch (status.toLowerCase()) {
-    case 'completed': return 'active'
-    case 'in_progress': return 'progress'
-    case 'failed': return 'error'
-    default: return 'idle'
-  }
-}
-
 export function ActivityFeed({ activities }: ActivityFeedProps) {
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-4">
-        <CardTitle>Live Activity</CardTitle>
-        <button className="text-sm text-accent-primary hover:text-accent-primary/80 flex items-center gap-1">
-          View full activity
-          <ChevronRight className="w-4 h-4" />
-        </button>
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <div className="flex items-center gap-2">
+          <Zap className="w-4 h-4 text-blue-400" />
+          <CardTitle className="text-[15px]">Live Activity</CardTitle>
+        </div>
+        <Link href="/workshop" className="text-[12px] font-medium text-blue-400 hover:text-blue-300 flex items-center gap-0.5 transition-colors duration-200">
+          View Workshop
+          <ChevronRight className="w-3.5 h-3.5" />
+        </Link>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-0.5 pt-2">
         {activities.map((activity) => (
-          <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-background-elevated transition-colors">
-            <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-              activity.status === 'COMPLETED' ? 'bg-status-active animate-pulse' :
-              activity.status === 'IN_PROGRESS' ? 'bg-status-progress animate-pulse' :
-              activity.status === 'FAILED' ? 'bg-status-error' : 'bg-status-idle'
+          <div key={activity.id} className="flex items-start gap-3 px-3 py-2.5 rounded-[10px] hover:bg-white/[0.03] transition-colors duration-200">
+            <div className={`w-[7px] h-[7px] rounded-full mt-[7px] flex-shrink-0 ${
+              activity.status === 'COMPLETED' ? 'bg-emerald-400' :
+              activity.status === 'IN_PROGRESS' ? 'bg-amber-400 animate-pulse' :
+              activity.status === 'FAILED' ? 'bg-red-400' : 'bg-blue-400'
             }`} />
             <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <Badge variant={getStatusVariant(activity.status)} className="mb-1">
-                    {activity.title}
-                  </Badge>
-                  {activity.description && (
-                    <p className="text-sm text-text-secondary mt-1">{activity.description}</p>
-                  )}
-                </div>
-                <span className="text-xs text-text-muted flex-shrink-0">{formatTimeAgo(activity.timestamp)}</span>
-              </div>
+              <p className="text-[13px] font-medium text-text-primary">{activity.title}</p>
+              {activity.description && (
+                <p className="text-[12px] text-text-muted mt-0.5 leading-relaxed">{activity.description}</p>
+              )}
             </div>
+            <span className="text-[11px] text-text-muted/60 flex-shrink-0 mt-0.5">{formatTimeAgo(activity.timestamp)}</span>
           </div>
         ))}
       </CardContent>

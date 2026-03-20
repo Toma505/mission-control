@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: ["class"],
+  darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -10,33 +10,32 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Mission Control custom colors
         background: {
-          DEFAULT: "#0a0e1a",
-          secondary: "#111827",
-          card: "#1a1f35",
-          elevated: "#252d45",
+          DEFAULT: "var(--background)",
+          secondary: "var(--background-secondary)",
+          card: "var(--background-card)",
+          elevated: "var(--background-elevated)",
         },
         border: {
-          DEFAULT: "#2d3748",
-          active: "#3b82f6",
+          DEFAULT: "var(--glass-border)",
+          active: "var(--accent-primary)",
         },
         text: {
-          primary: "#f9fafb",
-          secondary: "#9ca3af",
-          muted: "#6b7280",
+          primary: "var(--text-primary)",
+          secondary: "var(--text-secondary)",
+          muted: "var(--text-muted)",
         },
         status: {
-          active: "#10b981",
-          progress: "#f59e0b",
-          idle: "#3b82f6",
-          error: "#ef4444",
-          planning: "#8b5cf6",
+          active: "#34d399",
+          progress: "#fbbf24",
+          idle: "#60a5fa",
+          error: "#f87171",
+          planning: "#a78bfa",
         },
         accent: {
-          primary: "#3b82f6",
-          secondary: "#8b5cf6",
-          highlight: "#06b6d4",
+          primary: "var(--accent-primary)",
+          secondary: "var(--accent-secondary)",
+          highlight: "var(--accent-highlight)",
         },
       },
       borderRadius: {

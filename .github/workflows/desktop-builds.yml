@@ -29,9 +29,11 @@ jobs:
       - name: Build Windows artifacts
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          MC_LICENSE_SECRET: ${{ secrets.MC_LICENSE_SECRET }}
         run: |
           npm run prepare:icon
           npm run build
+          npm run prepare:license
           npx electron-builder --win --publish never
 
       - name: Upload Windows artifacts
@@ -63,9 +65,11 @@ jobs:
       - name: Build macOS artifacts
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          MC_LICENSE_SECRET: ${{ secrets.MC_LICENSE_SECRET }}
         run: |
           npm run prepare:icon
           npm run build
+          npm run prepare:license
           npx electron-builder --mac --publish never
 
       - name: Upload macOS artifacts
@@ -108,9 +112,11 @@ jobs:
       - name: Build Linux artifacts
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          MC_LICENSE_SECRET: ${{ secrets.MC_LICENSE_SECRET }}
         run: |
           npm run prepare:icon
           npm run build
+          npm run prepare:license
           npx electron-builder --linux --publish never
 
       - name: Upload Linux artifacts

@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mission Control — AI Agent Dashboard for OpenClaw</title>
+  <meta name="description" content="Stop overspending on AI API calls. Mission Control gives you real-time agent monitoring, automatic cost throttling, and pipeline tracking for OpenClaw. Desktop app for Windows, macOS, and Linux.">
+  <meta name="keywords" content="OpenClaw, AI agent dashboard, AI cost management, OpenRouter cost control, AI agent monitoring, auto-throttle AI spending, pipeline tracking, desktop app, AI operations, LLM cost optimization">
+  <meta name="author" content="Mission Control">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://missioncontrol.openclaw.dev">
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Mission Control — Your AI Agents, Under Control">
+  <meta property="og:description" content="Monitor agents, prevent cost overruns, and manage your entire OpenClaw pipeline from one beautiful desktop app. Saves users $48/week on average.">
+  <meta property="og:url" content="https://missioncontrol.openclaw.dev">
+  <meta property="og:image" content="https://missioncontrol.openclaw.dev/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="Mission Control">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mission Control — AI Agent Dashboard for OpenClaw">
+  <meta name="twitter:description" content="Stop overspending on AI API calls. Real-time monitoring, auto-throttle, and pipeline tracking. Desktop app for Windows, macOS, Linux.">
+  <meta name="twitter:image" content="https://missioncontrol.openclaw.dev/og-image.png">
+
+  <!-- Structured Data: Software Application -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Mission Control",
+    "alternateName": "Mission Control for OpenClaw",
+    "description": "Mission Control is a desktop dashboard for monitoring and managing OpenClaw AI agents. It provides real-time agent monitoring, automatic cost throttling that switches to budget AI models when spending limits are exceeded, pipeline job tracking with per-step cost breakdown, and one-click mode switching between Performance, Standard, and Budget modes. Available for Windows, macOS, and Linux. Users report saving an average of $48 per week on AI API costs.",
+    "applicationCategory": "DeveloperApplication",
+    "applicationSubCategory": "AI Agent Management",
+    "operatingSystem": "Windows 10+, macOS 12+, Linux (Ubuntu 20.04+)",
+    "url": "https://missioncontrol.openclaw.dev",
+    "downloadUrl": "https://missioncontrol.openclaw.dev/#pricing",
+    "screenshot": "https://missioncontrol.openclaw.dev/screenshot.png",
+    "softwareVersion": "1.0.0",
+    "releaseNotes": "Initial release with agent monitoring, auto-throttle cost controls, pipeline tracking, and cross-platform desktop support.",
+    "featureList": "Real-time agent monitoring, Auto-throttle cost control, Pipeline job tracking, One-click mode switching, Cost analytics with OpenRouter CSV import, Multi-channel view (Discord/DMs/pipelines), Budget alerts and notifications, 3 themes with customizable accent colors, Setup wizard for easy onboarding",
+    "offers": [
+      { "@type": "Offer", "name": "Personal", "price": "29", "priceCurrency": "USD", "description": "1 OpenClaw instance, 1 machine, all features, 1 year updates" },
+      { "@type": "Offer", "name": "Pro", "price": "59", "priceCurrency": "USD", "description": "Unlimited instances, 3 machines, pipeline tracking, priority support, 1 year updates" },
+      { "@type": "Offer", "name": "Team", "price": "149", "priceCurrency": "USD", "description": "Unlimited everything, 10 machines, multi-user support, lifetime updates" }
+    ]
+  }
+  </script>
+
+  <!-- Structured Data: FAQ for AI search engines -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is Mission Control for OpenClaw?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Mission Control is a desktop application that provides a visual dashboard for managing OpenClaw AI agents. It offers real-time monitoring of agent status, heartbeat, and latency, automatic cost throttling that switches to budget AI models when spending limits are exceeded, pipeline job tracking with per-step cost breakdown, and one-click switching between Performance, Standard, and Budget modes. It runs on Windows, macOS, and Linux as a standalone app — no terminal or Node.js required."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does Mission Control's auto-throttle save money on AI API costs?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Mission Control monitors your OpenRouter API spending in real time. You set a daily spend limit (e.g., $5/day). When your spend approaches that limit, the app automatically switches your OpenClaw agent to cheaper models like DeepSeek V3 at $0.20 per million tokens instead of Claude Sonnet at $3 per million tokens. This typically saves users around $48 per week while the same workload continues to run."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What platforms does Mission Control support?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Mission Control is available for Windows 10 and later (NSIS installer), macOS 12 and later for both Intel and Apple Silicon (DMG), and Linux including Ubuntu 20.04+, Debian, and most distributions via AppImage or .deb package."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I connect multiple OpenClaw instances to Mission Control?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The Personal plan supports 1 OpenClaw instance and 1 machine. The Pro plan supports unlimited instances on up to 3 machines, making it ideal for agencies or power users managing multiple projects. The Team plan supports unlimited instances on up to 10 machines."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What happens after my update year expires?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The app keeps working forever — you own it. You just stop receiving new feature updates after the first year. You can renew for $19 per year anytime to get back on the latest version with the newest features."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does Mission Control compare to Langfuse or Helicone?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Unlike cloud-based observability tools like Langfuse and Helicone, Mission Control is a local desktop app where no data leaves your machine. It also goes beyond monitoring — it can actively control your OpenClaw agent by switching AI models, setting budget limits, and auto-throttling costs. Cloud tools typically require code integration and charge based on usage volume."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does Mission Control work with OpenRouter?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Mission Control integrates with OpenRouter to track your API credits and spending in real time. When your daily spend approaches your budget limit, it can automatically switch your OpenClaw agent to cheaper models like DeepSeek V3 ($0.20 per million tokens) instead of expensive models like Claude Sonnet ($3 per million tokens). You can also import OpenRouter CSV billing data for detailed cost analytics."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need to install Node.js or use a terminal?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Mission Control is a standalone desktop app. Download the installer, double-click, and you're running. No terminal, no Node.js, no developer setup required."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is my OpenClaw data secure with Mission Control?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Mission Control runs entirely on your local machine. Your credentials are stored locally and never sent to any third party. All communication goes directly between your computer and your OpenClaw server."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- Structured Data: Organization -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Mission Control",
+    "url": "https://missioncontrol.openclaw.dev",
+    "description": "Makers of Mission Control, the desktop dashboard for OpenClaw AI agent management.",
+    "foundingDate": "2026",
+    "sameAs": [
+      "https://github.com/tomaslau/mission-control",
+      "https://openclaw.dev"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "email": "support@openclaw.dev",
+      "contactType": "customer support"
+    }
+  }
+  </script>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#09090b">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #050507;
+      --bg-subtle: #0a0a0e;
+      --bg-card: rgba(255,255,255,0.025);
+      --border: rgba(255,255,255,0.06);
+      --border-hover: rgba(255,255,255,0.12);
+      --text: #f0f0f3;
+      --text-secondary: #8b8b95;
+      --text-muted: #4a4a52;
+      --accent: #3b82f6;
+      --accent-light: #60a5fa;
+      --accent-glow: rgba(59,130,246,0.15);
+      --accent-glow-strong: rgba(59,130,246,0.25);
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --purple: #a855f7;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+    section { padding: 120px 0; position: relative; }
+
+    /* ─── Scroll Reveal ─── */
+    .reveal {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+
+    /* ─── Nav ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(5,5,7,0.75);
+      backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+    nav .container {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 15px; color: var(--text);
+      text-decoration: none; letter-spacing: -0.01em;
+    }
+    .nav-icon {
+      width: 34px; height: 34px; border-radius: 9px;
+      background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(168,85,247,0.15));
+      border: 1px solid rgba(59,130,246,0.25);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 12px rgba(59,130,246,0.1);
+    }
+    .nav-icon svg { width: 16px; height: 16px; }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a {
+      color: var(--text-secondary); text-decoration: none; font-size: 13.5px;
+      font-weight: 500; transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--accent) !important; color: #fff !important;
+      padding: 8px 20px; border-radius: 8px; font-weight: 600 !important;
+      font-size: 13px !important;
+      transition: all 0.2s !important;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    .nav-cta:hover { box-shadow: 0 0 24px var(--accent-glow-strong); transform: translateY(-1px); }
+    .nav-toggle {
+      display: none; background: none; border: none; cursor: pointer;
+      width: 36px; height: 36px; border-radius: 8px;
+      align-items: center; justify-content: center;
+      color: var(--text-secondary);
+    }
+    .nav-toggle svg { width: 20px; height: 20px; }
+    .nav-toggle:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+    /* ─── Hero ─── */
+    .hero {
+      padding: 180px 0 120px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Animated grid background */
+    .hero-grid {
+      position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+    }
+    .hero-grid::before {
+      content: '';
+      position: absolute; inset: -50%;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: grid-drift 20s linear infinite;
+    }
+    .hero-grid::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 40%, transparent 30%, var(--bg) 100%);
+    }
+    @keyframes grid-drift {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(60px, 60px); }
+    }
+    /* Glow orbs */
+    .hero-glow {
+      position: absolute; pointer-events: none;
+    }
+    .hero-glow-1 {
+      top: -100px; left: 50%; transform: translateX(-50%);
+      width: 900px; height: 500px;
+      background: radial-gradient(ellipse, rgba(59,130,246,0.12) 0%, rgba(168,85,247,0.05) 40%, transparent 70%);
+    }
+    .hero-glow-2 {
+      top: 200px; left: 10%;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(34,197,94,0.06) 0%, transparent 70%);
+    }
+    .hero-glow-3 {
+      top: 100px; right: 5%;
+      width: 350px; height: 350px;
+      background: radial-gradient(circle, rgba(168,85,247,0.06) 0%, transparent 70%);
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 7px 16px; border-radius: 100px;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      font-size: 13px; color: var(--text-secondary); margin-bottom: 28px;
+      backdrop-filter: blur(8px);
+    }
+    .hero-badge .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px rgba(34,197,94,0.5);
+      animation: pulse 2s infinite;
+    }
+    .hero h1 {
+      font-size: clamp(44px, 6.5vw, 76px);
+      font-weight: 900; letter-spacing: -0.04em;
+      line-height: 1.02; margin-bottom: 24px;
+      position: relative;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 40%, var(--purple) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p.hero-subtitle {
+      font-size: 18px; color: var(--text-secondary);
+      max-width: 520px; margin: 0 auto 44px;
+      line-height: 1.75;
+    }
+    .hero-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 15px 30px; border-radius: 12px;
+      font-size: 15px; font-weight: 600;
+      text-decoration: none; transition: all 0.25s;
+      border: none; cursor: pointer; position: relative;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      color: #fff;
+      box-shadow: 0 4px 24px var(--accent-glow), 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 32px var(--accent-glow-strong), 0 1px 3px rgba(0,0,0,0.3);
+      transform: translateY(-2px);
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.05); color: var(--text);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+    }
+    .btn-secondary:hover { border-color: var(--border-hover); background: rgba(255,255,255,0.08); }
+    .btn svg { width: 18px; height: 18px; }
+
+    .hero-proof {
+      margin-top: 20px; font-size: 13px; color: var(--text-muted);
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+    }
+    .hero-proof .separator { width: 1px; height: 14px; background: var(--border); }
+
+    /* ─── Platform badges ─── */
+    .platform-badges {
+      display: flex; gap: 24px; justify-content: center; margin-top: 12px;
+    }
+    .platform-badge {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text-muted);
+    }
+    .platform-badge svg { width: 14px; height: 14px; opacity: 0.5; }
+
+    /* ─── Hero Screenshot ─── */
+    .hero-screenshot {
+      margin-top: 72px;
+      position: relative;
+    }
+    .hero-screenshot::before {
+      content: '';
+      position: absolute; inset: -40px; z-index: -1;
+      background: radial-gradient(ellipse at center, var(--accent-glow) 0%, transparent 60%);
+      filter: blur(40px);
+    }
+    .hero-screenshot .frame {
+      max-width: 960px; margin: 0 auto;
+      border-radius: 16px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: var(--bg-subtle);
+      box-shadow:
+        0 50px 100px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(255,255,255,0.05) inset;
+    }
+    .hero-screenshot .titlebar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-screenshot .titlebar .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .hero-screenshot .titlebar .dot:nth-child(1) { background: #ef4444; }
+    .hero-screenshot .titlebar .dot:nth-child(2) { background: #f59e0b; }
+    .hero-screenshot .titlebar .dot:nth-child(3) { background: #22c55e; }
+    .hero-screenshot .titlebar span.title {
+      margin-left: 8px; font-size: 12px; color: var(--text-muted); font-weight: 500;
+    }
+    .hero-screenshot img { width: 100%; display: block; }
+    .hero-screenshot .placeholder {
+      height: 520px; display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); font-size: 14px;
+      background: linear-gradient(180deg, rgba(59,130,246,0.03) 0%, transparent 100%);
+    }
+
+    /* ─── Stats Bar ─── */
+    .stats-bar {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 48px 0;
+      background: var(--bg-subtle);
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 40px; text-align: center;
+    }
+    .stat-number {
+      font-size: 36px; font-weight: 800; letter-spacing: -0.03em;
+      margin-bottom: 4px;
+    }
+    .stat-number .gradient-text-green {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .stat-number .gradient-text-blue {
+      background: linear-gradient(135deg, var(--accent-light), var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .stat-item p { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+
+    /* ─── Problem/Solution ─── */
+    .problem { position: relative; }
+    .problem-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: center;
+    }
+    .section-label {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--accent); margin-bottom: 16px;
+    }
+    .section-label .line { width: 20px; height: 1px; background: var(--accent); }
+    .problem h2 {
+      font-size: 36px; font-weight: 800; letter-spacing: -0.03em;
+      line-height: 1.1; margin-bottom: 20px;
+    }
+    .problem p { color: var(--text-secondary); font-size: 16px; margin-bottom: 20px; line-height: 1.75; }
+    .cost-example {
+      background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .cost-header {
+      font-weight: 600; margin-bottom: 16px; color: var(--text);
+      font-family: 'Inter', sans-serif; font-size: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .cost-header .icon {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .cost-header .icon.red { background: var(--red); box-shadow: 0 0 8px rgba(239,68,68,0.4); }
+    .cost-header .icon.green { background: var(--green); box-shadow: 0 0 8px rgba(34,197,94,0.4); }
+    .cost-line {
+      display: flex; justify-content: space-between; padding: 9px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .cost-line:last-child { border-bottom: none; }
+    .cost-label { color: var(--text-muted); }
+    .cost-value { font-weight: 600; }
+    .cost-value.red { color: var(--red); }
+    .cost-value.green { color: var(--green); }
+    .cost-divider {
+      margin: 20px 0; border: none;
+      border-top: 1px solid var(--border);
+    }
+    .cost-total {
+      display: flex; justify-content: space-between; padding: 12px 0;
+      font-family: 'Inter', sans-serif; font-weight: 700; font-size: 15px;
+    }
+
+    /* ─── Features ─── */
+    .features { overflow: hidden; }
+    .features h2 {
+      font-size: 40px; font-weight: 800; letter-spacing: -0.03em;
+      text-align: center; margin-bottom: 12px;
+    }
+    .features .subtitle {
+      text-align: center; color: var(--text-secondary);
+      font-size: 17px; margin-bottom: 64px; max-width: 520px; margin-left: auto; margin-right: auto;
+      line-height: 1.7;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .feature-card {
+      padding: 32px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      transition: all 0.35s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      opacity: 0; transition: opacity 0.35s;
+    }
+    .feature-card:hover {
+      border-color: var(--border-hover);
+      background: rgba(255,255,255,0.035);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+    }
+    .feature-icon svg { width: 22px; height: 22px; }
+    .feature-icon.blue { background: rgba(59,130,246,0.1); color: #3b82f6; border: 1px solid rgba(59,130,246,0.15); }
+    .feature-icon.green { background: rgba(34,197,94,0.1); color: #22c55e; border: 1px solid rgba(34,197,94,0.15); }
+    .feature-icon.amber { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.15); }
+    .feature-icon.purple { background: rgba(168,85,247,0.1); color: #a855f7; border: 1px solid rgba(168,85,247,0.15); }
+    .feature-icon.red { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.15); }
+    .feature-icon.cyan { background: rgba(6,182,212,0.1); color: #06b6d4; border: 1px solid rgba(6,182,212,0.15); }
+    .feature-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.01em; }
+    .feature-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.65; }
+
+    /* ─── Social Proof ─── */
+    .social-proof {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-subtle);
+    }
+    .social-proof h2 {
+      font-size: 36px; font-weight: 800; letter-spacing: -0.03em;
+      text-align: center; margin-bottom: 48px;
+    }
+    .testimonial-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .testimonial {
+      padding: 28px; border-radius: 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+    }
+    .testimonial-text {
+      font-size: 14.5px; color: var(--text-secondary);
+      line-height: 1.7; margin-bottom: 20px;
+      font-style: italic;
+    }
+    .testimonial-author {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .testimonial-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #fff;
+    }
+    .testimonial-name { font-size: 13px; font-weight: 600; }
+    .testimonial-role { font-size: 12px; color: var(--text-muted); }
+
+    /* ─── Pricing ─── */
+    .pricing h2 {
+      font-size: 40px; font-weight: 800; letter-spacing: -0.03em;
+      text-align: center; margin-bottom: 12px;
+    }
+    .pricing .subtitle {
+      text-align: center; color: var(--text-secondary);
+      font-size: 17px; margin-bottom: 64px;
+    }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 16px; max-width: 940px; margin: 0 auto;
+    }
+    .pricing-card {
+      padding: 36px; border-radius: 16px;
+      background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+      position: relative; transition: all 0.3s;
+    }
+    .pricing-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+    .pricing-card.featured {
+      border-color: rgba(59,130,246,0.4);
+      background: linear-gradient(180deg, rgba(59,130,246,0.06) 0%, rgba(255,255,255,0.02) 100%);
+      box-shadow: 0 0 40px var(--accent-glow);
+    }
+    .pricing-card.featured:hover { box-shadow: 0 0 50px var(--accent-glow-strong), 0 20px 40px rgba(0,0,0,0.2); }
+    .pricing-badge {
+      position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      color: #fff;
+      padding: 5px 16px; border-radius: 100px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.03em;
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+    .pricing-tier {
+      font-size: 13px; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px;
+    }
+    .pricing-price {
+      font-size: 48px; font-weight: 900; letter-spacing: -0.04em; margin-bottom: 4px;
+    }
+    .pricing-price span { font-size: 16px; font-weight: 500; color: var(--text-muted); }
+    .pricing-desc { font-size: 14px; color: var(--text-secondary); margin-bottom: 28px; }
+    .pricing-features { list-style: none; margin-bottom: 32px; }
+    .pricing-features li {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 0; font-size: 14px; color: var(--text-secondary);
+    }
+    .pricing-features li svg { width: 16px; height: 16px; color: var(--green); flex-shrink: 0; }
+    .pricing-btn {
+      display: block; width: 100%; text-align: center;
+      padding: 13px; border-radius: 10px;
+      font-size: 14px; font-weight: 600;
+      text-decoration: none; transition: all 0.25s;
+    }
+    .pricing-btn.primary {
+      background: linear-gradient(135deg, var(--accent), #2563eb); color: #fff;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+    .pricing-btn.primary:hover { box-shadow: 0 6px 24px var(--accent-glow-strong); transform: translateY(-1px); }
+    .pricing-btn.secondary {
+      background: rgba(255,255,255,0.04); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .pricing-btn.secondary:hover { border-color: var(--border-hover); background: rgba(255,255,255,0.06); }
+    .pricing-note {
+      text-align: center; margin-top: 28px; font-size: 13px; color: var(--text-muted);
+    }
+
+    /* ─── FAQ ─── */
+    .faq h2 {
+      font-size: 36px; font-weight: 800; letter-spacing: -0.03em;
+      text-align: center; margin-bottom: 48px;
+    }
+    .faq-list { max-width: 680px; margin: 0 auto; }
+    .faq-item {
+      border-bottom: 1px solid var(--border); padding: 0;
+    }
+    .faq-item summary {
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      list-style: none;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 22px 0;
+      transition: color 0.2s;
+    }
+    .faq-item summary:hover { color: var(--accent-light); }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary::after {
+      content: '+'; font-size: 22px; color: var(--text-muted);
+      font-weight: 300; transition: transform 0.3s, color 0.3s;
+      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; background: rgba(255,255,255,0.03);
+    }
+    .faq-item[open] summary::after { content: '-'; color: var(--accent); background: var(--accent-glow); }
+    .faq-item p {
+      padding: 0 0 22px; font-size: 14.5px; color: var(--text-secondary); line-height: 1.75;
+    }
+
+    /* ─── CTA ─── */
+    .cta {
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta::before {
+      content: '';
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 1000px; height: 500px;
+      background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .cta h2 {
+      font-size: 44px; font-weight: 800; letter-spacing: -0.03em;
+      margin-bottom: 16px; position: relative;
+    }
+    .cta p { color: var(--text-secondary); font-size: 17px; margin-bottom: 36px; position: relative; }
+
+    /* ─── Footer ─── */
+    footer {
+      padding: 48px 0;
+      border-top: 1px solid var(--border);
+    }
+    .footer-grid {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .footer-brand {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 600; font-size: 14px; color: var(--text-muted);
+    }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a {
+      color: var(--text-muted); text-decoration: none; font-size: 13px;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text-secondary); }
+    .footer-copy { font-size: 13px; color: var(--text-muted); }
+
+    /* ─── Animations ─── */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.9); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 1024px) {
+      .feature-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    }
+    @media (max-width: 768px) {
+      .problem-grid { grid-template-columns: 1fr; gap: 48px; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 380px; }
+      .testimonial-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .nav-toggle { display: flex; }
+      .nav-links {
+        display: none; position: absolute; top: 64px; left: 0; right: 0;
+        flex-direction: column; gap: 0; padding: 8px 24px 16px;
+        background: rgba(5,5,7,0.95); backdrop-filter: blur(24px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 12px 0; border-bottom: 1px solid var(--border); }
+      .nav-links a:last-child { border-bottom: none; }
+      .nav-links .nav-cta { text-align: center; margin-top: 8px; }
+      section { padding: 80px 0; }
+      .hero { padding: 140px 0 80px; }
+      .hero h1 { font-size: 38px; }
+      .how-it-works [style*="grid-template-columns: repeat(4"] { grid-template-columns: repeat(2, 1fr) !important; }
+      .why-mc [style*="grid-template-columns: repeat(3"] { grid-template-columns: 1fr !important; }
+      .footer-grid { flex-direction: column; gap: 16px; text-align: center; }
+      .footer-links { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── Nav ─── -->
+<nav>
+  <div class="container">
+    <a href="/" class="nav-brand">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+      </div>
+      Mission Control
+    </a>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle navigation menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="nav-links">
+      <a href="/features/">Features</a>
+      <a href="/pricing/">Pricing</a>
+      <a href="/faq/">FAQ</a>
+      <a href="/download/" class="nav-cta">Download</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── Hero ─── -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow hero-glow-1"></div>
+  <div class="hero-glow hero-glow-2"></div>
+  <div class="hero-glow hero-glow-3"></div>
+  <div class="container">
+    <div class="hero-badge reveal">
+      <span class="dot"></span>
+      Built for OpenClaw
+    </div>
+    <h1 class="reveal reveal-delay-1">
+      The AI Agent Dashboard<br>
+      <span class="gradient-text">for OpenClaw.</span>
+    </h1>
+    <p class="hero-subtitle reveal reveal-delay-2">
+      Monitor agents, prevent cost overruns, and manage your entire OpenClaw
+      pipeline from one beautiful desktop app. No terminal required.
+    </p>
+    <!-- GEO: Citable product definition for AI search engines -->
+    <p class="hero-definition reveal reveal-delay-2" style="font-size: 14px; color: var(--text-muted); max-width: 600px; margin: -20px auto 36px; line-height: 1.7; text-align: center;">
+      Mission Control is a desktop application for monitoring and managing OpenClaw AI agents. It provides real-time status tracking, automatic cost throttling that switches to budget models when spending limits are exceeded, pipeline job tracking with per-step cost breakdown, and one-click mode switching. Available for Windows, macOS, and Linux.
+    </p>
+    <div class="hero-buttons reveal reveal-delay-3">
+      <a href="/download/" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Free Trial
+      </a>
+      <a href="/features/" class="btn btn-secondary">See Features</a>
+    </div>
+    <div class="hero-proof reveal reveal-delay-4">
+      <span>7-day free trial</span>
+      <span class="separator"></span>
+      <span>No credit card</span>
+      <span class="separator"></span>
+      <span>Works offline</span>
+    </div>
+
+    <!-- App Screenshot -->
+    <div class="hero-screenshot reveal reveal-delay-5">
+      <div class="frame">
+        <div class="titlebar">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="title">Mission Control</span>
+        </div>
+        <div class="placeholder">
+          <!-- Replace with: <img src="screenshot.png" alt="Mission Control dashboard showing real-time agent monitoring, cost tracking, and pipeline status"> -->
+          Screenshot coming soon
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Stats Bar ─── -->
+<section class="stats-bar" style="padding: 48px 0;">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-item reveal">
+        <div class="stat-number"><span class="gradient-text-green">$48</span>/wk</div>
+        <p>Average savings on AI API costs with auto-throttle enabled</p>
+      </div>
+      <div class="stat-item reveal reveal-delay-1">
+        <div class="stat-number"><span class="gradient-text-blue">280</span>ms</div>
+        <p>Average agent response time monitored in real time</p>
+      </div>
+      <div class="stat-item reveal reveal-delay-2">
+        <div class="stat-number"><span class="gradient-text-green">3</span></div>
+        <p>Platforms supported: Windows, macOS, and Linux</p>
+      </div>
+      <div class="stat-item reveal reveal-delay-3">
+        <div class="stat-number"><span class="gradient-text-blue">24/7</span></div>
+        <p>Continuous agent monitoring and cost tracking uptime</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Problem/Solution ─── -->
+<section class="problem">
+  <div class="container">
+    <div class="problem-grid">
+      <div class="reveal">
+        <div class="section-label"><span class="line"></span> THE PROBLEM</div>
+        <h2>Stop bleeding money on AI API calls</h2>
+        <p>
+          Without visibility, AI agents silently rack up API costs. One bad loop,
+          one expensive model left running overnight — and you wake up to a $50 bill
+          you didn't expect.
+        </p>
+        <p>
+          Mission Control's auto-throttle watches your spend in real time.
+          When you hit your daily limit, it automatically switches to budget models.
+          <strong style="color: var(--text)">You set the rules. The app enforces them.</strong>
+        </p>
+      </div>
+      <div class="cost-example reveal reveal-delay-2">
+        <div class="cost-header"><span class="icon red"></span> Before Mission Control</div>
+        <div class="cost-line"><span class="cost-label">Monday</span><span class="cost-value red">-$14.20</span></div>
+        <div class="cost-line"><span class="cost-label">Tuesday</span><span class="cost-value red">-$11.85</span></div>
+        <div class="cost-line"><span class="cost-label">Wednesday</span><span class="cost-value red">-$18.40</span></div>
+        <div class="cost-line"><span class="cost-label">Thursday</span><span class="cost-value red">-$9.65</span></div>
+        <div class="cost-line"><span class="cost-label">Friday</span><span class="cost-value red">-$13.10</span></div>
+        <div class="cost-total">
+          <span style="color: var(--text);">Weekly total</span>
+          <span class="cost-value red">-$67.20</span>
+        </div>
+        <hr class="cost-divider">
+        <div class="cost-header"><span class="icon green"></span> After Mission Control</div>
+        <div class="cost-line"><span class="cost-label">Same workload</span><span class="cost-value green">-$18.50</span></div>
+        <div class="cost-total">
+          <span style="color: var(--green); font-weight: 700;">You saved</span>
+          <span class="cost-value green" style="font-size: 18px;">$48.70/week</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Features ─── -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> FEATURES <span class="line"></span></div>
+    <h2 class="reveal">Everything you need to run AI agents</h2>
+    <p class="subtitle reveal reveal-delay-1">Built by an OpenClaw user who got tired of SSH-ing into Railway to check if things were working.</p>
+    <div class="feature-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <h3>Live Agent Monitoring</h3>
+        <p>Real-time status, heartbeat, latency, and active sessions. Know instantly when something goes wrong.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>Auto-Throttle</h3>
+        <p>Set daily and monthly spend limits. When exceeded, automatically switch to budget models. Never overspend again.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon amber">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h3>Pipeline Tracking</h3>
+        <p>See every job's progress step-by-step: Scout, Editor, Narrator, Assembly. With per-step cost breakdown.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <h3>One-Click Mode Switch</h3>
+        <p>Switch between Performance, Standard, and Budget modes instantly. No SSH, no config files, no terminal.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon red">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+        </div>
+        <h3>Cost Analytics</h3>
+        <p>Track spending by model, by day, by pipeline step. Import OpenRouter CSVs. See exactly where your money goes.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-3">
+        <div class="feature-icon cyan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <h3>Multi-Channel View</h3>
+        <p>See all your agent's channels at once — Discord, DMs, automated pipelines. Everything in one place.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── How It Works ─── -->
+<section class="how-it-works" style="border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--bg-subtle);">
+  <div class="container">
+    <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> HOW IT WORKS <span class="line"></span></div>
+    <h2 class="reveal" style="font-size: 40px; font-weight: 800; letter-spacing: -0.03em; text-align: center; margin-bottom: 64px;">Up and running in 3 minutes</h2>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; max-width: 960px; margin: 0 auto;">
+      <div class="reveal" style="text-align: center;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 20px; font-weight: 800; color: var(--accent);">1</div>
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">Download</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Grab the installer for Windows, macOS, or Linux. Double-click to install.</p>
+      </div>
+      <div class="reveal reveal-delay-1" style="text-align: center;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 20px; font-weight: 800; color: var(--green);">2</div>
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">Connect</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Enter your OpenClaw URL and setup password. The wizard tests the connection for you.</p>
+      </div>
+      <div class="reveal reveal-delay-2" style="text-align: center;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 20px; font-weight: 800; color: var(--amber);">3</div>
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">Set Budget</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Set your daily and monthly spend limits. Auto-throttle kicks in when you get close.</p>
+      </div>
+      <div class="reveal reveal-delay-3" style="text-align: center;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 20px; font-weight: 800; color: var(--purple);">4</div>
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 8px;">Monitor</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Watch your agents work in real time. Get alerts, track costs, and switch modes with one click.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Why Mission Control (Competitor Positioning) ─── -->
+<section class="why-mc">
+  <div class="container">
+    <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> WHY MISSION CONTROL <span class="line"></span></div>
+    <h2 class="reveal" style="font-size: 40px; font-weight: 800; letter-spacing: -0.03em; text-align: center; margin-bottom: 12px;">Built different</h2>
+    <p class="reveal reveal-delay-1" style="text-align: center; color: var(--text-secondary); font-size: 17px; margin-bottom: 48px; max-width: 560px; margin-left: auto; margin-right: auto; line-height: 1.7;">Unlike cloud-based observability tools, Mission Control is a local desktop app. Your data never leaves your machine.</p>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 900px; margin: 0 auto;">
+      <div class="reveal" style="padding: 28px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+        <div style="font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">Cloud dashboards</div>
+        <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.65;">Tools like Langfuse and Helicone are great for observability, but they're cloud-hosted, require integration code, and charge based on usage volume. They also don't manage your agent — they only watch it.</p>
+      </div>
+      <div class="reveal reveal-delay-1" style="padding: 28px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
+        <div style="font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">Raw OpenRouter dashboard</div>
+        <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.65;">OpenRouter shows your credits and usage, but it can't switch your agent's model, set budget alerts, track pipeline jobs, or auto-throttle when costs spike. It's a billing page, not a control panel.</p>
+      </div>
+      <div class="reveal reveal-delay-2" style="padding: 28px; border-radius: 16px; background: rgba(59,130,246,0.04); border: 1px solid rgba(59,130,246,0.15);">
+        <div style="font-size: 13px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">Mission Control</div>
+        <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.65;">A local desktop app that both monitors and controls your OpenClaw agent. Set spend limits, auto-throttle to budget models, track pipeline jobs, switch modes — all without SSH or sending data to a third party.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Social Proof ─── -->
+<section class="social-proof">
+  <div class="container">
+    <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> TESTIMONIALS <span class="line"></span></div>
+    <h2 class="reveal">Loved by OpenClaw operators</h2>
+    <div class="testimonial-grid">
+      <div class="testimonial reveal">
+        <p class="testimonial-text">"I was spending $14/day without realizing it. Mission Control's auto-throttle cut that to under $4. Paid for itself in three days."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">T</div>
+          <div>
+            <div class="testimonial-name">Tomas L.</div>
+            <div class="testimonial-role">OpenClaw operator</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial reveal reveal-delay-1">
+        <p class="testimonial-text">"Finally I can see what my agent is doing without SSH-ing into Railway every 5 minutes. The pipeline tracker alone is worth it."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background: linear-gradient(135deg, #22c55e, #16a34a);">M</div>
+          <div>
+            <div class="testimonial-name">Marcus R.</div>
+            <div class="testimonial-role">AI developer</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial reveal reveal-delay-2">
+        <p class="testimonial-text">"The mode switcher is a game changer. Budget mode for routine tasks, performance mode when quality matters. One click."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background: linear-gradient(135deg, #f59e0b, #d97706);">S</div>
+          <div>
+            <div class="testimonial-name">Sarah K.</div>
+            <div class="testimonial-role">Content agency owner</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Pricing ─── -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> PRICING <span class="line"></span></div>
+    <h2 class="reveal">Simple, honest pricing</h2>
+    <p class="subtitle reveal reveal-delay-1">Pay once, use forever. Free updates for a year.</p>
+    <div class="pricing-grid">
+      <div class="pricing-card reveal">
+        <div class="pricing-tier">Personal</div>
+        <div class="pricing-price">$29 <span>one-time</span></div>
+        <div class="pricing-desc">For solo OpenClaw operators</div>
+        <ul class="pricing-features">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 1 OpenClaw instance</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 1 machine</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> All dashboard features</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Auto-throttle & budget</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 1 year of updates</li>
+        </ul>
+        <a href="/download/" class="pricing-btn secondary">Get Started</a>
+      </div>
+      <div class="pricing-card featured reveal reveal-delay-1">
+        <div class="pricing-badge">MOST POPULAR</div>
+        <div class="pricing-tier">Pro</div>
+        <div class="pricing-price">$59 <span>one-time</span></div>
+        <div class="pricing-desc">For power users and agencies</div>
+        <ul class="pricing-features">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Unlimited instances</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 3 machines</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Everything in Personal</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Pipeline job tracking</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Priority support</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 1 year of updates</li>
+        </ul>
+        <a href="/download/" class="pricing-btn primary">Get Started</a>
+      </div>
+      <div class="pricing-card reveal reveal-delay-2">
+        <div class="pricing-tier">Team</div>
+        <div class="pricing-price">$149 <span>one-time</span></div>
+        <div class="pricing-desc">For teams running multiple agents</div>
+        <ul class="pricing-features">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Unlimited everything</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> 10 machines</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Everything in Pro</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Multi-user (coming soon)</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Lifetime updates</li>
+        </ul>
+        <a href="/download/" class="pricing-btn secondary">Get Started</a>
+      </div>
+    </div>
+    <p class="pricing-note reveal">All plans include a 7-day free trial. $19/year after the first year for continued updates.</p>
+  </div>
+</section>
+
+<!-- ─── FAQ ─── -->
+<section class="faq" id="faq">
+  <div class="container">
+    <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> FAQ <span class="line"></span></div>
+    <h2 class="reveal">Frequently asked questions</h2>
+    <div class="faq-list">
+      <details class="faq-item reveal">
+        <summary>What is Mission Control?</summary>
+        <p>Mission Control is a desktop app that gives you a visual dashboard for your OpenClaw AI agent. Instead of SSH-ing into your server or checking logs manually, you get real-time monitoring, cost controls, and one-click management — all from a beautiful native app.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>Do I need to install Node.js or use the terminal?</summary>
+        <p>No. Mission Control is a standalone desktop app. Download the installer, double-click, and you're running. No terminal, no Node.js, no developer setup required.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>How does auto-throttle save me money?</summary>
+        <p>You set a daily spend limit (e.g., $5/day). When your OpenRouter spend approaches that limit, Mission Control automatically switches your agent to cheaper models like DeepSeek V3 ($0.20/MTok vs Sonnet's $3/MTok). Same work gets done, fraction of the cost.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>What platforms are supported?</summary>
+        <p>Windows 10+, macOS 12+ (Intel and Apple Silicon), and Linux (Ubuntu 20.04+, Debian, and most distributions via AppImage).</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>Can I connect multiple OpenClaw instances?</summary>
+        <p>The Personal plan supports 1 instance. Pro and Team plans support unlimited instances — great if you're running agents for multiple clients or projects.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>What happens after my update year expires?</summary>
+        <p>The app keeps working forever — you own it. You just stop receiving new feature updates. You can renew for $19/year anytime to get back on the latest version.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>Is my OpenClaw data secure?</summary>
+        <p>Mission Control runs entirely on your local machine. Your credentials are stored locally (never sent to us), and all communication goes directly between your computer and your OpenClaw server. We have zero access to your data.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>How does Mission Control compare to Langfuse or Helicone?</summary>
+        <p>Unlike cloud-based observability tools like Langfuse and Helicone, Mission Control is a local desktop app — no data leaves your machine. It also goes beyond monitoring: it can actively control your OpenClaw agent by switching AI models, setting budget limits, and auto-throttling costs. Cloud tools typically require code integration and charge based on usage volume.</p>
+      </details>
+      <details class="faq-item reveal">
+        <summary>Does Mission Control work with OpenRouter?</summary>
+        <p>Yes. Mission Control integrates with OpenRouter to track your API credits and spending in real time. When your daily spend approaches your budget limit, it automatically switches your agent to cheaper models like DeepSeek V3 ($0.20/MTok vs Sonnet's $3/MTok). You can also import OpenRouter CSV billing data for detailed cost analytics.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Final CTA ─── -->
+<section class="cta">
+  <div class="container" style="position: relative;">
+    <h2 class="reveal">Take control of your<br><span class="gradient-text">AI agents</span></h2>
+    <p class="reveal reveal-delay-1">Download the free trial. See the difference in your first week.</p>
+    <div class="hero-buttons reveal reveal-delay-2">
+      <a href="/download/" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Start Free Trial
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Footer ─── -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        Mission Control
+      </div>
+      <div class="footer-links">
+        <a href="/features/">Features</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/faq/">FAQ</a>
+        <a href="/download/">Download</a>
+        <a href="mailto:support@openclaw.dev">Support</a>
+      </div>
+      <div class="footer-copy">&copy; 2026 Mission Control</div>
+    </div>
+  </div>
+</footer>
+
+<!-- ─── Scroll Reveal Script ─── -->
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
