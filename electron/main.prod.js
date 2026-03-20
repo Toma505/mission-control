@@ -85,16 +85,22 @@ function isCloseToTrayEnabled() {
 // ─── Paths ──────────────────────────────────────────────────
 
 function getAppRoot() {
-  // In packaged app: resources/app/  In dev: project root
+  // In packaged app this resolves to resources/app.asar.
   if (app.isPackaged) {
-    return path.join(process.resourcesPath, 'app')
+    return app.getAppPath()
+  }
+  return path.join(__dirname, '..')
+}
+
+function getUnpackedAppRoot() {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, 'app.asar.unpacked')
   }
   return path.join(__dirname, '..')
 }
 
 function getStandaloneServerPath() {
-  const appRoot = getAppRoot()
-  return path.join(appRoot, '.next', 'standalone', 'server.js')
+  return path.join(getUnpackedAppRoot(), '.next', 'standalone', 'server.js')
 }
 
 function getIconPath() {
@@ -168,7 +174,9 @@ function ensureDataDir() {
   try { fs.mkdirSync(dataDir, { recursive: true }) } catch {}
 
   // Copy default data files on first run
-  const appDataDir = path.join(getAppRoot(), 'data')
+  const appDataDir = app.isPackaged
+    ? path.join(process.resourcesPath, 'data')
+    : path.join(getAppRoot(), 'data')
   if (fs.existsSync(appDataDir)) {
     for (const file of fs.readdirSync(appDataDir)) {
       const dest = path.join(dataDir, file)

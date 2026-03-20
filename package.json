@@ -70,7 +70,10 @@
         ]
       }
     ],
-    "asar": false,
+    "asar": true,
+    "asarUnpack": [
+      ".next/standalone/**/*"
+    ],
     "win": {
       "target": [
         {
