@@ -68,6 +68,10 @@ const BILLING_PLANS: Record<BillingPlanId, BillingPlan> = {
   },
 }
 
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase()
+}
+
 export function listBillingPlans() {
   return Object.values(BILLING_PLANS)
 }
@@ -129,6 +133,31 @@ export async function findLicenseOrderBySessionId(sessionId: string) {
   return store.orders.find((order) => order.stripeSessionId === sessionId) || null
 }
 
+export async function findLicenseOrdersByEmail(email: string) {
+  const normalized = normalizeEmail(email)
+  if (!normalized) return []
+
+  const store = await readOrderStore()
+  return store.orders
+    .filter((order) => normalizeEmail(order.email) === normalized)
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+}
+
+export async function findLicenseOrderByKey(licenseKey: string) {
+  const clean = licenseKey.trim().toUpperCase()
+  if (!clean) return null
+
+  const store = await readOrderStore()
+  return store.orders.find((order) => (order.licenseKey || '').toUpperCase() === clean) || null
+}
+
+export async function listRecentLicenseOrders(limit = 25) {
+  const store = await readOrderStore()
+  return [...store.orders]
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+    .slice(0, Math.max(1, limit))
+}
+
 export async function upsertLicenseOrder(order: LicenseOrder) {
   const store = await readOrderStore()
   const index = store.orders.findIndex((item) => item.id === order.id || item.stripeSessionId === order.stripeSessionId)
@@ -161,7 +190,7 @@ export async function createPendingStripeOrder(input: {
     status: 'pending',
     planId: plan.id,
     planName: plan.name,
-    email: input.email,
+    email: normalizeEmail(input.email),
     licenseKey: null,
     stripeSessionId: input.sessionId,
     stripePaymentIntentId: null,
@@ -195,7 +224,7 @@ export interface StripeCheckoutSessionLike {
 }
 
 export async function fulfillStripeCheckoutSession(session: StripeCheckoutSessionLike) {
-  const email = session.customer_details?.email || session.customer_email || ''
+  const email = normalizeEmail(session.customer_details?.email || session.customer_email || '')
   if (!email) {
     throw new Error('Stripe checkout session is missing a customer email.')
   }

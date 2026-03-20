@@ -9,7 +9,7 @@ function buildCheckoutForm(planId: 'personal' | 'pro' | 'team', email: string) {
 
   params.set('mode', 'payment')
   params.set('success_url', `${siteUrl}/purchase/success?session_id={CHECKOUT_SESSION_ID}`)
-  params.set('cancel_url', `${siteUrl}/pricing?checkout=canceled&plan=${planId}`)
+  params.set('cancel_url', `${siteUrl}/purchase/checkout?checkout=canceled&plan=${planId}`)
   params.set('allow_promotion_codes', 'true')
   params.set('line_items[0][price]', getStripePriceId(planId))
   params.set('line_items[0][quantity]', '1')
