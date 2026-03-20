@@ -20,18 +20,28 @@ import {
   Clapperboard,
   Settings,
   ChevronDown,
+  MessageSquare,
+  BellRing,
+  Globe,
+  Package,
+  UsersRound,
 } from 'lucide-react'
 
 const mainNav = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Operations', href: '/operations', icon: Clapperboard },
   { name: 'Agents', href: '/agents', icon: Users },
+  { name: 'Chat', href: '/chat', icon: MessageSquare },
+  { name: 'Plugins', href: '/plugins', icon: Package },
   { name: 'Skills', href: '/skills', icon: Shield },
 ]
 
 const monitorNav = [
   { name: 'Costs', href: '/costs', icon: DollarSign },
   { name: 'API Usage', href: '/api-usage', icon: BarChart3 },
+  { name: 'Instances', href: '/instances', icon: Globe },
+  { name: 'Alerts', href: '/alerts', icon: BellRing },
+  { name: 'Team', href: '/team', icon: UsersRound },
   { name: 'Journal', href: '/journal', icon: BookOpen },
 ]
 

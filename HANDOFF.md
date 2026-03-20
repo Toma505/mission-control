@@ -4,14 +4,15 @@
 Package Mission Control (Next.js 16 + Electron desktop app) as a consumer-grade downloadable product for OpenClaw users. Double-click install, no terminal, no Node.js, no dev setup. Ship on Windows, macOS, and Linux.
 
 ## Current Owner
-Codex - release-secret enforcement, updater metadata correction, and installed Windows QA verified.
+Ready for final pre-merge review. Both lanes (Claude: app flows, Codex: desktop shell) completed and QA-verified on installed build.
 
 ## Repo Location
 `C:\Users\tomas\mission-control`
 
 ## Git State
 - Branch: `mission-control-v2`
-- Latest verified base commit: `95fa020`
+- Latest commit: `8c8749b` (updater repo metadata fix)
+- Previous: `95fa020` (budget race fix), `a319112` (release secret enforcement)
 - Note: GitHub Actions run `23226926821` completed successfully for `mission-control-v2` after CI fixes in commits `6afd518` and `1a883fe`.
 
 ## Status
@@ -365,6 +366,39 @@ Closed the last packaging/security gap in the offline HMAC path and exercised th
 - `Check for Updates` now reaches the correct GitHub repo, but there are still no published releases for the updater to consume, so the app correctly reports `No published versions on GitHub`
 - Signing/notarization prep still needs the actual release certificates and CI secrets
 - A true clean-machine pass on a machine without existing Mission Control app data is still worth doing before merge, even though the installed-build behaviors above were verified locally
+
+## Installed-Build QA Results (Branch head: `8c8749b`)
+
+Full QA pass was run against the packaged Windows app (`win-unpacked` from `dist:win` build), not `npm run dev`. The embedded Next.js server was confirmed running on `127.0.0.1:3847`.
+
+### Claude's lane (app flows)
+| Test | Result | Notes |
+|------|--------|-------|
+| Dashboard with live data | ✅ Pass | All cards render, data populates from OpenClaw |
+| Refresh button | ✅ Pass | `RefreshControl` triggers `router.refresh()`, timestamp updates |
+| Mode switch (Budget ↔ Standard) | ✅ Pass | Switches apply and persist |
+| Budget save (edit form) | ✅ Pass | Fixed race condition in `95fa020` — auto-refresh no longer overwrites form inputs during edit |
+| CSV upload (valid file) | ✅ Pass | Upload succeeds, data ingested |
+| CSV upload (invalid file) | ✅ Pass | Specific error messages shown, "Try again" dismiss works |
+| Setup reconfigure + connection tests | ✅ Pass | Connection test provides specific error guidance |
+| Preferences (all tabs) | ✅ Pass | Theme, accent, font size, compact mode all apply; connection tab clears stale data |
+| Loading skeleton | ✅ Pass | Shimmer skeleton shows during SSR transitions |
+
+### Codex's lane (desktop shell)
+| Test | Result | Notes |
+|------|--------|-------|
+| License activation IPC | ✅ Pass | `activateLicense()` succeeds with HMAC key, `checkLicense()` returns `{ valid: true }` |
+| Notifications → Open Diagnostics | ✅ Pass | Diagnostics modal opens from notification action |
+| Copy Diagnostics | ✅ Pass | Support snapshot written to Windows clipboard |
+| Updater check | ✅ Pass | Transitions `checking` → `error` gracefully; now reports "No published versions on GitHub" (correct — no releases published yet) |
+| Close-to-tray | ✅ Pass | `setCloseToTray(true)` + close keeps background server alive |
+| Relaunch EXE | ✅ Pass | Restores existing window instead of spawning duplicate |
+| Quit | ✅ Pass | Shuts down app and drops local server listener |
+| Updater repo metadata | ✅ Pass | `app-update.yml` points at `Toma505/mission-control` (fixed in `8c8749b`) |
+
+### Bugs found & fixed during QA
+- **Budget edit race condition** (`95fa020`): 30-second auto-refresh interval was overwriting `dailyLimit`, `monthlyLimit`, `autoThrottle` form state while user was actively editing. Fixed by adding `updateForm` parameter to `fetchBudget()` and passing `!editing` from the interval.
+- **Updater 404** (`8c8749b`): Updater was targeting wrong GitHub owner (`tomaslau` instead of `Toma505`). Fixed repo metadata in `package.json`.
 
 ## Open Questions
 1. Should `win.signAndEditExecutable: false` remain only as a local-build workaround, or should Windows packaging move to a proper signing-capable setup immediately?

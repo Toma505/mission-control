@@ -8,6 +8,7 @@ import { CostTrendChart } from '@/components/costs/cost-trend-chart'
 import { TokenEfficiency } from '@/components/costs/token-efficiency'
 import { ExportButton } from '@/components/export/export-button'
 import { ModeSchedule } from '@/components/costs/mode-schedule'
+import { CostForecast } from '@/components/costs/cost-forecast'
 import { formatUsd } from '@/lib/format'
 
 interface RailwayData {
@@ -162,6 +163,9 @@ export default async function CostsPage() {
         <CostTrendChart />
         <TokenEfficiency />
       </div>
+
+      {/* Cost Forecast */}
+      <CostForecast />
 
       {/* Quick API snapshot — compact summary with link to details */}
       <div className="glass rounded-2xl p-5">

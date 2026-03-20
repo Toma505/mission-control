@@ -241,6 +241,27 @@ export function Notifications() {
         }
       }
 
+      // Smart Alerts — check user-configured rules
+      try {
+        const alertsRes = await fetch('/api/alerts/check', { cache: 'no-store' })
+        if (alertsRes.ok) {
+          const alertsData = await alertsRes.json()
+          for (const alert of (alertsData.triggered || [])) {
+            nextNotifications.push({
+              id: `smart-alert-${alert.ruleId}`,
+              type: alert.action === 'notify_and_throttle' ? 'warning' : 'info',
+              title: alert.ruleName,
+              message: alert.message,
+              timestamp: new Date(),
+              read: false,
+              icon: <AlertTriangle className="w-4 h-4 text-accent-highlight" />,
+              actionLabel: 'View Alerts',
+              onAction: () => navigateTo('/alerts'),
+            })
+          }
+        }
+      } catch {}
+
       try {
         const updateStatus = await electronAPI?.updaterStatus?.()
         const updateMessage = formatUpdateMessage(updateStatus)
