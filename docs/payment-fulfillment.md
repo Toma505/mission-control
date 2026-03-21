@@ -18,7 +18,8 @@ Mission Control now has a Stripe-ready checkout and webhook fulfillment path tha
 6. Stripe webhook calls `POST /api/commerce/webhook`.
 7. Webhook issues an offline Mission Control license key.
 8. Fulfilled order is persisted to `data/license-orders.json`.
-9. Success page reads the order by `session_id` and shows the key + download link.
+9. If SMTP is configured, the webhook also emails the fulfilled license key.
+10. Success page reads the order by `session_id` and shows the key + delivery status.
 
 ## Launch Decisions Locked In
 
@@ -39,6 +40,17 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRICE_PERSONAL=price_...
 STRIPE_PRICE_PRO=price_...
 STRIPE_PRICE_TEAM=price_...
+
+# Optional SMTP email delivery
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM_EMAIL=licenses@example.com
+SMTP_FROM_NAME=Mission Control
+SMTP_REPLY_TO=support@example.com
+MISSION_CONTROL_SUPPORT_EMAIL=support@example.com
 
 MISSION_CONTROL_SITE_URL=https://missioncontrol.openclaw.dev
 MISSION_CONTROL_DOWNLOAD_URL=https://github.com/Toma505/mission-control/releases/latest
@@ -79,6 +91,8 @@ The end-to-end Stripe sandbox flow has now been verified on this branch:
 - fulfilled order was written to `data/license-orders.json`
 - `/purchase/success` displayed the generated offline license key
 
+SMTP delivery was implemented after that verification pass and still needs one real configured send test.
+
 ## Support Recovery
 
 The support-side order lookup route is:
@@ -89,11 +103,15 @@ The support-side order lookup route is:
   - `sessionId`
   - `email`
   - `licenseKey`
+- supports `action: "resend"` with:
+  - `sessionId`, or
+  - `licenseKey`, or
+  - `email` when exactly one order matches
 
-This is enough for manual recovery workflows before an outbound email provider is added.
+This is enough for manual recovery today and resend workflows once SMTP is configured.
 
 ## Still Needed Before Launch
 
-- Add outbound email delivery / resend automation if you want license emails in addition to the success page
+- Configure real SMTP credentials and verify one live resend flow
 - Implement internal refund-state handling in support tooling, since offline HMAC licenses are not revocable today
 - Replace test-mode Stripe credentials and prices with live launch values when pricing is final

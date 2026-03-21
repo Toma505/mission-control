@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { fulfillStripeCheckoutSession, markStripeSessionStatus, getStripeWebhookSecret, type StripeCheckoutSessionLike } from '@/lib/billing'
+import {
+  fulfillStripeCheckoutSession,
+  markStripeSessionStatus,
+  getStripeWebhookSecret,
+  updateLicenseOrderEmailDelivery,
+  type StripeCheckoutSessionLike,
+} from '@/lib/billing'
+import { isLicenseEmailConfigured, sendLicenseOrderEmail } from '@/lib/license-email'
 import { sanitizeError } from '@/lib/sanitize-error'
 import { verifyStripeWebhookSignature, type StripeWebhookEnvelope } from '@/lib/stripe-webhooks'
 
@@ -35,7 +42,30 @@ export async function POST(request: NextRequest) {
       case 'checkout.session.completed':
       case 'checkout.session.async_payment_succeeded': {
         const order = await fulfillStripeCheckoutSession(session)
-        return NextResponse.json({ ok: true, orderId: order.id })
+
+        if (!isLicenseEmailConfigured()) {
+          await updateLicenseOrderEmailDelivery(session.id, {
+            status: 'disabled',
+            error: 'SMTP email delivery is not configured.',
+          })
+          return NextResponse.json({ ok: true, orderId: order.id, emailDelivery: 'disabled' })
+        }
+
+        try {
+          await sendLicenseOrderEmail(order)
+          await updateLicenseOrderEmailDelivery(session.id, {
+            status: 'sent',
+            sentAt: new Date().toISOString(),
+            error: null,
+          })
+          return NextResponse.json({ ok: true, orderId: order.id, emailDelivery: 'sent' })
+        } catch (error) {
+          await updateLicenseOrderEmailDelivery(session.id, {
+            status: 'failed',
+            error: sanitizeError(error, 'Failed to send purchase email'),
+          })
+          return NextResponse.json({ ok: true, orderId: order.id, emailDelivery: 'failed' })
+        }
       }
       case 'checkout.session.expired': {
         await markStripeSessionStatus(session.id, 'expired')

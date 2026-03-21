@@ -30,6 +30,9 @@ export interface LicenseOrder {
   currency: string | null
   customerName: string | null
   downloadUrl: string | null
+  emailDeliveryStatus: 'pending' | 'sent' | 'failed' | 'disabled'
+  emailDeliverySentAt: string | null
+  emailDeliveryError: string | null
   createdAt: string
   updatedAt: string
   fulfilledAt: string | null
@@ -199,6 +202,9 @@ export async function createPendingStripeOrder(input: {
     currency: null,
     customerName: null,
     downloadUrl: getMissionControlDownloadUrl(),
+    emailDeliveryStatus: 'pending',
+    emailDeliverySentAt: null,
+    emailDeliveryError: null,
     createdAt: now,
     updatedAt: now,
     fulfilledAt: null,
@@ -258,6 +264,9 @@ export async function fulfillStripeCheckoutSession(session: StripeCheckoutSessio
     currency: session.currency ?? null,
     customerName: session.customer_details?.name || null,
     downloadUrl: getMissionControlDownloadUrl(),
+    emailDeliveryStatus: existing?.emailDeliveryStatus || 'pending',
+    emailDeliverySentAt: existing?.emailDeliverySentAt || null,
+    emailDeliveryError: existing?.emailDeliveryError || null,
     createdAt: existing?.createdAt || now,
     updatedAt: now,
     fulfilledAt: now,
@@ -277,6 +286,29 @@ export async function markStripeSessionStatus(
   const updated: LicenseOrder = {
     ...existing,
     status,
+    updatedAt: new Date().toISOString(),
+  }
+
+  await upsertLicenseOrder(updated)
+  return updated
+}
+
+export async function updateLicenseOrderEmailDelivery(
+  sessionId: string,
+  input: {
+    status: LicenseOrder['emailDeliveryStatus']
+    sentAt?: string | null
+    error?: string | null
+  },
+) {
+  const existing = await findLicenseOrderBySessionId(sessionId)
+  if (!existing) return null
+
+  const updated: LicenseOrder = {
+    ...existing,
+    emailDeliveryStatus: input.status,
+    emailDeliverySentAt: input.sentAt ?? existing.emailDeliverySentAt,
+    emailDeliveryError: input.error ?? null,
     updatedAt: new Date().toISOString(),
   }
 

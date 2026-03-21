@@ -45,6 +45,19 @@ export default async function PurchaseSuccessPage({
               <p className="mt-2 text-sm text-text-secondary">
                 Keep the key somewhere safe. Support can recover the purchase using the checkout email above.
               </p>
+              {fulfilledOrder.emailDeliveryStatus === 'sent' ? (
+                <p className="mt-2 text-sm text-emerald-300">
+                  A copy of this license was emailed to {fulfilledOrder.email}.
+                </p>
+              ) : fulfilledOrder.emailDeliveryStatus === 'failed' ? (
+                <p className="mt-2 text-sm text-amber-300">
+                  We could not email a copy automatically. Use this page or contact support for recovery.
+                </p>
+              ) : fulfilledOrder.emailDeliveryStatus === 'disabled' ? (
+                <p className="mt-2 text-sm text-text-secondary">
+                  Keep this page open until you save the key. Automatic email delivery is not configured yet.
+                </p>
+              ) : null}
             </section>
 
             <section className="rounded-2xl border p-5" style={{ borderColor: 'var(--glass-border)', background: 'var(--glass-bg)' }}>
