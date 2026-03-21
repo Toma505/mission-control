@@ -76,6 +76,11 @@ function getTransporter() {
   return transporterPromise
 }
 
+export async function verifyLicenseEmailTransport() {
+  const transporter = getTransporter()
+  await transporter.verify()
+}
+
 function escapeHtml(value: string) {
   return value
     .replace(/&/g, '&amp;')

@@ -93,6 +93,20 @@ The end-to-end Stripe sandbox flow has now been verified on this branch:
 
 SMTP delivery was implemented after that verification pass and still needs one real configured send test.
 
+### Live SMTP smoke test
+
+Once a real support inbox and SMTP credentials are configured, verify outbound delivery with:
+
+```bash
+npm run email:test -- you@example.com
+```
+
+To verify transport only without sending a message:
+
+```bash
+npm run email:test -- --verify-only
+```
+
 ## Support Recovery
 
 The support-side order lookup route is:

@@ -37,6 +37,7 @@
     "dist:mac": "npm run prepare:icon && npm run build && npm run prepare:license && electron-builder --mac",
     "dist:linux": "npm run prepare:icon && npm run build && npm run prepare:license && electron-builder --linux",
     "generate:keys": "node scripts/generate-license.js",
+    "email:test": "tsx scripts/send-test-license-email.ts",
     "postinstall": "npm run db:generate"
   },
   "build": {
