@@ -19,6 +19,11 @@ interface CheckoutFormProps {
   downloadUrl: string
 }
 
+const usdFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+})
+
 function formatMachineLimit(limit: number) {
   return `${limit} machine${limit === 1 ? '' : 's'}`
 }
@@ -112,7 +117,7 @@ export function CheckoutForm({
                     }}
                   >
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">{plan.name}</p>
-                    <p className="mt-2 text-3xl font-bold tracking-tight">${plan.priceUsd}</p>
+                    <p className="mt-2 text-3xl font-bold tracking-tight">{usdFormatter.format(plan.priceUsd)}</p>
                     <p className="mt-1 text-sm text-text-secondary">{formatMachineLimit(plan.machineLimit)}</p>
                     <p className="mt-4 text-sm text-text-secondary">{plan.updateTerm}</p>
                   </button>
@@ -141,7 +146,11 @@ export function CheckoutForm({
             {error ? (
               <div
                 className="mt-4 rounded-2xl border px-4 py-3 text-sm"
-                style={{ background: 'rgba(248, 113, 113, 0.08)', borderColor: 'rgba(248, 113, 113, 0.25)', color: 'var(--status-error)' }}
+                style={{
+                  background: 'rgba(248, 113, 113, 0.08)',
+                  borderColor: 'rgba(248, 113, 113, 0.25)',
+                  color: 'var(--status-error)',
+                }}
               >
                 {error}
               </div>
@@ -153,7 +162,7 @@ export function CheckoutForm({
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">Selected Plan</p>
               <h2 className="mt-2 text-2xl font-bold">{selectedPlan.name}</h2>
               <p className="mt-1 text-sm text-text-secondary">
-                ${selectedPlan.priceUsd} one-time • {formatMachineLimit(selectedPlan.machineLimit)}
+                {usdFormatter.format(selectedPlan.priceUsd)} one-time - {formatMachineLimit(selectedPlan.machineLimit)}
               </p>
               <p className="mt-4 text-sm text-text-secondary">{selectedPlan.updateTerm}</p>
             </div>
@@ -171,7 +180,8 @@ export function CheckoutForm({
 
             <div className="mt-4 space-y-3 text-sm text-text-secondary">
               <p>After payment, you&apos;ll be returned here to copy your license key and download the installer.</p>
-              <p>Need to try the app before paying? Download the release and use the built-in trial first.</p>
+              <p>Prefer to inspect the installer first? Download it now, then activate with a paid license after checkout.</p>
+              <p>Your checkout email is tied to license recovery if you ever lose the key.</p>
             </div>
 
             <div className="mt-6 flex flex-wrap gap-3">

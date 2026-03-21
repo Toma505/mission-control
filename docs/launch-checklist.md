@@ -7,7 +7,7 @@
 - [x] Payment and license fulfillment
 - [x] Release publishing workflow
 - [ ] Final website review
-- [ ] Final pricing decision
+- [x] Final pricing decision
 
 ## Customer Support Readiness
 
@@ -15,7 +15,7 @@
 - [x] Troubleshooting guide
 - [x] Install and update guide
 - [ ] Support inbox configured
-- [ ] Refund and reissue policy finalized
+- [x] Refund policy finalized
 
 ## Paid Blockers
 

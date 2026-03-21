@@ -7,6 +7,7 @@
 - Re-copy the key exactly as shown on the purchase success page
 - Make sure there are no extra spaces before or after the key
 - Confirm you are using a Mission Control key, not a Stripe order id
+- If you lost the key, contact support using the checkout email tied to the order
 
 ### Activation page does not proceed
 

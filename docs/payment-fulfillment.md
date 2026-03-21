@@ -20,6 +20,13 @@ Mission Control now has a Stripe-ready checkout and webhook fulfillment path tha
 8. Fulfilled order is persisted to `data/license-orders.json`.
 9. Success page reads the order by `session_id` and shows the key + download link.
 
+## Launch Decisions Locked In
+
+- Pricing: `Personal $9.99`, `Pro $29.99`, `Team $79.99`
+- All plans include `1 year of updates`
+- Refund policy: `14-day manual refund window`
+- Launch scope: `Windows first`, `macOS shortly after`
+
 ## Required Environment Variables
 
 These can all be configured without paying for production yet by using Stripe test mode.
@@ -83,11 +90,10 @@ The support-side order lookup route is:
   - `email`
   - `licenseKey`
 
-This is enough for manual recovery / resend workflows before an email provider is added.
+This is enough for manual recovery workflows before an outbound email provider is added.
 
 ## Still Needed Before Launch
 
-- Decide final purchase confirmation email path
-- Add email delivery / resend automation if you want more than manual support recovery
-- Decide how refunds are handled, since offline HMAC licenses are not revocable today
+- Add outbound email delivery / resend automation if you want license emails in addition to the success page
+- Implement internal refund-state handling in support tooling, since offline HMAC licenses are not revocable today
 - Replace test-mode Stripe credentials and prices with live launch values when pricing is final

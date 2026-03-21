@@ -26,7 +26,7 @@ export default async function PurchaseSuccessPage({
 
         {!sessionId ? (
           <div className="mt-8 rounded-2xl border border-amber-400/25 bg-amber-400/10 p-4 text-sm text-amber-200">
-            Missing Stripe session id. Return to the checkout confirmation email or contact support if your payment completed.
+            Missing Stripe session id. Return to the purchase success page or contact support if your payment completed.
           </div>
         ) : !order || !fulfilledOrder ? (
           <div className="mt-8 rounded-2xl border border-blue-400/25 bg-blue-400/10 p-4 text-sm text-blue-200">
@@ -41,6 +41,9 @@ export default async function PurchaseSuccessPage({
               </div>
               <p className="mt-3 text-sm text-text-secondary">
                 Activate this key inside Mission Control using <span className="font-medium text-text-primary">{fulfilledOrder.email}</span>.
+              </p>
+              <p className="mt-2 text-sm text-text-secondary">
+                Keep the key somewhere safe. Support can recover the purchase using the checkout email above.
               </p>
             </section>
 

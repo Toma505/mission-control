@@ -8,22 +8,7 @@
 
 ## macOS
 
-1. Open the `.dmg`.
-2. Drag Mission Control to `Applications`.
-3. Launch the app from `Applications`.
-
-## Linux
-
-### AppImage
-
-1. Download the AppImage.
-2. Mark it executable.
-3. Run it directly.
-
-### Debian or Ubuntu
-
-1. Install the `.deb` package.
-2. Launch Mission Control from the application menu.
+macOS is planned shortly after the Windows launch. Keep it out of the public launch checklist until notarized builds are ready.
 
 ## Updating
 
