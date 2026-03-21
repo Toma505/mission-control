@@ -63,6 +63,15 @@ curl -X POST http://127.0.0.1:3000/api/commerce/checkout ^
 - `/purchase/success?session_id=...`
 - `POST /api/commerce/order` with `action: "lookup"` plus `x-mc-token` for support recovery
 
+### Verified locally
+
+The end-to-end Stripe sandbox flow has now been verified on this branch:
+
+- hosted checkout session created successfully
+- Stripe CLI forwarded webhook events to `/api/commerce/webhook`
+- fulfilled order was written to `data/license-orders.json`
+- `/purchase/success` displayed the generated offline license key
+
 ## Support Recovery
 
 The support-side order lookup route is:
@@ -78,7 +87,7 @@ This is enough for manual recovery / resend workflows before an email provider i
 
 ## Still Needed Before Launch
 
-- Run the checkout flow end to end in Stripe test mode
 - Decide final purchase confirmation email path
 - Add email delivery / resend automation if you want more than manual support recovery
 - Decide how refunds are handled, since offline HMAC licenses are not revocable today
+- Replace test-mode Stripe credentials and prices with live launch values when pricing is final
