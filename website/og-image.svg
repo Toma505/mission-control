@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Mission Control preview">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050507" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="card" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.08)" />
+      <stop offset="100%" stop-color="rgba(255,255,255,0.03)" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa" />
+      <stop offset="100%" stop-color="#8b5cf6" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <circle cx="220" cy="140" r="180" fill="#1d4ed8" fill-opacity="0.10" />
+  <circle cx="1030" cy="120" r="170" fill="#7c3aed" fill-opacity="0.10" />
+  <circle cx="980" cy="520" r="200" fill="#22c55e" fill-opacity="0.06" />
+
+  <rect x="72" y="72" width="100" height="100" rx="24" fill="#0b1220" stroke="#2563eb" stroke-opacity="0.4" />
+  <path d="M128 90L92 138h24l-4 42 36-46h-24l4-44z" fill="url(#accent)" />
+
+  <text x="200" y="140" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="64" font-weight="800">Mission Control</text>
+  <text x="200" y="192" fill="#94a3b8" font-family="Inter, Arial, sans-serif" font-size="28">Desktop command center for OpenClaw operators</text>
+
+  <rect x="76" y="252" width="1048" height="286" rx="28" fill="#0a0f18" stroke="rgba(255,255,255,0.08)" />
+  <rect x="76" y="252" width="1048" height="44" rx="28" fill="#111827" />
+  <circle cx="112" cy="274" r="7" fill="#ef4444" />
+  <circle cx="136" cy="274" r="7" fill="#f59e0b" />
+  <circle cx="160" cy="274" r="7" fill="#22c55e" />
+  <text x="194" y="281" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="18">Mission Control Dashboard</text>
+
+  <rect x="108" y="324" width="240" height="88" rx="20" fill="#111827" stroke="rgba(255,255,255,0.08)" />
+  <text x="132" y="354" fill="#94a3b8" font-family="Inter, Arial, sans-serif" font-size="16">Connected Agents</text>
+  <text x="132" y="392" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="40" font-weight="700">12</text>
+  <circle cx="308" cy="370" r="12" fill="#34d399" />
+
+  <rect x="372" y="324" width="240" height="88" rx="20" fill="#111827" stroke="rgba(255,255,255,0.08)" />
+  <text x="396" y="354" fill="#94a3b8" font-family="Inter, Arial, sans-serif" font-size="16">Daily Spend</text>
+  <text x="396" y="392" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="40" font-weight="700">$4.82</text>
+  <rect x="564" y="362" width="22" height="22" rx="11" fill="#f59e0b" />
+
+  <rect x="636" y="324" width="240" height="88" rx="20" fill="#111827" stroke="rgba(255,255,255,0.08)" />
+  <text x="660" y="354" fill="#94a3b8" font-family="Inter, Arial, sans-serif" font-size="16">Mode</text>
+  <text x="660" y="392" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="40" font-weight="700">Budget</text>
+  <rect x="790" y="360" width="58" height="24" rx="12" fill="#2563eb" fill-opacity="0.35" stroke="#60a5fa" stroke-opacity="0.4" />
+
+  <rect x="900" y="324" width="188" height="184" rx="20" fill="#111827" stroke="rgba(255,255,255,0.08)" />
+  <text x="924" y="354" fill="#94a3b8" font-family="Inter, Arial, sans-serif" font-size="16">Workflow Builder</text>
+  <circle cx="954" cy="406" r="18" fill="#0f172a" stroke="#60a5fa" stroke-opacity="0.5" />
+  <circle cx="1034" cy="406" r="18" fill="#0f172a" stroke="#8b5cf6" stroke-opacity="0.5" />
+  <circle cx="994" cy="462" r="18" fill="#0f172a" stroke="#34d399" stroke-opacity="0.5" />
+  <path d="M972 406h44M964 420l20 28M1024 420l-20 28" stroke="#64748b" stroke-width="4" stroke-linecap="round" />
+
+  <rect x="108" y="438" width="768" height="70" rx="20" fill="#111827" stroke="rgba(255,255,255,0.08)" />
+  <text x="132" y="468" fill="#94a3b8" font-family="Inter, Arial, sans-serif" font-size="16">Recent activity</text>
+  <rect x="132" y="480" width="220" height="8" rx="4" fill="#1e293b" />
+  <rect x="132" y="480" width="136" height="8" rx="4" fill="#34d399" />
+  <rect x="394" y="480" width="220" height="8" rx="4" fill="#1e293b" />
+  <rect x="394" y="480" width="92" height="8" rx="4" fill="#60a5fa" />
+  <rect x="656" y="480" width="180" height="8" rx="4" fill="#1e293b" />
+  <rect x="656" y="480" width="124" height="8" rx="4" fill="#f59e0b" />
+</svg>

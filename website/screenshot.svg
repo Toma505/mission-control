@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-label="Mission Control screenshot placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050507" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+  </defs>
+  <rect width="1440" height="900" fill="url(#bg)" />
+  <rect x="52" y="52" width="1336" height="796" rx="28" fill="#0b1220" stroke="rgba(255,255,255,0.08)" />
+  <rect x="52" y="52" width="1336" height="58" rx="28" fill="#111827" />
+  <circle cx="92" cy="81" r="8" fill="#ef4444" />
+  <circle cx="118" cy="81" r="8" fill="#f59e0b" />
+  <circle cx="144" cy="81" r="8" fill="#22c55e" />
+  <text x="184" y="88" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="20">Mission Control</text>
+
+  <rect x="88" y="148" width="272" height="648" rx="22" fill="#0f172a" stroke="rgba(255,255,255,0.06)" />
+  <text x="120" y="198" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">OpenClaw Overview</text>
+  <rect x="120" y="228" width="208" height="14" rx="7" fill="#1e293b" />
+  <rect x="120" y="228" width="126" height="14" rx="7" fill="#34d399" />
+  <rect x="120" y="280" width="208" height="92" rx="18" fill="#111827" />
+  <rect x="120" y="394" width="208" height="92" rx="18" fill="#111827" />
+  <rect x="120" y="508" width="208" height="92" rx="18" fill="#111827" />
+
+  <rect x="396" y="148" width="464" height="206" rx="22" fill="#0f172a" stroke="rgba(255,255,255,0.06)" />
+  <text x="430" y="194" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700">Cost control</text>
+  <rect x="430" y="224" width="368" height="12" rx="6" fill="#1e293b" />
+  <rect x="430" y="224" width="192" height="12" rx="6" fill="#60a5fa" />
+  <rect x="430" y="266" width="122" height="56" rx="16" fill="#111827" />
+  <rect x="568" y="266" width="122" height="56" rx="16" fill="#111827" />
+  <rect x="706" y="266" width="122" height="56" rx="16" fill="#111827" />
+
+  <rect x="396" y="390" width="464" height="406" rx="22" fill="#0f172a" stroke="rgba(255,255,255,0.06)" />
+  <text x="430" y="436" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700">Workflow Builder</text>
+  <circle cx="486" cy="542" r="24" fill="#111827" stroke="#60a5fa" stroke-opacity="0.5" />
+  <circle cx="650" cy="500" r="24" fill="#111827" stroke="#8b5cf6" stroke-opacity="0.5" />
+  <circle cx="778" cy="612" r="24" fill="#111827" stroke="#34d399" stroke-opacity="0.5" />
+  <path d="M510 536l116-28M668 516l86 80" stroke="#64748b" stroke-width="5" stroke-linecap="round" />
+
+  <rect x="896" y="148" width="456" height="292" rx="22" fill="#0f172a" stroke="rgba(255,255,255,0.06)" />
+  <text x="930" y="194" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700">Live activity</text>
+  <rect x="930" y="228" width="388" height="20" rx="10" fill="#111827" />
+  <rect x="930" y="268" width="388" height="20" rx="10" fill="#111827" />
+  <rect x="930" y="308" width="388" height="20" rx="10" fill="#111827" />
+  <rect x="930" y="348" width="388" height="20" rx="10" fill="#111827" />
+
+  <rect x="896" y="476" width="456" height="320" rx="22" fill="#0f172a" stroke="rgba(255,255,255,0.06)" />
+  <text x="930" y="522" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700">Notifications</text>
+  <rect x="930" y="556" width="388" height="54" rx="18" fill="#111827" />
+  <rect x="930" y="626" width="388" height="54" rx="18" fill="#111827" />
+  <rect x="930" y="696" width="388" height="54" rx="18" fill="#111827" />
+</svg>
