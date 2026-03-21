@@ -10,6 +10,7 @@ export default async function PurchaseSuccessPage({
   const sessionId = Array.isArray(sessionIdValue) ? sessionIdValue[0] : sessionIdValue
   const order = sessionId ? await findLicenseOrderBySessionId(sessionId) : null
   const fulfilledOrder = order?.status === 'fulfilled' && order.licenseKey ? order : null
+  const refundedOrder = order?.status === 'refunded' ? order : null
   const pricingUrl = getMissionControlPricingUrl()
   const downloadUrl = getMissionControlDownloadUrl()
 
@@ -27,6 +28,10 @@ export default async function PurchaseSuccessPage({
         {!sessionId ? (
           <div className="mt-8 rounded-2xl border border-amber-400/25 bg-amber-400/10 p-4 text-sm text-amber-200">
             Missing Stripe session id. Return to the purchase success page or contact support if your payment completed.
+          </div>
+        ) : refundedOrder ? (
+          <div className="mt-8 rounded-2xl border border-amber-400/25 bg-amber-400/10 p-4 text-sm text-amber-200">
+            This purchase has been marked as refunded. If you believe this was a mistake, contact support and include the checkout email for review.
           </div>
         ) : !order || !fulfilledOrder ? (
           <div className="mt-8 rounded-2xl border border-blue-400/25 bg-blue-400/10 p-4 text-sm text-blue-200">

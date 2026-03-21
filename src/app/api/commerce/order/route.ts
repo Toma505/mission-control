@@ -5,6 +5,7 @@ import {
   findLicenseOrderBySessionId,
   findLicenseOrdersByEmail,
   listRecentLicenseOrders,
+  markLicenseOrderRefunded,
   updateLicenseOrderEmailDelivery,
 } from '@/lib/billing'
 import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
@@ -37,11 +38,13 @@ export async function POST(request: NextRequest) {
 
   try {
     let body: {
-      action?: 'lookup' | 'resend'
+      action?: 'lookup' | 'resend' | 'mark_refunded'
       email?: string
       sessionId?: string
       licenseKey?: string
       limit?: number
+      reason?: string
+      notes?: string
     }
 
     try {
@@ -53,12 +56,7 @@ export async function POST(request: NextRequest) {
     const sessionId = body.sessionId?.trim()
     const email = body.email?.trim()
     const licenseKey = body.licenseKey?.trim()
-
-    if (body?.action === 'resend') {
-      if (!isLicenseEmailConfigured()) {
-        return NextResponse.json({ error: 'SMTP email delivery is not configured' }, { status: 503 })
-      }
-
+    const resolveOrder = async () => {
       const sessionOrder = sessionId ? await findLicenseOrderBySessionId(sessionId) : null
       const keyOrder = !sessionOrder && licenseKey ? await findLicenseOrderByKey(licenseKey) : null
       const emailOrders = !sessionOrder && !keyOrder && email ? await findLicenseOrdersByEmail(email) : []
@@ -66,16 +64,41 @@ export async function POST(request: NextRequest) {
 
       if (!order) {
         if (emailOrders.length > 1) {
-          return NextResponse.json(
-            { error: 'Multiple orders matched that email. Use a session id or license key.' },
-            { status: 400 },
-          )
+          return {
+            error: NextResponse.json(
+              { error: 'Multiple orders matched that email. Use a session id or license key.' },
+              { status: 400 },
+            ),
+          }
         }
-        return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+
+        return {
+          error: NextResponse.json({ error: 'Order not found' }, { status: 404 }),
+        }
       }
+
+      return { order }
+    }
+
+    if (body?.action === 'resend') {
+      if (!isLicenseEmailConfigured()) {
+        return NextResponse.json({ error: 'SMTP email delivery is not configured' }, { status: 503 })
+      }
+
+      const resolved = await resolveOrder()
+      if (resolved.error) return resolved.error
+
+      const { order } = resolved
 
       if (!order.licenseKey) {
         return NextResponse.json({ error: 'Order has not been fulfilled yet' }, { status: 409 })
+      }
+
+      if (order.status === 'refunded') {
+        return NextResponse.json(
+          { error: 'Refused to resend a refunded license. Review the order in support tooling.' },
+          { status: 409 },
+        )
       }
 
       try {
@@ -96,6 +119,23 @@ export async function POST(request: NextRequest) {
           { status: 502 },
         )
       }
+    }
+
+    if (body?.action === 'mark_refunded') {
+      const resolved = await resolveOrder()
+      if (resolved.error) return resolved.error
+
+      const { order } = resolved
+      if (order.status === 'refunded') {
+        return NextResponse.json({ ok: true, order })
+      }
+
+      const updated = await markLicenseOrderRefunded(order.stripeSessionId, {
+        reason: body.reason,
+        notes: body.notes,
+      })
+
+      return NextResponse.json({ ok: true, order: updated || order })
     }
 
     if (body?.action !== 'lookup') {

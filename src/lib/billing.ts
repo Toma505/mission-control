@@ -36,6 +36,9 @@ export interface LicenseOrder {
   createdAt: string
   updatedAt: string
   fulfilledAt: string | null
+  refundedAt: string | null
+  refundReason: string | null
+  refundNotes: string | null
 }
 
 interface LicenseOrderStore {
@@ -120,9 +123,57 @@ async function readOrderStore(): Promise<LicenseOrderStore> {
   try {
     const raw = await readFile(LICENSE_ORDERS_FILE, 'utf-8')
     const parsed = JSON.parse(raw) as Partial<LicenseOrderStore>
-    return { orders: Array.isArray(parsed.orders) ? parsed.orders : [] }
+    return {
+      orders: Array.isArray(parsed.orders)
+        ? parsed.orders.map(normalizeLicenseOrder).filter((order): order is LicenseOrder => order !== null)
+        : [],
+    }
   } catch {
     return { orders: [] }
+  }
+}
+
+function normalizeLicenseOrder(order: unknown): LicenseOrder | null {
+  if (!order || typeof order !== 'object') return null
+
+  const candidate = order as Partial<LicenseOrder>
+  if (
+    typeof candidate.id !== 'string' ||
+    candidate.provider !== 'stripe' ||
+    typeof candidate.planId !== 'string' ||
+    typeof candidate.planName !== 'string' ||
+    typeof candidate.email !== 'string' ||
+    typeof candidate.stripeSessionId !== 'string' ||
+    typeof candidate.createdAt !== 'string' ||
+    typeof candidate.updatedAt !== 'string'
+  ) {
+    return null
+  }
+
+  return {
+    id: candidate.id,
+    provider: 'stripe',
+    status: candidate.status || 'pending',
+    planId: candidate.planId as BillingPlanId,
+    planName: candidate.planName,
+    email: normalizeEmail(candidate.email),
+    licenseKey: candidate.licenseKey || null,
+    stripeSessionId: candidate.stripeSessionId,
+    stripePaymentIntentId: candidate.stripePaymentIntentId || null,
+    stripeCustomerId: candidate.stripeCustomerId || null,
+    amountTotal: typeof candidate.amountTotal === 'number' ? candidate.amountTotal : null,
+    currency: candidate.currency || null,
+    customerName: candidate.customerName || null,
+    downloadUrl: candidate.downloadUrl || getMissionControlDownloadUrl(),
+    emailDeliveryStatus: candidate.emailDeliveryStatus || 'pending',
+    emailDeliverySentAt: candidate.emailDeliverySentAt || null,
+    emailDeliveryError: candidate.emailDeliveryError || null,
+    createdAt: candidate.createdAt,
+    updatedAt: candidate.updatedAt,
+    fulfilledAt: candidate.fulfilledAt || null,
+    refundedAt: candidate.refundedAt || null,
+    refundReason: candidate.refundReason || null,
+    refundNotes: candidate.refundNotes || null,
   }
 }
 
@@ -208,6 +259,9 @@ export async function createPendingStripeOrder(input: {
     createdAt: now,
     updatedAt: now,
     fulfilledAt: null,
+    refundedAt: null,
+    refundReason: null,
+    refundNotes: null,
   }
 
   await upsertLicenseOrder(order)
@@ -270,6 +324,9 @@ export async function fulfillStripeCheckoutSession(session: StripeCheckoutSessio
     createdAt: existing?.createdAt || now,
     updatedAt: now,
     fulfilledAt: now,
+    refundedAt: existing?.refundedAt || null,
+    refundReason: existing?.refundReason || null,
+    refundNotes: existing?.refundNotes || null,
   }
 
   await upsertLicenseOrder(order)
@@ -286,6 +343,29 @@ export async function markStripeSessionStatus(
   const updated: LicenseOrder = {
     ...existing,
     status,
+    updatedAt: new Date().toISOString(),
+  }
+
+  await upsertLicenseOrder(updated)
+  return updated
+}
+
+export async function markLicenseOrderRefunded(
+  sessionId: string,
+  input: {
+    reason?: string | null
+    notes?: string | null
+  } = {},
+) {
+  const existing = await findLicenseOrderBySessionId(sessionId)
+  if (!existing) return null
+
+  const updated: LicenseOrder = {
+    ...existing,
+    status: 'refunded',
+    refundedAt: new Date().toISOString(),
+    refundReason: input.reason?.trim() || null,
+    refundNotes: input.notes?.trim() || null,
     updatedAt: new Date().toISOString(),
   }
 

@@ -107,11 +107,16 @@ The support-side order lookup route is:
   - `sessionId`, or
   - `licenseKey`, or
   - `email` when exactly one order matches
+- supports `action: "mark_refunded"` with:
+  - `sessionId`, or
+  - `licenseKey`, or
+  - `email` when exactly one order matches
+  - optional `reason`
+  - optional `notes`
 
-This is enough for manual recovery today and resend workflows once SMTP is configured.
+This is enough for manual recovery today, resend workflows once SMTP is configured, and internal refund-state tracking for support.
 
 ## Still Needed Before Launch
 
 - Configure real SMTP credentials and verify one live resend flow
-- Implement internal refund-state handling in support tooling, since offline HMAC licenses are not revocable today
 - Replace test-mode Stripe credentials and prices with live launch values when pricing is final
