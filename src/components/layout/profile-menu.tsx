@@ -14,6 +14,7 @@ import {
   Rocket,
   ShieldCheck,
 } from 'lucide-react'
+import { formatUpdaterMessage } from '@/lib/updater-status'
 import { AboutDiagnosticsModal } from './about-diagnostics-modal'
 import { OPEN_DIAGNOSTICS_EVENT } from './desktop-events'
 
@@ -58,25 +59,6 @@ function formatModelName(model?: string) {
   if (!model) return 'No model detected'
   const parts = model.split('/')
   return parts[parts.length - 1]
-}
-
-function formatUpdateMessage(result?: { status: string; info?: { version?: string } | null; error?: string | null } | null) {
-  switch (result?.status) {
-    case 'checking':
-      return 'Checking for updates...'
-    case 'available':
-      return result.info?.version ? `Update ${result.info.version} is available.` : 'An update is available.'
-    case 'up-to-date':
-      return 'Mission Control is up to date.'
-    case 'downloaded':
-      return 'Update downloaded. Restart Mission Control to install it.'
-    case 'dev':
-      return result.error || 'Updates are disabled in development mode.'
-    case 'error':
-      return result.error || 'Update check failed.'
-    default:
-      return null
-  }
 }
 
 async function readJson<T>(url: string): Promise<T> {
@@ -212,7 +194,7 @@ export function ProfileMenu() {
     setUpdateBusy(true)
     const result = await electronAPI.updaterCheck()
     setUpdateBusy(false)
-    setMessage(formatUpdateMessage(result) || 'Update check started.')
+    setMessage(formatUpdaterMessage(result) || 'Update check started.')
   }
 
   async function quitMissionControl() {

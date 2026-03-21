@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Rocket,
 } from 'lucide-react'
+import { formatUpdaterMessage, type UpdaterStatus } from '@/lib/updater-status'
 import { OPEN_DIAGNOSTICS_EVENT } from './desktop-events'
 
 interface Notification {
@@ -30,36 +31,17 @@ interface Notification {
   onAction?: () => void | Promise<void>
 }
 
-type UpdateStatus = {
-  status: string
-  info?: { version?: string } | null
-  error?: string | null
-}
-
 type ElectronAPI = {
-  updaterStatus?: () => Promise<UpdateStatus>
-  updaterDownload?: () => Promise<UpdateStatus>
+  updaterStatus?: () => Promise<UpdaterStatus>
+  updaterDownload?: () => Promise<UpdaterStatus>
   updaterInstall?: () => Promise<void>
-  onUpdateStatus?: (callback: (status: UpdateStatus) => void) => (() => void) | void
+  onUpdateStatus?: (callback: (status: UpdaterStatus) => void) => (() => void) | void
 }
 
 function getElectronAPI() {
   return typeof window !== 'undefined'
     ? (window as Window & { electronAPI?: ElectronAPI }).electronAPI
     : undefined
-}
-
-function formatUpdateMessage(status?: UpdateStatus | null) {
-  switch (status?.status) {
-    case 'available':
-      return status.info?.version ? `Version ${status.info.version} is ready to download.` : 'A desktop update is ready to download.'
-    case 'downloaded':
-      return 'The update is downloaded and ready to install.'
-    case 'error':
-      return status.error || 'Desktop update checks are failing.'
-    default:
-      return null
-  }
 }
 
 export function Notifications() {
@@ -264,7 +246,7 @@ export function Notifications() {
 
       try {
         const updateStatus = await electronAPI?.updaterStatus?.()
-        const updateMessage = formatUpdateMessage(updateStatus)
+        const updateMessage = formatUpdaterMessage(updateStatus)
         if (updateStatus?.status === 'available' && updateMessage) {
           nextNotifications.push({
             id: 'desktop-update-available',
@@ -297,7 +279,9 @@ export function Notifications() {
           nextNotifications.push({
             id: 'desktop-update-error',
             type: 'warning',
-            title: 'Update check failed',
+            title: updateMessage.includes('No public desktop release')
+              ? 'Desktop release not published yet'
+              : 'Update check failed',
             message: updateMessage,
             timestamp: new Date(),
             read: false,

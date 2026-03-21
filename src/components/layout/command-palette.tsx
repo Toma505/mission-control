@@ -3,6 +3,7 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { apiFetch } from '@/lib/api-client'
+import { formatUpdaterMessage } from '@/lib/updater-status'
 import {
   AlertTriangle,
   Search,
@@ -76,25 +77,6 @@ export function CommandPalette() {
     return typeof window !== 'undefined'
       ? (window as Window & { electronAPI?: ElectronAPI }).electronAPI
       : undefined
-  }
-
-  function formatUpdateMessage(result?: { status: string; info?: { version?: string } | null; error?: string | null } | null) {
-    switch (result?.status) {
-      case 'checking':
-        return 'Checking for updates...'
-      case 'available':
-        return result.info?.version ? `Update ${result.info.version} is available.` : 'An update is available.'
-      case 'up-to-date':
-        return 'Mission Control is up to date.'
-      case 'downloaded':
-        return 'Update downloaded. Restart Mission Control to install it.'
-      case 'dev':
-        return result.error || 'Updates are disabled in development mode.'
-      case 'error':
-        return result.error || 'Update check failed.'
-      default:
-        return 'Update check started.'
-    }
   }
 
   async function switchMode(mode: 'best' | 'budget' | 'auto') {
@@ -201,7 +183,7 @@ export function CommandPalette() {
         }
 
         const result = await electronAPI.updaterCheck()
-        return formatUpdateMessage(result)
+        return formatUpdaterMessage(result) || 'Update check started.'
       },
     },
     {

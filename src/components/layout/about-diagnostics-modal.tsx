@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   X,
 } from 'lucide-react'
+import { formatUpdaterLabel, normalizeUpdaterError, type UpdaterStatus } from '@/lib/updater-status'
 
 type ModeInfo = {
   connected: boolean
@@ -29,13 +30,6 @@ type ConnectionInfo = {
 type LicenseInfo = {
   valid: boolean
   email: string | null
-}
-
-type UpdateStatus = {
-  status: string
-  info?: { version?: string } | null
-  error?: string | null
-  progress?: { percent?: number } | null
 }
 
 type DesktopDiagnostics = {
@@ -61,7 +55,7 @@ type DesktopDiagnostics = {
     autoLaunchEnabled: boolean
     closeToTrayEnabled: boolean
   }
-  updateStatus: UpdateStatus
+  updateStatus: UpdaterStatus
 }
 
 type ElectronAPI = {
@@ -69,7 +63,7 @@ type ElectronAPI = {
   openDataDirectory?: () => Promise<{ ok: boolean; error?: string }>
   openLogsDirectory?: () => Promise<{ ok: boolean; error?: string }>
   copyText?: (text: string) => Promise<{ ok: boolean; error?: string }>
-  onUpdateStatus?: (callback: (status: UpdateStatus) => void) => (() => void) | void
+  onUpdateStatus?: (callback: (status: UpdaterStatus) => void) => (() => void) | void
 }
 
 type Props = {
@@ -95,29 +89,6 @@ function formatHost(url?: string | null) {
     return new URL(url).host
   } catch {
     return url.replace(/^https?:\/\//, '')
-  }
-}
-
-function formatUpdateLabel(updateStatus?: UpdateStatus | null) {
-  switch (updateStatus?.status) {
-    case 'checking':
-      return 'Checking for updates'
-    case 'available':
-      return updateStatus.info?.version ? `Update ${updateStatus.info.version} available` : 'Update available'
-    case 'downloading':
-      return updateStatus.progress?.percent
-        ? `Downloading update (${Math.round(updateStatus.progress.percent)}%)`
-        : 'Downloading update'
-    case 'downloaded':
-      return 'Update ready to install'
-    case 'up-to-date':
-      return 'Up to date'
-    case 'dev':
-      return 'Updates disabled in development'
-    case 'error':
-      return updateStatus.error || 'Update check failed'
-    default:
-      return 'No update check yet'
   }
 }
 
@@ -150,7 +121,7 @@ function buildDiagnosticsReport({
   licenseInfo: LicenseInfo
   autoLaunchEnabled: boolean
   closeToTrayEnabled: boolean
-  updateStatus: UpdateStatus | null
+  updateStatus: UpdaterStatus | null
 }) {
   const lines = [
     `Mission Control Diagnostics`,
@@ -175,10 +146,10 @@ function buildDiagnosticsReport({
     `- License Email: ${licenseInfo.email || 'not provided'}`,
     `- Start On Login: ${autoLaunchEnabled ? 'enabled' : 'disabled'}`,
     `- Close To Tray: ${closeToTrayEnabled ? 'enabled' : 'disabled'}`,
-    `- Update Status: ${formatUpdateLabel(updateStatus || diagnostics?.updateStatus || null)}`,
+    `- Update Status: ${formatUpdaterLabel(updateStatus || diagnostics?.updateStatus || null)}`,
   ]
 
-  if (updateStatus?.error) lines.push(`- Update Error: ${updateStatus.error}`)
+  if (updateStatus?.error) lines.push(`- Update Error: ${normalizeUpdaterError(updateStatus.error) || updateStatus.error}`)
 
   if (diagnostics) {
     lines.push(
@@ -207,7 +178,7 @@ export function AboutDiagnosticsModal({
   closeToTrayEnabled,
 }: Props) {
   const [diagnostics, setDiagnostics] = useState<DesktopDiagnostics | null>(null)
-  const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null)
+  const [updateStatus, setUpdateStatus] = useState<UpdaterStatus | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [actionMessage, setActionMessage] = useState<string | null>(null)
@@ -400,8 +371,8 @@ export function AboutDiagnosticsModal({
             <SummaryCard
               icon={<ShieldCheck className="h-4 w-4 text-emerald-300" />}
               label="Updates"
-              value={formatUpdateLabel(effectiveUpdateStatus)}
-              detail={effectiveUpdateStatus?.error || 'Release checks available from the desktop menu'}
+              value={formatUpdaterLabel(effectiveUpdateStatus)}
+              detail={normalizeUpdaterError(effectiveUpdateStatus?.error) || 'Release checks available from the desktop menu'}
             />
           </div>
         </div>
@@ -423,7 +394,7 @@ export function AboutDiagnosticsModal({
                   <KeyValueRow label="License" value={licenseInfo.valid ? (licenseInfo.email || 'Active') : 'Not activated'} />
                   <KeyValueRow label="Start On Login" value={formatYesNo(autoLaunchEnabled)} />
                   <KeyValueRow label="Close To Tray" value={formatYesNo(closeToTrayEnabled)} />
-                  <KeyValueRow label="Update Status" value={formatUpdateLabel(effectiveUpdateStatus)} />
+                  <KeyValueRow label="Update Status" value={formatUpdaterLabel(effectiveUpdateStatus)} />
                 </Panel>
 
                 <Panel title="Paths" description="These folders matter when support needs exported data or logs.">
