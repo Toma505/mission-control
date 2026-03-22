@@ -80,12 +80,12 @@ export function CheckoutForm({
       <div className="mx-auto max-w-5xl space-y-8">
         <div className="space-y-3 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-text-muted">
-            Stripe Checkout
+            Mission Control by OrqPilot
           </p>
           <h1 className="text-4xl font-bold tracking-tight">Choose your Mission Control plan</h1>
           <p className="mx-auto max-w-2xl text-sm text-text-secondary">
-            This page is the handoff between the public website and checkout. Pick a plan, confirm the
-            email you want tied to license recovery, and we&apos;ll redirect you to Stripe.
+            This page is the handoff between OrqPilot&apos;s public website and checkout. Pick a plan,
+            confirm the email you want tied to license recovery, and we&apos;ll redirect you to Stripe.
           </p>
         </div>
 

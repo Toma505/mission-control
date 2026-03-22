@@ -52,9 +52,9 @@ SMTP_FROM_NAME=Mission Control
 SMTP_REPLY_TO=support@example.com
 MISSION_CONTROL_SUPPORT_EMAIL=support@example.com
 
-MISSION_CONTROL_SITE_URL=https://missioncontrol.openclaw.dev
+MISSION_CONTROL_SITE_URL=https://orqpilot.com
 MISSION_CONTROL_DOWNLOAD_URL=https://github.com/Toma505/mission-control/releases/latest
-NEXT_PUBLIC_MISSION_CONTROL_PRICING_URL=https://missioncontrol.openclaw.dev/pricing/
+NEXT_PUBLIC_MISSION_CONTROL_PRICING_URL=https://orqpilot.com/pricing/
 ```
 
 ## Local Testing

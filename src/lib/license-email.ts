@@ -49,7 +49,7 @@ function getEmailConfig(): LicenseEmailConfig {
     fromEmail,
     fromName: getEnv('SMTP_FROM_NAME') || 'Mission Control',
     replyTo: getEnv('SMTP_REPLY_TO') || null,
-    supportEmail: getEnv('MISSION_CONTROL_SUPPORT_EMAIL') || 'support@openclaw.dev',
+    supportEmail: getEnv('MISSION_CONTROL_SUPPORT_EMAIL') || 'support@orqpilot.com',
   }
 }
 

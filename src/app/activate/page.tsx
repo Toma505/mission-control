@@ -16,7 +16,7 @@ declare global {
 
 export default function ActivatePage() {
   const router = useRouter()
-  const pricingUrl = process.env.NEXT_PUBLIC_MISSION_CONTROL_PRICING_URL || 'https://missioncontrol.openclaw.dev/pricing/'
+  const pricingUrl = process.env.NEXT_PUBLIC_MISSION_CONTROL_PRICING_URL || 'https://orqpilot.com/pricing/'
   const [licenseKey, setLicenseKey] = useState('')
   const [email, setEmail] = useState('')
   const [activating, setActivating] = useState(false)
@@ -75,7 +75,7 @@ export default function ActivatePage() {
         } else if (rawError.toLowerCase().includes('expired')) {
           setError('This license has expired. Visit openclaw.dev/mission-control to renew.')
         } else if (rawError.toLowerCase().includes('machine') || rawError.toLowerCase().includes('fingerprint')) {
-          setError('This key is already activated on another device. Contact support@openclaw.dev for help.')
+          setError('This key is already activated on another device. Contact support@orqpilot.com for help.')
         } else {
           setError('Activation could not be completed. Verify your license details and try again.')
         }
@@ -104,7 +104,7 @@ export default function ActivatePage() {
             <Zap className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
           </div>
           <h1 className="text-3xl font-bold text-text-primary">Mission Control</h1>
-          <p className="text-text-secondary text-sm">Enter your license key to get started</p>
+          <p className="text-text-secondary text-sm">Mission Control by OrqPilot · enter your license key to get started</p>
         </div>
 
         {/* Activation Form */}
