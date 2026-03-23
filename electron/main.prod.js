@@ -12,10 +12,8 @@ const path = require('path')
 const net = require('net')
 const fs = require('fs')
 const os = require('os')
-const crypto = require('crypto')
 const AutoLaunch = require('auto-launch')
 const { autoUpdater } = require('electron-updater')
-const { resolveLicenseSecret } = require('./license-secret')
 const { createSessionToken, loadOrCreateConfigEncryptionKey } = require('./security-context')
 
 // ─── Cross-platform user data path ──────────────────────────
@@ -189,98 +187,7 @@ function ensureDataDir() {
 
 // ─── License (HMAC-signed keys) ─────────────────────────────
 
-const BASE32 = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 const LICENSE_FILE = path.join(userDataPath, 'license.json')
-let licenseSecretCache = null
-
-function getLicenseSecret() {
-  if (!licenseSecretCache) {
-    licenseSecretCache = resolveLicenseSecret({ allowPlaceholder: !app.isPackaged })
-  }
-  return licenseSecretCache
-}
-
-function ensurePackagedLicenseSecret() {
-  if (!app.isPackaged) return true
-
-  try {
-    getLicenseSecret()
-    return true
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Mission Control is missing a valid release license secret.'
-    dialog.showErrorBox(
-      'Mission Control Build Error',
-      `${message}\n\nThis packaged build cannot validate licenses. Rebuild it with a real MC_LICENSE_SECRET before shipping.`,
-    )
-    app.quit()
-    return false
-  }
-}
-
-function toBase32(buffer, length) {
-  let result = ''
-  for (let i = 0; i < length; i++) {
-    result += BASE32[buffer[i] % BASE32.length]
-  }
-  return result
-}
-
-function readLicense() {
-  try { return JSON.parse(fs.readFileSync(LICENSE_FILE, 'utf-8')) }
-  catch { return null }
-}
-
-function saveLicense(key, email, machineId) {
-  fs.writeFileSync(LICENSE_FILE, JSON.stringify({
-    key,
-    email,
-    machineId,
-    activatedAt: new Date().toISOString(),
-  }))
-}
-
-function getMachineId() {
-  // Stable machine fingerprint: hostname + username + platform
-  const raw = `${os.hostname()}:${os.userInfo().username}:${os.platform()}:${os.arch()}`
-  return crypto.createHash('sha256').update(raw).digest('hex').slice(0, 16)
-}
-
-function validateLicenseKey(key) {
-  if (!key || typeof key !== 'string') return false
-
-  // Strip formatting: MC-XXXXX-XXXXX-XXXXX-XXXXX → MCXXXXXXXXXXXXXXXXXXXX
-  const clean = key.toUpperCase().replace(/[^A-Z0-9]/g, '')
-  if (!clean.startsWith('MC') || clean.length !== 22) return false
-
-  const payload = clean.slice(2)
-  const id = payload.slice(0, 8)
-  const sig = payload.slice(8, 20)
-
-  // Recompute HMAC and compare
-  const hmac = crypto.createHmac('sha256', getLicenseSecret()).update(id).digest()
-  const expectedSig = toBase32(hmac, 12)
-
-  return sig === expectedSig
-}
-
-ipcMain.handle('check-license', () => {
-  const license = readLicense()
-  if (!license) return { valid: false, email: null }
-
-  // Re-validate the stored key (catches tampering)
-  const valid = validateLicenseKey(license.key)
-  return { valid, email: license.email || null }
-})
-
-ipcMain.handle('activate-license', (_, { key, email }) => {
-  if (!validateLicenseKey(key)) {
-    return { ok: false, error: 'Invalid license key. Please check and try again.' }
-  }
-
-  const machineId = getMachineId()
-  saveLicense(key.toUpperCase(), email, machineId)
-  return { ok: true }
-})
 
 ipcMain.handle('get-platform', () => process.platform)
 ipcMain.handle('get-session-token', () => sessionToken)
@@ -713,6 +620,8 @@ function startServer() {
         NODE_ENV: 'production',
         // Point data directory to user's persistent storage
         MC_DATA_DIR: dataDir,
+        MC_USER_DATA_DIR: userDataPath,
+        MC_DESKTOP_APP_VERSION: app.getVersion(),
         MC_SESSION_TOKEN: sessionToken,
         MC_CONFIG_ENCRYPTION_KEY: configEncryptionKey,
       },
@@ -731,6 +640,8 @@ function startServer() {
         ...process.env,
         PORT: String(PORT),
         MC_DATA_DIR: dataDir,
+        MC_USER_DATA_DIR: userDataPath,
+        MC_DESKTOP_APP_VERSION: app.getVersion(),
         MC_SESSION_TOKEN: sessionToken,
         MC_CONFIG_ENCRYPTION_KEY: configEncryptionKey,
       },
@@ -783,8 +694,6 @@ if (!gotLock) {
 }
 
 app.on('ready', async () => {
-  if (!ensurePackagedLicenseSecret()) return
-
   sessionToken = createSessionToken()
   configEncryptionKey = loadOrCreateConfigEncryptionKey(userDataPath)
   if (!configEncryptionKey) {
@@ -833,3 +742,4 @@ app.on('activate', () => {
 app.on('before-quit', () => {
   killServer()
 })
+

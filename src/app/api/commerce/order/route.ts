@@ -6,6 +6,8 @@ import {
   findLicenseOrdersByEmail,
   listRecentLicenseOrders,
   markLicenseOrderRefunded,
+  releaseLicenseActivation,
+  setLicenseOrderControlStatus,
   updateLicenseOrderEmailDelivery,
 } from '@/lib/billing'
 import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
@@ -38,13 +40,16 @@ export async function POST(request: NextRequest) {
 
   try {
     let body: {
-      action?: 'lookup' | 'resend' | 'mark_refunded'
+      action?: 'lookup' | 'resend' | 'mark_refunded' | 'release_activation' | 'set_license_status'
       email?: string
       sessionId?: string
       licenseKey?: string
       limit?: number
       reason?: string
       notes?: string
+      activationId?: string
+      machineId?: string
+      status?: 'active' | 'revoked'
     }
 
     try {
@@ -133,6 +138,43 @@ export async function POST(request: NextRequest) {
       const updated = await markLicenseOrderRefunded(order.stripeSessionId, {
         reason: body.reason,
         notes: body.notes,
+      })
+
+      return NextResponse.json({ ok: true, order: updated || order })
+    }
+
+    if (body?.action === 'release_activation') {
+      const resolved = await resolveOrder()
+      if (resolved.error) return resolved.error
+
+      const { order } = resolved
+      if (!body.activationId?.trim() && !body.machineId?.trim()) {
+        return NextResponse.json(
+          { error: 'activationId or machineId is required to release an activation.' },
+          { status: 400 },
+        )
+      }
+
+      const updated = await releaseLicenseActivation(order.stripeSessionId, {
+        activationId: body.activationId,
+        machineId: body.machineId,
+      })
+
+      return NextResponse.json({ ok: true, order: updated || order })
+    }
+
+    if (body?.action === 'set_license_status') {
+      const resolved = await resolveOrder()
+      if (resolved.error) return resolved.error
+
+      const { order } = resolved
+      if (body.status !== 'active' && body.status !== 'revoked') {
+        return NextResponse.json({ error: 'status must be active or revoked' }, { status: 400 })
+      }
+
+      const updated = await setLicenseOrderControlStatus(order.stripeSessionId, {
+        status: body.status,
+        reason: body.reason,
       })
 
       return NextResponse.json({ ok: true, order: updated || order })

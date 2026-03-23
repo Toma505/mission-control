@@ -294,6 +294,8 @@ function startNextServer() {
     env: {
       ...process.env,
       MC_DATA_DIR: dataDir,
+      MC_USER_DATA_DIR: userDataPath,
+      MC_DESKTOP_APP_VERSION: app.getVersion(),
       MC_SESSION_TOKEN: sessionToken,
       MC_CONFIG_ENCRYPTION_KEY: configEncryptionKey,
     },
