@@ -141,6 +141,8 @@ Launch uses two public hosts:
 
 The public pricing buttons must point to `app.orqpilot.com`, because the marketing site itself does not serve `/purchase/*` or `/api/commerce/*`.
 
+See [public-checkout-deploy.md](C:/Users/tomas/mission-control/docs/public-checkout-deploy.md) for the recommended Railway deployment path and required environment variables.
+
 ## Still Needed Before Launch
 
 - Deploy the Next.js purchase app publicly at `https://app.orqpilot.com`

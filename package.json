@@ -19,8 +19,10 @@
   "main": "electron/main.prod.js",
   "scripts": {
     "dev": "next dev -H 127.0.0.1",
+    "build:web": "npm run db:generate && next build",
     "build": "npm run db:generate && next build && node electron/prepare-standalone.js",
     "start": "next start",
+    "start:web": "next start",
     "lint": "eslint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",

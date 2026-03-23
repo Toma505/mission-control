@@ -50,3 +50,5 @@ Value: v=DMARC1; p=none; rua=mailto:support@orqpilot.com; adkim=s; aspf=s
 6. Deploy the public purchase app at `https://app.orqpilot.com`.
 7. Repoint pricing CTAs to `https://app.orqpilot.com/purchase/checkout/` and redeploy the marketing site.
 8. Run one live-mode Stripe checkout + webhook verification pass.
+
+See [public-checkout-deploy.md](C:/Users/tomas/mission-control/docs/public-checkout-deploy.md) for the public purchase-app deployment steps.
