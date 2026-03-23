@@ -1,5 +1,5 @@
 import { createHash } from 'crypto'
-import { mkdir, readFile, writeFile } from 'fs/promises'
+import { mkdir, readFile, unlink, writeFile } from 'fs/promises'
 import os from 'os'
 import { join } from 'path'
 
@@ -21,6 +21,7 @@ export interface LocalLicenseState {
 
 const USER_DATA_DIR = process.env.MC_USER_DATA_DIR || process.env.MC_DATA_DIR || DATA_DIR
 const LICENSE_FILE = join(USER_DATA_DIR, 'license.json')
+const LICENSE_REVALIDATE_MINUTES = 30
 
 export function getLicenseAuthorityUrl() {
   return (
@@ -52,6 +53,15 @@ export function getLocalMachineContext() {
 
 export function isLeaseValid(state: Pick<LocalLicenseState, 'leaseValidUntil'>, now = new Date()) {
   return new Date(state.leaseValidUntil).getTime() > now.getTime()
+}
+
+export function shouldRefreshLease(state: Pick<LocalLicenseState, 'lastValidatedAt'>, now = new Date()) {
+  const lastValidatedAt = new Date(state.lastValidatedAt).getTime()
+  if (!Number.isFinite(lastValidatedAt) || lastValidatedAt <= 0) {
+    return true
+  }
+
+  return now.getTime() - lastValidatedAt >= LICENSE_REVALIDATE_MINUTES * 60 * 1000
 }
 
 export async function readLocalLicenseState(): Promise<LocalLicenseState | null> {
@@ -89,4 +99,10 @@ export async function readLocalLicenseState(): Promise<LocalLicenseState | null>
 export async function writeLocalLicenseState(state: LocalLicenseState) {
   await mkdir(USER_DATA_DIR, { recursive: true })
   await writeFile(LICENSE_FILE, JSON.stringify(state, null, 2))
+}
+
+export async function clearLocalLicenseState() {
+  try {
+    await unlink(LICENSE_FILE)
+  } catch {}
 }
