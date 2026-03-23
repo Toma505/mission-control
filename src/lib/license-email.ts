@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer'
 
 import type { LicenseOrder } from '@/lib/billing'
+import { getMissionControlDownloadUrl } from '@/lib/billing'
 
 type LicenseEmailConfig = {
   host: string
@@ -95,7 +96,7 @@ function buildLicenseEmail(order: LicenseOrder, config: LicenseEmailConfig) {
     throw new Error('Cannot send a license email before fulfillment completes.')
   }
 
-  const downloadUrl = order.downloadUrl || 'https://github.com/Toma505/mission-control/releases/latest'
+  const downloadUrl = order.downloadUrl || getMissionControlDownloadUrl()
   const subject = `Your Mission Control ${order.planName} license`
   const supportLine = `Need help? Reply to this email or contact ${config.supportEmail}.`
 
