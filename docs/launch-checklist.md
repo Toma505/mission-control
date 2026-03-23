@@ -6,7 +6,7 @@
 - [x] Clean-machine Windows QA
 - [x] Payment and license fulfillment
 - [x] Release publishing workflow
-- [ ] Final website review after redeploy
+- [ ] Final website review after checkout links are repointed
 - [x] Final pricing decision
 
 ## Customer Support Readiness
@@ -21,11 +21,11 @@
 
 ## Website / Trust Readiness
 
-- [ ] Redeploy the static website so `/privacy/` and `/terms/` are live on `orqpilot.com`
+- [x] Redeploy the static website so `/privacy/` and `/terms/` are live on `orqpilot.com`
 - [ ] Final website review on `orqpilot.com`
 - [x] Privacy policy page
 - [x] Terms of service page
-- [ ] DMARC record configured for launch email deliverability
+- [x] DMARC record configured for launch email deliverability
 
 Suggested DMARC starter record:
 
@@ -47,5 +47,6 @@ Value: v=DMARC1; p=none; rua=mailto:support@orqpilot.com; adkim=s; aspf=s
 3. Push tag `vX.Y.Z`.
 4. Verify GitHub Release assets.
 5. Verify updater feed against the public release.
-6. Run one live-mode Stripe checkout + webhook verification pass.
-7. Publish or redeploy the website if any static pages changed since the last upload.
+6. Deploy the public purchase app at `https://app.orqpilot.com`.
+7. Repoint pricing CTAs to `https://app.orqpilot.com/purchase/checkout/` and redeploy the marketing site.
+8. Run one live-mode Stripe checkout + webhook verification pass.

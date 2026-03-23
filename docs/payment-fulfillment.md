@@ -10,8 +10,8 @@ Mission Control now has a Stripe-ready checkout and webhook fulfillment path tha
 
 ## Flow
 
-1. Customer clicks a pricing CTA on the website.
-2. Website links to `/purchase/checkout?plan=...`.
+1. Customer clicks a pricing CTA on the public marketing site.
+2. The marketing site links to `https://app.orqpilot.com/purchase/checkout?plan=...`.
 3. The checkout page calls `POST /api/commerce/checkout` with the selected plan id.
 4. Server creates a Stripe Checkout Session.
 5. Stripe redirects back to `/purchase/success?session_id=...`.
@@ -52,7 +52,7 @@ SMTP_FROM_NAME=Mission Control
 SMTP_REPLY_TO=support@example.com
 MISSION_CONTROL_SUPPORT_EMAIL=support@example.com
 
-MISSION_CONTROL_SITE_URL=https://orqpilot.com
+MISSION_CONTROL_SITE_URL=https://app.orqpilot.com
 MISSION_CONTROL_DOWNLOAD_URL=https://github.com/Toma505/mission-control/releases/latest
 NEXT_PUBLIC_MISSION_CONTROL_PRICING_URL=https://orqpilot.com/pricing/
 ```
@@ -132,7 +132,17 @@ The support-side order lookup route is:
 
 This is enough for manual recovery today, resend workflows once SMTP is configured, and internal refund-state tracking for support.
 
+## Public Hosting Split
+
+Launch uses two public hosts:
+
+- `https://orqpilot.com` for the static marketing site
+- `https://app.orqpilot.com` for the Next.js purchase app and commerce API routes
+
+The public pricing buttons must point to `app.orqpilot.com`, because the marketing site itself does not serve `/purchase/*` or `/api/commerce/*`.
+
 ## Still Needed Before Launch
 
-- Replace test-mode Stripe credentials and prices with live launch values
+- Deploy the Next.js purchase app publicly at `https://app.orqpilot.com`
+- Replace test-mode Stripe credentials and prices with live launch values on that app deployment
 - Run one live-mode Stripe checkout and webhook verification pass
