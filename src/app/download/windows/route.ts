@@ -7,7 +7,7 @@ const GITHUB_LATEST_YML_URL =
 const GITHUB_LATEST_RELEASE_API = 'https://api.github.com/repos/Toma505/mission-control/releases/latest'
 const GITHUB_RELEASES_LATEST_DOWNLOAD_PREFIX =
   'https://github.com/Toma505/mission-control/releases/latest/download/'
-const WINDOWS_INSTALLER_PATTERN = /^Mission[ .]Control[ .]Setup .*\.exe$/i
+const WINDOWS_INSTALLER_PATTERN = /^Mission[- .]Control[- .]Setup[- .].*\.exe$/i
 
 interface GitHubReleaseAsset {
   name?: string
