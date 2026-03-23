@@ -1,5 +1,3 @@
-import { NextResponse } from 'next/server'
-
 export const runtime = 'nodejs'
 
 const GITHUB_LATEST_YML_URL =
@@ -23,9 +21,24 @@ interface ResolvedInstaller {
   url: string
 }
 
-function getConfiguredDirectDownloadUrl() {
+function getConfiguredInstallerSourceUrl() {
   const directUrl = (process.env.MISSION_CONTROL_WINDOWS_DOWNLOAD_URL || '').trim()
   return directUrl || null
+}
+
+function inferInstallerNameFromUrl(url: string) {
+  try {
+    const parsed = new URL(url)
+    const lastSegment = parsed.pathname.split('/').filter(Boolean).pop()
+    const decoded = lastSegment ? decodeURIComponent(lastSegment) : ''
+    if (decoded && WINDOWS_INSTALLER_PATTERN.test(decoded)) {
+      return decoded
+    }
+  } catch {
+    // Fall through to the default filename when the override URL is malformed.
+  }
+
+  return 'Mission.Control.Setup.exe'
 }
 
 function encodeAssetPath(assetName: string) {
@@ -99,6 +112,14 @@ async function resolveInstallerFromGitHubApi(): Promise<ResolvedInstaller | null
 }
 
 async function resolveLatestInstaller(): Promise<ResolvedInstaller | null> {
+  const configuredSource = getConfiguredInstallerSourceUrl()
+  if (configuredSource) {
+    return {
+      name: inferInstallerNameFromUrl(configuredSource),
+      url: configuredSource,
+    }
+  }
+
   const apiMatch = await resolveInstallerFromGitHubApi()
   if (apiMatch) {
     return apiMatch
@@ -148,11 +169,6 @@ function installerUnavailableResponse() {
 }
 
 export async function GET() {
-  const configuredDirectUrl = getConfiguredDirectDownloadUrl()
-  if (configuredDirectUrl) {
-    return NextResponse.redirect(configuredDirectUrl, { status: 302 })
-  }
-
   try {
     const installer = await resolveLatestInstaller()
     if (!installer) {
@@ -164,7 +180,7 @@ export async function GET() {
       return streamedDownload
     }
 
-    return NextResponse.redirect(installer.url, { status: 302 })
+    return installerUnavailableResponse()
   } catch {
     return installerUnavailableResponse()
   }
