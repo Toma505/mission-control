@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto'
 import { loadEnvConfig } from '@next/env'
 
 import type { LicenseOrder } from '../src/lib/billing'
-import { getMissionControlDownloadUrl } from '../src/lib/billing'
+import { getBillingPlan, getMissionControlDownloadUrl } from '../src/lib/billing'
 import { sendLicenseOrderEmail, verifyLicenseEmailTransport } from '../src/lib/license-email'
 
 loadEnvConfig(process.cwd())
@@ -40,15 +40,25 @@ function inferPlanId(planName: string): LicenseOrder['planId'] {
 
 function buildTestOrder(recipient: string, planName: string, licenseKey: string): LicenseOrder {
   const now = new Date().toISOString()
+  const planId = inferPlanId(planName)
+  const plan = getBillingPlan(planId)
+  const updateExpiresAt = new Date()
+  updateExpiresAt.setFullYear(updateExpiresAt.getFullYear() + 1)
 
   return {
     id: `test_${randomUUID()}`,
     provider: 'stripe',
     status: 'fulfilled',
-    planId: inferPlanId(planName),
+    planId,
     planName,
+    machineLimit: plan?.machineLimit || 1,
+    updateExpiresAt: updateExpiresAt.toISOString(),
+    licenseControlStatus: 'active',
+    revokedAt: null,
+    revocationReason: null,
     email: recipient,
     licenseKey,
+    activations: [],
     stripeSessionId: `cs_test_${randomUUID().replace(/-/g, '')}`,
     stripePaymentIntentId: null,
     stripeCustomerId: null,

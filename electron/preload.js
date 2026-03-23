@@ -7,10 +7,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   close: () => ipcRenderer.send('window-close'),
   quit: () => ipcRenderer.invoke('quit-app'),
 
-  // License
-  checkLicense: () => ipcRenderer.invoke('check-license'),
-  activateLicense: (data) => ipcRenderer.invoke('activate-license', data),
-
   // Platform info
   getPlatform: () => ipcRenderer.invoke('get-platform'),
   getSessionToken: () => ipcRenderer.invoke('get-session-token'),

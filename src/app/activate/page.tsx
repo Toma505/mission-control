@@ -5,15 +5,6 @@ import { useRouter } from 'next/navigation'
 import { Key, Loader2, CheckCircle2, AlertCircle, Zap } from 'lucide-react'
 import { FramelessPageChrome } from '@/components/layout/frameless-page-chrome'
 
-declare global {
-  interface Window {
-    electronAPI?: {
-      checkLicense: () => Promise<{ valid: boolean; email: string | null }>
-      activateLicense: (data: { key: string; email: string }) => Promise<{ ok: boolean; error?: string }>
-    }
-  }
-}
-
 export default function ActivatePage() {
   const router = useRouter()
   const pricingUrl = process.env.NEXT_PUBLIC_MISSION_CONTROL_PRICING_URL || 'https://orqpilot.com/pricing/'
@@ -24,16 +15,10 @@ export default function ActivatePage() {
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
-    // If not running in Electron, skip activation
-    if (!window.electronAPI?.checkLicense) {
-      router.push('/setup')
-      return
-    }
-
-    // Check if already activated
-    window.electronAPI.checkLicense()
-      .then(result => {
-        if (result.valid) {
+    fetch('/api/license', { cache: 'no-store' })
+      .then(async (response) => {
+        const result = await response.json().catch(() => ({ licensed: false }))
+        if (response.ok && result.licensed) {
           router.push('/setup')
         } else {
           setChecking(false)
@@ -59,23 +44,30 @@ export default function ActivatePage() {
   }
 
   async function activate() {
-    if (!window.electronAPI?.activateLicense) return
     setActivating(true)
     setError('')
 
     try {
-      const result = await window.electronAPI.activateLicense({ key: licenseKey, email })
+      const response = await fetch('/api/license/activate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ key: licenseKey, email }),
+      })
+      const result = await response.json().catch(() => ({ ok: false, error: 'Activation failed' }))
       if (result.ok) {
         router.push('/setup')
       } else {
         const rawError = result.error || 'Activation failed'
-        // Provide actionable context for common errors
-        if (rawError.toLowerCase().includes('invalid') || rawError.toLowerCase().includes('not found')) {
+        if (result.code === 'email_mismatch') {
+          setError('This key does not match the purchase email on record. Use the same checkout email from your receipt.')
+        } else if (result.code === 'machine_limit') {
+          setError('This key has already been used on the maximum number of machines allowed by the plan. Contact support@orqpilot.com to transfer a seat.')
+        } else if (result.code === 'refunded' || result.code === 'revoked') {
+          setError(rawError)
+        } else if (rawError.toLowerCase().includes('invalid') || rawError.toLowerCase().includes('not found')) {
           setError('Invalid license key. Double-check the key from your purchase confirmation email.')
-        } else if (rawError.toLowerCase().includes('expired')) {
-          setError('This license has expired. Visit openclaw.dev/mission-control to renew.')
-        } else if (rawError.toLowerCase().includes('machine') || rawError.toLowerCase().includes('fingerprint')) {
-          setError('This key is already activated on another device. Contact support@orqpilot.com for help.')
         } else {
           setError('Activation could not be completed. Verify your license details and try again.')
         }

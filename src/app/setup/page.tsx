@@ -12,6 +12,18 @@ interface TestResults {
   openrouter: { ok: boolean; error: string; credits: number }
 }
 
+interface LicenseStatus {
+  licensed?: boolean
+}
+
+function getElectronSessionBridge() {
+  return (window as Window & {
+    electronAPI?: {
+      getSessionToken?: () => Promise<string>
+    }
+  }).electronAPI
+}
+
 export default function SetupPage() {
   const router = useRouter()
   const [openclawUrl, setOpenclawUrl] = useState('')
@@ -29,25 +41,29 @@ export default function SetupPage() {
   const [isReconfiguring, setIsReconfiguring] = useState(false)
   const [initError, setInitError] = useState('')
 
-  // Check license and configuration on mount
   useEffect(() => {
     const reconfiguring = window.location.search.includes('reconfigure')
     setIsReconfiguring(reconfiguring)
     setHasHistory(window.history.length > 1)
 
-    // In Electron, verify license before allowing setup (unless reconfiguring)
-    if (!reconfiguring && window.electronAPI?.checkLicense) {
-      window.electronAPI.checkLicense()
-        .then(result => {
-          if (!result.valid) {
+    if (!reconfiguring && getElectronSessionBridge()?.getSessionToken) {
+      fetch('/api/license', { cache: 'no-store' })
+        .then(async (response) => {
+          if (!response.ok) {
+            throw new Error('license-check-failed')
+          }
+
+          return response.json() as Promise<LicenseStatus>
+        })
+        .then((result) => {
+          if (!result.licensed) {
             router.push('/activate')
             return
           }
-          // License valid — proceed with configuration check
+
           checkConfiguration(reconfiguring)
         })
         .catch(() => {
-          // IPC failed — still check configuration so user isn't stuck
           checkConfiguration(reconfiguring)
         })
     } else {
@@ -65,12 +81,10 @@ export default function SetupPage() {
         }
         if (data.openclawUrl) {
           setOpenclawUrl(data.openclawUrl)
-          setStep(2) // Skip welcome if reconfiguring
+          setStep(2)
         }
       })
       .catch(() => {
-        // App API unreachable — show setup form anyway so user isn't stuck
-        // This can happen during first launch while the server is still starting
         setInitError('The app is still starting up. If this persists, restart Mission Control.')
       })
   }
@@ -151,9 +165,6 @@ export default function SetupPage() {
     <div className="min-h-screen relative flex items-center justify-center p-6 pt-16" style={{ background: 'var(--background)' }}>
       <FramelessPageChrome />
       <div className="w-full max-w-lg space-y-8">
-        {/* Show Back button only when there's somewhere meaningful to go:
-            - During reconfigure: always (goes back to dashboard)
-            - During first-launch setup step 2: goes back to step 1 */}
         {(isReconfiguring || step > 1) && (
           <div className="flex justify-start">
             <BackButton
@@ -163,7 +174,6 @@ export default function SetupPage() {
           </div>
         )}
 
-        {/* Init warning */}
         {initError && (
           <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-amber-400/10 border border-amber-400/20 text-sm text-amber-400">
             <svg className="w-4 h-4 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
@@ -171,7 +181,6 @@ export default function SetupPage() {
           </div>
         )}
 
-        {/* Step 1: Welcome */}
         {step === 1 && (
           <>
             <div className="text-center space-y-4">
@@ -180,11 +189,10 @@ export default function SetupPage() {
               </div>
               <h1 className="text-3xl font-bold text-text-primary">Welcome to Mission Control</h1>
               <p className="text-text-secondary text-sm leading-relaxed max-w-sm mx-auto">
-                Your desktop dashboard for managing OpenClaw AI agents. Monitor pipelines, control costs, and switch modes — all from one place.
+                Your desktop dashboard for managing OpenClaw AI agents. Monitor pipelines, control costs, and switch modes - all from one place.
               </p>
             </div>
 
-            {/* Feature highlights */}
             <div className="glass rounded-2xl p-5 space-y-3">
               <FeatureRow icon="📡" title="Live Agent Monitoring" desc="Real-time status, heartbeat, and session tracking" />
               <FeatureRow icon="💰" title="Cost Controls" desc="Budget limits, auto-throttle, and per-job cost tracking" />
@@ -192,9 +200,8 @@ export default function SetupPage() {
               <FeatureRow icon="📊" title="Pipeline Operations" desc="Track every step of your content pipeline" />
             </div>
 
-            {/* What you need */}
             <div className="glass rounded-2xl p-5 space-y-3">
-              <h3 className="text-sm font-semibold text-text-primary">What you&apos;ll need</h3>
+              <h3 className="text-sm font-semibold text-text-primary">What you'll need</h3>
               <div className="space-y-2 text-sm text-text-secondary">
                 <p className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 mt-0.5 text-emerald-400 shrink-0" />
@@ -202,7 +209,7 @@ export default function SetupPage() {
                 </p>
                 <p className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 mt-0.5 text-emerald-400 shrink-0" />
-                  <span>Your <strong className="text-text-primary">Setup Password</strong> from your deployment&apos;s environment variables</span>
+                  <span>Your <strong className="text-text-primary">Setup Password</strong> from your deployment's environment variables</span>
                 </p>
                 <p className="flex items-start gap-2">
                   <Shield className="w-4 h-4 mt-0.5 text-text-muted shrink-0" />
@@ -226,7 +233,6 @@ export default function SetupPage() {
           </>
         )}
 
-        {/* Step 2: Configure */}
         {step === 2 && (
           <>
             <div className="text-center space-y-3">
@@ -238,7 +244,6 @@ export default function SetupPage() {
             </div>
 
             <div className="glass rounded-2xl p-6 space-y-5">
-              {/* OpenClaw URL */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
                   OpenClaw URL
@@ -256,7 +261,6 @@ export default function SetupPage() {
                 </p>
               </div>
 
-              {/* Setup Password */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
                   Setup Password
@@ -280,14 +284,12 @@ export default function SetupPage() {
                 <p className="text-[11px] text-text-muted">Found in your Railway environment variables</p>
               </div>
 
-              {/* Divider */}
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px bg-text-muted/20" />
                 <span className="text-[10px] font-medium text-text-muted uppercase tracking-wider">Optional</span>
                 <div className="flex-1 h-px bg-text-muted/20" />
               </div>
 
-              {/* OpenRouter API Key */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
                   OpenRouter API Key
@@ -311,7 +313,6 @@ export default function SetupPage() {
                 <p className="text-[11px] text-text-muted">Enables cost tracking, budget controls, and spending alerts</p>
               </div>
 
-              {/* Test Results */}
               {testResults && (
                 <div className="space-y-2 pt-1">
                   <ConnectionResult
@@ -329,7 +330,6 @@ export default function SetupPage() {
                 </div>
               )}
 
-              {/* Save error */}
               {saveError && (
                 <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-red-400/10 border border-red-400/20 text-sm text-red-400">
                   <XCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -337,7 +337,6 @@ export default function SetupPage() {
                 </div>
               )}
 
-              {/* Buttons */}
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={testConnection}

@@ -19,7 +19,6 @@ import { AboutDiagnosticsModal } from './about-diagnostics-modal'
 import { OPEN_DIAGNOSTICS_EVENT } from './desktop-events'
 
 type ElectronAPI = {
-  checkLicense?: () => Promise<{ valid: boolean; email: string | null }>
   getAutoLaunch?: () => Promise<boolean>
   setAutoLaunch?: (enabled: boolean) => Promise<{ ok: boolean; error?: string }>
   getCloseToTray?: () => Promise<boolean>
@@ -37,6 +36,11 @@ type ModeInfo = {
 type ConnectionInfo = {
   configured: boolean
   openclawUrl?: string | null
+}
+
+type LicenseStatus = {
+  licensed?: boolean
+  email?: string | null
 }
 
 function getElectronAPI() {
@@ -124,7 +128,7 @@ export function ProfileMenu() {
       const [modeResult, connectionResult, licenseResult, autoLaunchResult, closeToTrayResult] = await Promise.allSettled([
         readJson<ModeInfo>('/api/mode'),
         readJson<ConnectionInfo>('/api/connection'),
-        electronAPI?.checkLicense?.() ?? Promise.resolve({ valid: false, email: null }),
+        readJson<LicenseStatus>('/api/license'),
         electronAPI?.getAutoLaunch?.() ?? Promise.resolve(false),
         electronAPI?.getCloseToTray?.() ?? Promise.resolve(true),
       ])
@@ -133,7 +137,12 @@ export function ProfileMenu() {
 
       if (modeResult.status === 'fulfilled') setModeInfo(modeResult.value)
       if (connectionResult.status === 'fulfilled') setConnectionInfo(connectionResult.value)
-      if (licenseResult.status === 'fulfilled') setLicenseInfo(licenseResult.value)
+      if (licenseResult.status === 'fulfilled') {
+        setLicenseInfo({
+          valid: !!licenseResult.value.licensed,
+          email: licenseResult.value.email || null,
+        })
+      }
       if (autoLaunchResult.status === 'fulfilled') setAutoLaunchEnabled(autoLaunchResult.value)
       if (closeToTrayResult.status === 'fulfilled') setCloseToTrayEnabled(closeToTrayResult.value)
     }
