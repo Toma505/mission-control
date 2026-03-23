@@ -14,6 +14,7 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith('/api') &&
     !pathname.startsWith('/setup') &&
     !pathname.startsWith('/activate') &&
+    !pathname.startsWith('/purchase') &&
     !pathname.startsWith('/_next') &&
     !pathname.includes('.')
   ) {
