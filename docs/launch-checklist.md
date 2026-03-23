@@ -14,8 +14,17 @@
 - [x] Quick-start guide
 - [x] Troubleshooting guide
 - [x] Install and update guide
-- [ ] Support inbox configured
+- [x] Support inbox configured
+- [x] License email delivery verified
+- [x] Support-side resend flow verified
 - [x] Refund policy finalized
+
+## Website / Trust Readiness
+
+- [ ] Final website review on `orqpilot.com`
+- [x] Privacy policy page
+- [x] Terms of service page
+- [ ] DMARC record configured for launch email deliverability
 
 ## Paid Blockers
 

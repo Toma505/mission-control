@@ -90,8 +90,8 @@ The end-to-end Stripe sandbox flow has now been verified on this branch:
 - Stripe CLI forwarded webhook events to `/api/commerce/webhook`
 - fulfilled order was written to `data/license-orders.json`
 - `/purchase/success` displayed the generated offline license key
-
-SMTP delivery was implemented after that verification pass and still needs one real configured send test.
+- live SMTP delivery succeeded through `support@orqpilot.com`
+- support-side resend succeeded through `POST /api/commerce/order` with `action: "resend"`
 
 ### Live SMTP smoke test
 
@@ -106,6 +106,8 @@ To verify transport only without sending a message:
 ```bash
 npm run email:test -- --verify-only
 ```
+
+This branch has now completed one real SMTP send using Zoho Mail and an application-specific password for `support@orqpilot.com`.
 
 ## Support Recovery
 
@@ -132,5 +134,5 @@ This is enough for manual recovery today, resend workflows once SMTP is configur
 
 ## Still Needed Before Launch
 
-- Configure real SMTP credentials and verify one live resend flow
-- Replace test-mode Stripe credentials and prices with live launch values when pricing is final
+- Replace test-mode Stripe credentials and prices with live launch values
+- Run one live-mode Stripe checkout and webhook verification pass

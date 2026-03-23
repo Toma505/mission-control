@@ -1,8 +1,11 @@
 import { randomUUID } from 'crypto'
+import { loadEnvConfig } from '@next/env'
 
 import type { LicenseOrder } from '../src/lib/billing'
 import { getMissionControlDownloadUrl } from '../src/lib/billing'
 import { sendLicenseOrderEmail, verifyLicenseEmailTransport } from '../src/lib/license-email'
+
+loadEnvConfig(process.cwd())
 
 function parseArgs(argv: string[]) {
   const recipient = argv.find((value) => !value.startsWith('--'))?.trim()
