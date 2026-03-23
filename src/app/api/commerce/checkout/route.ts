@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { createPendingStripeOrder, getBillingPlan, getMissionControlSiteUrl, getStripePriceId, getStripeSecretKey, listBillingPlans } from '@/lib/billing'
+import {
+  createPendingStripeOrder,
+  getBillingPlan,
+  getMissionControlSiteUrl,
+  getPurchaseSuccessCookieMaxAgeSeconds,
+  getPurchaseSuccessCookieName,
+  getStripePriceId,
+  getStripeSecretKey,
+  listBillingPlans,
+} from '@/lib/billing'
+import { maybeRateLimit } from '@/lib/request-rate-limit'
 import { sanitizeError } from '@/lib/sanitize-error'
 
 function buildCheckoutForm(planId: 'personal' | 'pro' | 'team', email: string) {
@@ -32,6 +42,14 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const limited = maybeRateLimit(request, {
+    bucket: 'commerce-checkout',
+    max: 10,
+    windowMs: 10 * 60 * 1000,
+    message: 'Too many checkout attempts. Please wait a few minutes and try again.',
+  })
+  if (limited) return limited
+
   try {
     let body: { planId?: string; email?: string }
     try {
@@ -45,7 +63,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
     }
 
-    const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+    const stripeResponse = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${getStripeSecretKey()}`,
@@ -54,8 +72,8 @@ export async function POST(request: NextRequest) {
       body: buildCheckoutForm(plan.id, (body.email || '').trim()).toString(),
     })
 
-    const text = await response.text()
-    if (!response.ok) {
+    const text = await stripeResponse.text()
+    if (!stripeResponse.ok) {
       return NextResponse.json(
         { error: process.env.NODE_ENV === 'development' ? `Failed to create checkout session: ${text.slice(0, 200)}` : 'Failed to create checkout session' },
         { status: 502 },
@@ -67,19 +85,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Stripe did not return a checkout URL' }, { status: 502 })
     }
 
-    await createPendingStripeOrder({
+    const order = await createPendingStripeOrder({
       sessionId: session.id,
       planId: plan.id,
       email: (body.email || '').trim(),
     })
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       ok: true,
       sessionId: session.id,
       url: session.url,
       provider: 'stripe',
       plan,
     })
+
+    response.cookies.set({
+      name: getPurchaseSuccessCookieName(),
+      value: order.successAccessToken || '',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: request.nextUrl.protocol === 'https:' || process.env.NODE_ENV === 'production',
+      path: '/purchase',
+      maxAge: getPurchaseSuccessCookieMaxAgeSeconds(),
+    })
+
+    return response
   } catch (error) {
     return NextResponse.json(
       { error: sanitizeError(error, 'Failed to start checkout') },

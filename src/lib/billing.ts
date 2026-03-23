@@ -44,6 +44,7 @@ export interface LicenseOrder {
   revocationReason: string | null
   email: string
   licenseKey: string | null
+  successAccessToken: string | null
   activations: LicenseActivation[]
   stripeSessionId: string
   stripePaymentIntentId: string | null
@@ -92,6 +93,8 @@ export type LicenseActivationResult =
 
 const LICENSE_ORDERS_FILE = path.join(DATA_DIR, 'license-orders.json')
 const LICENSE_LEASE_HOURS = 24 * 7
+const PURCHASE_SUCCESS_COOKIE_NAME = 'mc_purchase_access'
+const PURCHASE_SUCCESS_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 6
 
 const BILLING_PLANS: Record<BillingPlanId, BillingPlan> = {
   personal: {
@@ -126,6 +129,10 @@ function normalizeEmail(email: string) {
 
 function generateActivationId() {
   return `act_${randomBytes(8).toString('hex')}`
+}
+
+function generateSuccessAccessToken() {
+  return randomBytes(24).toString('hex')
 }
 
 function computeLeaseValidUntil(now = new Date()) {
@@ -240,6 +247,14 @@ export function getMissionControlDownloadUrl() {
   return configuredUrl
 }
 
+export function getPurchaseSuccessCookieName() {
+  return PURCHASE_SUCCESS_COOKIE_NAME
+}
+
+export function getPurchaseSuccessCookieMaxAgeSeconds() {
+  return PURCHASE_SUCCESS_COOKIE_MAX_AGE_SECONDS
+}
+
 async function readOrderStore(): Promise<LicenseOrderStore> {
   try {
     const raw = await readFile(LICENSE_ORDERS_FILE, 'utf-8')
@@ -286,6 +301,7 @@ function normalizeLicenseOrder(order: unknown): LicenseOrder | null {
     revocationReason: candidate.revocationReason || null,
     email: normalizeEmail(candidate.email),
     licenseKey: candidate.licenseKey || null,
+    successAccessToken: candidate.successAccessToken || null,
     activations: Array.isArray(candidate.activations)
       ? candidate.activations.map(normalizeActivation).filter((activation): activation is LicenseActivation => activation !== null)
       : [],
@@ -316,6 +332,15 @@ async function writeOrderStore(store: LicenseOrderStore) {
 export async function findLicenseOrderBySessionId(sessionId: string) {
   const store = await readOrderStore()
   return store.orders.find((order) => order.stripeSessionId === sessionId) || null
+}
+
+export async function findLicenseOrderBySuccessAccess(sessionId: string, accessToken: string) {
+  const order = await findLicenseOrderBySessionId(sessionId)
+  if (!order || !order.successAccessToken) {
+    return null
+  }
+
+  return order.successAccessToken === accessToken.trim() ? order : null
 }
 
 export async function findLicenseOrdersByEmail(email: string) {
@@ -361,7 +386,20 @@ export async function createPendingStripeOrder(input: {
   email: string
 }) {
   const existing = await findLicenseOrderBySessionId(input.sessionId)
-  if (existing) return existing
+  if (existing) {
+    if (existing.successAccessToken) {
+      return existing
+    }
+
+    const updatedExisting: LicenseOrder = {
+      ...existing,
+      successAccessToken: generateSuccessAccessToken(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    await upsertLicenseOrder(updatedExisting)
+    return updatedExisting
+  }
 
   const plan = getBillingPlan(input.planId)
   if (!plan) {
@@ -382,6 +420,7 @@ export async function createPendingStripeOrder(input: {
     revocationReason: null,
     email: normalizeEmail(input.email),
     licenseKey: null,
+    successAccessToken: generateSuccessAccessToken(),
     activations: [],
     stripeSessionId: input.sessionId,
     stripePaymentIntentId: null,
@@ -453,6 +492,7 @@ export async function fulfillStripeCheckoutSession(session: StripeCheckoutSessio
     revocationReason: existing?.revocationReason || null,
     email,
     licenseKey,
+    successAccessToken: existing?.successAccessToken || generateSuccessAccessToken(),
     activations: existing?.activations || [],
     stripeSessionId: session.id,
     stripePaymentIntentId: session.payment_intent || null,

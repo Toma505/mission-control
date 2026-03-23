@@ -1,3 +1,7 @@
+import { NextRequest } from 'next/server'
+
+import { maybeRateLimit } from '@/lib/request-rate-limit'
+
 export const runtime = 'nodejs'
 
 const GITHUB_LATEST_YML_URL =
@@ -168,7 +172,27 @@ function installerUnavailableResponse() {
   })
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const limited = maybeRateLimit(request, {
+    bucket: 'windows-download',
+    max: 12,
+    windowMs: 30 * 60 * 1000,
+    message: 'Too many installer download attempts. Please wait a little while and try again.',
+  })
+  if (limited) {
+    return new Response(
+      'Too many installer download attempts. Please wait a little while and try again.',
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Retry-After': limited.headers.get('Retry-After') || '60',
+          'Cache-Control': 'no-store',
+        },
+      },
+    )
+  }
+
   try {
     const installer = await resolveLatestInstaller()
     if (!installer) {

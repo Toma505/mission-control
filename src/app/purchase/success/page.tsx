@@ -1,4 +1,11 @@
-import { findLicenseOrderBySessionId, getMissionControlDownloadUrl, getMissionControlPricingUrl } from '@/lib/billing'
+import { cookies } from 'next/headers'
+
+import {
+  findLicenseOrderBySuccessAccess,
+  getMissionControlDownloadUrl,
+  getMissionControlPricingUrl,
+  getPurchaseSuccessCookieName,
+} from '@/lib/billing'
 
 export default async function PurchaseSuccessPage({
   searchParams,
@@ -6,9 +13,13 @@ export default async function PurchaseSuccessPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const params = await searchParams
+  const cookieStore = await cookies()
   const sessionIdValue = params.session_id
   const sessionId = Array.isArray(sessionIdValue) ? sessionIdValue[0] : sessionIdValue
-  const order = sessionId ? await findLicenseOrderBySessionId(sessionId) : null
+  const successAccessToken = cookieStore.get(getPurchaseSuccessCookieName())?.value?.trim() || ''
+  const order = sessionId && successAccessToken
+    ? await findLicenseOrderBySuccessAccess(sessionId, successAccessToken)
+    : null
   const fulfilledOrder = order?.status === 'fulfilled' && order.licenseKey ? order : null
   const refundedOrder = order?.status === 'refunded' ? order : null
   const pricingUrl = getMissionControlPricingUrl()
@@ -29,11 +40,19 @@ export default async function PurchaseSuccessPage({
           <div className="mt-8 rounded-2xl border border-amber-400/25 bg-amber-400/10 p-4 text-sm text-amber-200">
             Missing Stripe session id. Return to the purchase success page or contact support if your payment completed.
           </div>
+        ) : !successAccessToken ? (
+          <div className="mt-8 rounded-2xl border border-amber-400/25 bg-amber-400/10 p-4 text-sm text-amber-200">
+            For security, license details can only be viewed in the same browser used to complete checkout. Return to the original checkout browser or contact support using the purchase email for recovery.
+          </div>
         ) : refundedOrder ? (
           <div className="mt-8 rounded-2xl border border-amber-400/25 bg-amber-400/10 p-4 text-sm text-amber-200">
             This purchase has been marked as refunded. If you believe this was a mistake, contact support and include the checkout email for review.
           </div>
-        ) : !order || !fulfilledOrder ? (
+        ) : !order ? (
+          <div className="mt-8 rounded-2xl border border-amber-400/25 bg-amber-400/10 p-4 text-sm text-amber-200">
+            We could not verify access to this purchase in the current browser session. Contact support with the checkout email if you need the license recovered.
+          </div>
+        ) : !fulfilledOrder ? (
           <div className="mt-8 rounded-2xl border border-blue-400/25 bg-blue-400/10 p-4 text-sm text-blue-200">
             Payment completed, but fulfillment has not finished yet. Refresh this page in a moment. Stripe webhooks can take a few seconds to arrive.
           </div>

@@ -1,15 +1,84 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-/**
- * Middleware handles three things:
- * 1. Redirects unconfigured users to /activate (if unlicensed) or /setup (if licensed)
- * 2. Blocks API requests from non-localhost origins (CSRF protection)
- * 3. Sets security headers on all responses
- */
+function generateNonce() {
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  let binary = ''
+
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte)
+  }
+
+  return btoa(binary)
+}
+
+function buildContentSecurityPolicy(nonce: string) {
+  const isDev = process.env.NODE_ENV !== 'production'
+  const connectSrc = ["'self'"]
+
+  if (isDev) {
+    connectSrc.push(
+      'http://127.0.0.1:3000',
+      'http://localhost:3000',
+      'ws://127.0.0.1:3000',
+      'ws://localhost:3000',
+    )
+  }
+
+  const scriptSrc = ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'"]
+  if (isDev) {
+    scriptSrc.push("'unsafe-eval'")
+  }
+
+  return [
+    "default-src 'self'",
+    `script-src ${scriptSrc.join(' ')}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    `connect-src ${connectSrc.join(' ')}`,
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join('; ')
+}
+
+function addSecurityHeaders(response: NextResponse, contentSecurityPolicy: string) {
+  response.headers.set('Content-Security-Policy', contentSecurityPolicy)
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'no-referrer')
+  return response
+}
+
+async function getUnconfiguredDestination(baseUrl: string): Promise<string> {
+  try {
+    const res = await fetch(`${baseUrl}/api/license`, { cache: 'no-store' })
+    const data = await res.json()
+    return data.licensed ? '/setup' : '/activate'
+  } catch {
+    return '/activate'
+  }
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const nonce = generateNonce()
+  const contentSecurityPolicy = buildContentSecurityPolicy(nonce)
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
+  requestHeaders.set('Content-Security-Policy', contentSecurityPolicy)
 
-  // ─── Setup / activation redirect for page navigations ───────
+  const continueRequest = () =>
+    addSecurityHeaders(
+      NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      }),
+      contentSecurityPolicy,
+    )
+
   if (
     !pathname.startsWith('/api') &&
     !pathname.startsWith('/setup') &&
@@ -26,81 +95,64 @@ export async function middleware(request: NextRequest) {
 
       if (!data.configured) {
         const destination = await getUnconfiguredDestination(baseUrl)
-        return NextResponse.redirect(new URL(destination, request.url))
+        return addSecurityHeaders(
+          NextResponse.redirect(new URL(destination, request.url)),
+          contentSecurityPolicy,
+        )
       }
     } catch {
       try {
         const baseUrl = request.nextUrl.origin
         const destination = await getUnconfiguredDestination(baseUrl)
-        return NextResponse.redirect(new URL(destination, request.url))
+        return addSecurityHeaders(
+          NextResponse.redirect(new URL(destination, request.url)),
+          contentSecurityPolicy,
+        )
       } catch {
-        return NextResponse.redirect(new URL('/activate', request.url))
+        return addSecurityHeaders(
+          NextResponse.redirect(new URL('/activate', request.url)),
+          contentSecurityPolicy,
+        )
       }
     }
 
-    return addSecurityHeaders(NextResponse.next())
+    return continueRequest()
   }
 
-  // ─── API security: origin validation ──────────────────────
   if (pathname.startsWith('/api')) {
-    // Allow same-origin requests (renderer → embedded server)
-    // Block cross-origin requests from external sites (CSRF protection)
     const origin = request.headers.get('origin')
 
     if (origin) {
-      // Browser requests always include Origin on cross-origin POSTs.
-      // Only allow requests from the same origin (localhost/127.0.0.1).
       const requestHost = request.headers.get('host') || ''
       let originHost: string
+
       try {
         originHost = new URL(origin).host
       } catch {
-        return new NextResponse(
-          JSON.stringify({ error: 'Invalid origin' }),
-          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        return addSecurityHeaders(
+          new NextResponse(JSON.stringify({ error: 'Invalid origin' }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+          contentSecurityPolicy,
         )
       }
 
       if (originHost !== requestHost) {
-        return new NextResponse(
-          JSON.stringify({ error: 'Cross-origin requests are not allowed' }),
-          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        return addSecurityHeaders(
+          new NextResponse(JSON.stringify({ error: 'Cross-origin requests are not allowed' }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+          contentSecurityPolicy,
         )
       }
     }
 
-    // Non-browser requests (curl, Electron main process) omit Origin.
-    // These are allowed through — write endpoints additionally require
-    // the session token via isAuthorized() in each route handler.
-
-    return addSecurityHeaders(NextResponse.next())
+    return continueRequest()
   }
 
-  return addSecurityHeaders(NextResponse.next())
-}
-
-/**
- * Checks license status to decide where unconfigured users should land.
- */
-async function getUnconfiguredDestination(baseUrl: string): Promise<string> {
-  try {
-    const res = await fetch(`${baseUrl}/api/license`, { cache: 'no-store' })
-    const data = await res.json()
-    return data.licensed ? '/setup' : '/activate'
-  } catch {
-    return '/activate'
-  }
-}
-
-/**
- * Adds security headers to responses.
- */
-function addSecurityHeaders(response: NextResponse): NextResponse {
-  // Prevent the API from being embedded in iframes
-  response.headers.set('X-Frame-Options', 'DENY')
-  response.headers.set('X-Content-Type-Options', 'nosniff')
-  response.headers.set('Referrer-Policy', 'no-referrer')
-  return response
+  return continueRequest()
 }
 
 export const config = {
