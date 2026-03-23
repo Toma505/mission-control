@@ -2,6 +2,8 @@
 
 Mission Control publishes desktop release artifacts from GitHub Actions when a version tag is pushed.
 
+Current launch scope is Windows-first. Public tag pushes publish the Windows installer and updater metadata. macOS and Linux builds remain available through manual workflow runs while those platforms are still finishing launch prep.
+
 ## Prerequisites
 
 - `package.json` version matches the release you want to publish
@@ -30,11 +32,13 @@ If the tag reaches GitHub before the matching commit, the workflow will build th
 
 When a `v*` tag is pushed, `.github/workflows/desktop-builds.yml` will:
 
-- build Windows, macOS, and Linux desktop artifacts
+- build Windows desktop artifacts
 - upload the generated installers and update metadata as workflow artifacts
 - verify the tag matches the `package.json` version
 - create a GitHub Release
-- attach the desktop artifacts, blockmaps, and updater metadata files
+- attach the Windows artifacts, blockmaps, and updater metadata files
+
+macOS and Linux builds can still be run manually with `workflow_dispatch` while those platforms are being prepared for a later release.
 
 ## Updater Behavior
 
@@ -56,11 +60,7 @@ After the workflow completes:
 
 1. Open the GitHub Release and confirm it contains:
    - Windows installer and blockmap
-   - macOS DMG and blockmap
-   - Linux AppImage / DEB and blockmaps
    - `latest.yml`
-   - `latest-mac.yml`
-   - `latest-linux.yml`
 2. In the desktop app, run `Check for Updates`.
 3. Confirm the app no longer reports "no public release yet".
 4. If this is your first public release, run one live-mode Stripe checkout and webhook pass before announcing launch.
