@@ -99,12 +99,12 @@ async function resolveInstallerFromGitHubApi(): Promise<ResolvedInstaller | null
 }
 
 async function resolveLatestInstaller(): Promise<ResolvedInstaller | null> {
-  const latestYmlMatch = await resolveInstallerFromLatestYml()
-  if (latestYmlMatch) {
-    return latestYmlMatch
+  const apiMatch = await resolveInstallerFromGitHubApi()
+  if (apiMatch) {
+    return apiMatch
   }
 
-  return resolveInstallerFromGitHubApi()
+  return resolveInstallerFromLatestYml()
 }
 
 async function streamInstallerDownload(installer: ResolvedInstaller) {
