@@ -15,6 +15,8 @@ import { isLicenseEmailConfigured, sendLicenseOrderEmail } from '@/lib/license-e
 import { sanitizeError } from '@/lib/sanitize-error'
 
 export async function GET(request: NextRequest) {
+  if (!isAuthorized(request)) return unauthorizedResponse()
+
   try {
     const sessionId = request.nextUrl.searchParams.get('session_id')?.trim()
 

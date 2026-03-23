@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { renewLicenseLease } from '@/lib/billing'
+import { maybeRateLimit } from '@/lib/request-rate-limit'
 import { sanitizeError } from '@/lib/sanitize-error'
 
 export async function POST(request: NextRequest) {
+  const limited = maybeRateLimit(request, {
+    bucket: 'license-validate',
+    max: 120,
+    windowMs: 15 * 60 * 1000,
+    message: 'Too many license validation attempts. Please wait a few minutes and try again.',
+  })
+  if (limited) return limited
+
   try {
     const body = await request.json() as {
       key?: string
