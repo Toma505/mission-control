@@ -116,7 +116,13 @@ export function getMissionControlPricingUrl() {
 }
 
 export function getMissionControlDownloadUrl() {
-  return process.env.MISSION_CONTROL_DOWNLOAD_URL || 'https://github.com/Toma505/mission-control/releases/latest'
+  const configuredUrl = (process.env.MISSION_CONTROL_DOWNLOAD_URL || '').trim()
+
+  if (!configuredUrl || configuredUrl === 'https://github.com/Toma505/mission-control/releases/latest') {
+    return `${getMissionControlSiteUrl()}/download/windows`
+  }
+
+  return configuredUrl
 }
 
 async function readOrderStore(): Promise<LicenseOrderStore> {

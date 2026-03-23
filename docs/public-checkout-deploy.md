@@ -47,7 +47,7 @@ SMTP_REPLY_TO=support@orqpilot.com
 MISSION_CONTROL_SUPPORT_EMAIL=support@orqpilot.com
 
 MISSION_CONTROL_SITE_URL=https://app.orqpilot.com
-MISSION_CONTROL_DOWNLOAD_URL=https://github.com/Toma505/mission-control/releases/latest
+MISSION_CONTROL_DOWNLOAD_URL=https://app.orqpilot.com/download/windows
 NEXT_PUBLIC_MISSION_CONTROL_PRICING_URL=https://orqpilot.com/pricing/
 ```
 
