@@ -6,25 +6,41 @@
  * against the public license authority on app.orqpilot.com.
  */
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 import {
+  clearLocalLicenseState,
   getLicenseAuthorityUrl,
   getLocalMachineContext,
   isLeaseValid,
   readLocalLicenseState,
+  shouldRefreshLease,
   writeLocalLicenseState,
 } from '@/lib/local-license'
 import { sanitizeError } from '@/lib/sanitize-error'
 
-export async function GET() {
+const LICENSE_INVALIDATION_CODES = new Set([
+  'not_found',
+  'email_mismatch',
+  'not_fulfilled',
+  'refunded',
+  'revoked',
+  'machine_limit',
+  'not_registered',
+])
+
+export async function GET(request: NextRequest) {
   try {
     const localLicense = await readLocalLicenseState()
     if (!localLicense) {
       return NextResponse.json({ licensed: false })
     }
 
-    if (isLeaseValid(localLicense)) {
+    const leaseStillValid = isLeaseValid(localLicense)
+    const forceRefresh = request.nextUrl.searchParams.get('refresh') === '1'
+    const refreshDue = shouldRefreshLease(localLicense)
+
+    if (leaseStillValid && !forceRefresh && !refreshDue) {
       return NextResponse.json({
         licensed: true,
         email: localLicense.email,
@@ -45,17 +61,30 @@ export async function GET() {
       cache: 'no-store',
     })
 
-    if (!response.ok) {
-      return NextResponse.json({ licensed: false })
-    }
-
-    const data = await response.json() as {
+    const data = await response.json().catch(() => ({})) as {
       activationId?: string
       leaseValidUntil?: string
+      code?: string
     }
 
     if (!data.leaseValidUntil) {
-      return NextResponse.json({ licensed: false })
+      if (!response.ok && data.code && LICENSE_INVALIDATION_CODES.has(data.code)) {
+        await clearLocalLicenseState()
+      }
+
+      if (leaseStillValid && (!data.code || !LICENSE_INVALIDATION_CODES.has(data.code))) {
+        return NextResponse.json({
+          licensed: true,
+          email: localLicense.email,
+          leaseValidUntil: localLicense.leaseValidUntil,
+          validationDeferred: true,
+        })
+      }
+
+      return NextResponse.json(
+        { licensed: false, code: data.code || 'validation_failed' },
+        { status: response.status >= 400 ? response.status : 400 },
+      )
     }
 
     await writeLocalLicenseState({
@@ -76,6 +105,16 @@ export async function GET() {
       leaseValidUntil: data.leaseValidUntil,
     })
   } catch (error) {
+    const localLicense = await readLocalLicenseState()
+    if (localLicense && isLeaseValid(localLicense)) {
+      return NextResponse.json({
+        licensed: true,
+        email: localLicense.email,
+        leaseValidUntil: localLicense.leaseValidUntil,
+        validationDeferred: true,
+      })
+    }
+
     return NextResponse.json(
       { licensed: false, error: sanitizeError(error, 'Failed to validate local license') },
       { status: 500 },

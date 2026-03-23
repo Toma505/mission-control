@@ -7,7 +7,6 @@ data/
 *.db
 *.db-journal
 electron/icon.ico
-electron/.generated-license-secret.json
 
 # Build output
 release/
