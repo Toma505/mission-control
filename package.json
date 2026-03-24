@@ -96,7 +96,8 @@
       "installerHeaderIcon": "electron/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Mission Control"
+      "shortcutName": "Mission Control",
+      "include": "electron/installer.nsh"
     },
     "mac": {
       "target": [
