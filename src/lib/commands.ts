@@ -157,6 +157,7 @@ export const COMMANDS: Command[] = [
     aliases: ['/run', '/exec'],
     category: 'pipeline',
     usage: '/run <command> [args]',
+    mutating: true,
     patterns: [
       /^\/(?:run|exec)\s+(.+)$/i,
     ],
