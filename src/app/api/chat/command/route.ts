@@ -37,6 +37,15 @@ export async function POST(request: NextRequest) {
     }
 
     const { command, params } = match
+
+    // Defense-in-depth: never allow natural-language input to trigger mutating commands.
+    // Mutating commands must be invoked via explicit slash syntax.
+    if (command.mutating && !input.trimStart().startsWith('/')) {
+      return NextResponse.json({
+        isCommand: false,
+        message: null,
+      })
+    }
     let result: { ok: boolean; message: string; data?: Record<string, unknown> }
 
     switch (command.id) {
