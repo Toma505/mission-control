@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from 'fs/promises'
 import path from 'path'
 
 import { DATA_DIR } from '@/lib/connection-config'
-import { generateLicenseKey, getLicenseSecret } from '@/lib/license-keys'
+import { generateLicenseKey, getLicenseSecret, validateLicenseKey } from '@/lib/license-keys'
 
 export type BillingPlanId = 'personal' | 'pro' | 'team'
 
@@ -44,6 +44,7 @@ export interface LicenseOrder {
   revocationReason: string | null
   email: string
   licenseKey: string | null
+  licenseKeyAliases: string[]
   successAccessToken: string | null
   activations: LicenseActivation[]
   stripeSessionId: string
@@ -127,6 +128,10 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase()
 }
 
+function normalizeStoredLicenseKey(key: string) {
+  return key.trim().toUpperCase()
+}
+
 function generateActivationId() {
   return `act_${randomBytes(8).toString('hex')}`
 }
@@ -177,6 +182,23 @@ function normalizeActivation(value: unknown): LicenseActivation | null {
 
 function getActiveActivations(order: LicenseOrder) {
   return order.activations.filter((activation) => !activation.revokedAt)
+}
+
+function getOrderLicenseKeys(order: LicenseOrder) {
+  const keys = new Set<string>()
+  if (order.licenseKey) keys.add(normalizeStoredLicenseKey(order.licenseKey))
+  for (const alias of order.licenseKeyAliases) {
+    if (alias) keys.add(normalizeStoredLicenseKey(alias))
+  }
+  return [...keys]
+}
+
+function isLegacySignedLicenseKey(key: string) {
+  try {
+    return validateLicenseKey(key, getLicenseSecret())
+  } catch {
+    return false
+  }
 }
 
 function buildLicenseControlError(code: LicenseActivationErrorCode, order?: LicenseOrder): LicenseActivationResult {
@@ -301,6 +323,11 @@ function normalizeLicenseOrder(order: unknown): LicenseOrder | null {
     revocationReason: candidate.revocationReason || null,
     email: normalizeEmail(candidate.email),
     licenseKey: candidate.licenseKey || null,
+    licenseKeyAliases: Array.isArray(candidate.licenseKeyAliases)
+      ? candidate.licenseKeyAliases
+          .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+          .map((value) => normalizeStoredLicenseKey(value))
+      : [],
     successAccessToken: candidate.successAccessToken || null,
     activations: Array.isArray(candidate.activations)
       ? candidate.activations.map(normalizeActivation).filter((activation): activation is LicenseActivation => activation !== null)
@@ -354,11 +381,11 @@ export async function findLicenseOrdersByEmail(email: string) {
 }
 
 export async function findLicenseOrderByKey(licenseKey: string) {
-  const clean = licenseKey.trim().toUpperCase()
+  const clean = normalizeStoredLicenseKey(licenseKey)
   if (!clean) return null
 
   const store = await readOrderStore()
-  return store.orders.find((order) => (order.licenseKey || '').toUpperCase() === clean) || null
+  return store.orders.find((order) => getOrderLicenseKeys(order).includes(clean)) || null
 }
 
 export async function listRecentLicenseOrders(limit = 25) {
@@ -420,6 +447,7 @@ export async function createPendingStripeOrder(input: {
     revocationReason: null,
     email: normalizeEmail(input.email),
     licenseKey: null,
+    licenseKeyAliases: [],
     successAccessToken: generateSuccessAccessToken(),
     activations: [],
     stripeSessionId: input.sessionId,
@@ -493,6 +521,7 @@ export async function fulfillStripeCheckoutSession(session: StripeCheckoutSessio
     revocationReason: existing?.revocationReason || null,
     email,
     licenseKey,
+    licenseKeyAliases: existing?.licenseKeyAliases || [],
     successAccessToken: existing?.successAccessToken || generateSuccessAccessToken(),
     activations: existing?.activations || [],
     stripeSessionId: session.id,
@@ -541,8 +570,9 @@ export async function recoverMissingStripeLicenseOrder(input: {
   email: string
 }) {
   const normalizedEmail = normalizeEmail(input.email)
-  const normalizedLicenseKey = input.licenseKey.trim().toUpperCase()
+  const normalizedLicenseKey = normalizeStoredLicenseKey(input.licenseKey)
   if (!normalizedEmail || !normalizedLicenseKey) return null
+  const legacySignedKey = isLegacySignedLicenseKey(normalizedLicenseKey)
 
   const sessions = await listRecentStripeCheckoutSessions()
   const matchingSessions = sessions
@@ -559,17 +589,35 @@ export async function recoverMissingStripeLicenseOrder(input: {
     })
     .sort((left, right) => (right.created || 0) - (left.created || 0))
 
+  const matchingExistingOrders: LicenseOrder[] = []
   const recoverableSessions: StripeCheckoutSessionLike[] = []
   for (const session of matchingSessions) {
     const existingOrder = await findLicenseOrderBySessionId(session.id)
     if (existingOrder) {
-      if ((existingOrder.licenseKey || '').toUpperCase() === normalizedLicenseKey) {
+      if (getOrderLicenseKeys(existingOrder).includes(normalizedLicenseKey)) {
         return existingOrder
       }
+      matchingExistingOrders.push(existingOrder)
       continue
     }
 
     recoverableSessions.push(session)
+  }
+
+  const uniqueExistingOrders = matchingExistingOrders.filter(
+    (order, index, orders) => orders.findIndex((candidate) => candidate.id === order.id) === index,
+  )
+
+  if (legacySignedKey && uniqueExistingOrders.length === 1 && recoverableSessions.length === 0) {
+    const order = uniqueExistingOrders[0]
+    const updated: LicenseOrder = {
+      ...order,
+      licenseKeyAliases: [...order.licenseKeyAliases, normalizedLicenseKey],
+      updatedAt: new Date().toISOString(),
+    }
+
+    await upsertLicenseOrder(updated)
+    return updated
   }
 
   if (recoverableSessions.length !== 1) {
@@ -595,6 +643,7 @@ export async function recoverMissingStripeLicenseOrder(input: {
     revocationReason: null,
     email: normalizedEmail,
     licenseKey: normalizedLicenseKey,
+    licenseKeyAliases: [],
     successAccessToken: generateSuccessAccessToken(),
     activations: [],
     stripeSessionId: session.id,
@@ -729,10 +778,10 @@ export async function activateLicenseRegistration(input: {
   arch?: string | null
   appVersion?: string | null
 }): Promise<LicenseActivationResult> {
-  let order = await findLicenseOrderByKey(input.licenseKey)
+  let order = await findLicenseOrderByKey(normalizeStoredLicenseKey(input.licenseKey))
   if (!order) {
     order = await recoverMissingStripeLicenseOrder({
-      licenseKey: input.licenseKey,
+      licenseKey: normalizeStoredLicenseKey(input.licenseKey),
       email: input.email,
     })
   }
@@ -796,7 +845,7 @@ export async function renewLicenseLease(input: {
   licenseKey: string
   machineId: string
 }): Promise<LicenseActivationResult> {
-  const order = await findLicenseOrderByKey(input.licenseKey)
+  const order = await findLicenseOrderByKey(normalizeStoredLicenseKey(input.licenseKey))
   if (!order) return buildLicenseControlError('not_found')
   if (order.status === 'refunded') return buildLicenseControlError('refunded', order)
   if (!order.licenseKey || order.status !== 'fulfilled') return buildLicenseControlError('not_fulfilled', order)

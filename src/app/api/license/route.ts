@@ -51,6 +51,7 @@ async function bootstrapLegacyLicenseLease(localLicense: Awaited<ReturnType<type
 
   const data = await response.json().catch(() => ({})) as {
     activationId?: string
+    licenseKey?: string
     leaseValidUntil?: string
     code?: string
     error?: string
@@ -63,6 +64,7 @@ async function bootstrapLegacyLicenseLease(localLicense: Awaited<ReturnType<type
   const now = new Date().toISOString()
   await writeLocalLicenseState({
     ...localLicense,
+    key: data.licenseKey?.trim().toUpperCase() || localLicense.key,
     machineId: machine.machineId,
     machineName: machine.machineName,
     platform: machine.platform,
@@ -127,6 +129,7 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json().catch(() => ({})) as {
       activationId?: string
+      licenseKey?: string
       leaseValidUntil?: string
       code?: string
     }
@@ -165,6 +168,7 @@ export async function GET(request: NextRequest) {
 
     await writeLocalLicenseState({
       ...localLicense,
+      key: data.licenseKey?.trim().toUpperCase() || localLicense.key,
       machineId: machine.machineId,
       machineName: machine.machineName,
       platform: machine.platform,

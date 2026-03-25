@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       ok: true,
       activationId: result.activation.id,
+      licenseKey: result.order.licenseKey,
       leaseValidUntil: result.leaseValidUntil,
       planId: result.order.planId,
       planName: result.order.planName,
