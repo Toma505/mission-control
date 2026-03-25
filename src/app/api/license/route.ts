@@ -29,6 +29,59 @@ const LICENSE_INVALIDATION_CODES = new Set([
   'not_registered',
 ])
 
+async function bootstrapLegacyLicenseLease(localLicense: Awaited<ReturnType<typeof readLocalLicenseState>>) {
+  if (!localLicense?.email) return null
+
+  const machine = getLocalMachineContext()
+  const response = await fetch(`${getLicenseAuthorityUrl()}/api/license-control/activate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      key: localLicense.key,
+      email: localLicense.email,
+      machineId: machine.machineId,
+      machineName: machine.machineName,
+      platform: machine.platform,
+      arch: machine.arch,
+      appVersion: machine.appVersion,
+    }),
+    cache: 'no-store',
+  })
+
+  const data = await response.json().catch(() => ({})) as {
+    activationId?: string
+    leaseValidUntil?: string
+    code?: string
+    error?: string
+  }
+
+  if (!response.ok || !data.leaseValidUntil) {
+    return { ok: false as const, response, data }
+  }
+
+  const now = new Date().toISOString()
+  await writeLocalLicenseState({
+    ...localLicense,
+    machineId: machine.machineId,
+    machineName: machine.machineName,
+    platform: machine.platform,
+    arch: machine.arch,
+    appVersion: machine.appVersion,
+    activationId: data.activationId || localLicense.activationId,
+    activatedAt: localLicense.activatedAt || now,
+    lastValidatedAt: now,
+    leaseValidUntil: data.leaseValidUntil,
+  })
+
+  return {
+    ok: true as const,
+    leaseValidUntil: data.leaseValidUntil,
+    email: localLicense.email,
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const localLicense = await readLocalLicenseState()
@@ -39,6 +92,18 @@ export async function GET(request: NextRequest) {
     const leaseStillValid = isLeaseValid(localLicense)
     const forceRefresh = request.nextUrl.searchParams.get('refresh') === '1'
     const refreshDue = shouldRefreshLease(localLicense)
+
+    if (!localLicense.activationId) {
+      const bootstrapped = await bootstrapLegacyLicenseLease(localLicense)
+      if (bootstrapped?.ok) {
+        return NextResponse.json({
+          licensed: true,
+          email: bootstrapped.email,
+          leaseValidUntil: bootstrapped.leaseValidUntil,
+          migrated: true,
+        })
+      }
+    }
 
     if (leaseStillValid && !forceRefresh && !refreshDue) {
       return NextResponse.json({
@@ -68,6 +133,18 @@ export async function GET(request: NextRequest) {
     }
 
     if (!data.leaseValidUntil) {
+      if (data.code === 'not_registered') {
+        const bootstrapped = await bootstrapLegacyLicenseLease(localLicense)
+        if (bootstrapped?.ok) {
+          return NextResponse.json({
+            licensed: true,
+            email: bootstrapped.email,
+            leaseValidUntil: bootstrapped.leaseValidUntil,
+            migrated: true,
+          })
+        }
+      }
+
       if (!response.ok && data.code && LICENSE_INVALIDATION_CODES.has(data.code)) {
         await clearLocalLicenseState()
       }
