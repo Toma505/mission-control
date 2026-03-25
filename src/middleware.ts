@@ -24,7 +24,7 @@ function buildContentSecurityPolicy(nonce: string) {
     )
   }
 
-  const scriptSrc = ["'self'", `'nonce-${nonce}'`, "'unsafe-inline'"]
+  const scriptSrc = ["'self'", "'unsafe-inline'"]
   if (isDev) {
     scriptSrc.push("'unsafe-eval'")
   }
