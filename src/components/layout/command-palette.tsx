@@ -73,6 +73,8 @@ const PAGE_ITEMS: SearchItem[] = [
   { id: 'vault', title: 'API Key Vault', subtitle: 'Manage and rotate API keys', href: '/vault', icon: <KeyRound className="w-4 h-4" />, category: 'page', keywords: ['key', 'vault', 'api', 'secret', 'rotate', 'openrouter', 'anthropic'] },
   { id: 'benchmarks', title: 'Model Benchmarks', subtitle: 'Compare model cost efficiency', href: '/benchmarks', icon: <BarChart3 className="w-4 h-4" />, category: 'page', keywords: ['benchmark', 'compare', 'model', 'efficiency', 'performance'] },
   { id: 'reports', title: 'Scheduled Reports', subtitle: 'Automated cost and usage reports', href: '/reports', icon: <FileText className="w-4 h-4" />, category: 'page', keywords: ['report', 'schedule', 'export', 'csv', 'json', 'automated'] },
+  { id: 'shortcuts', title: 'Keyboard Shortcuts', subtitle: 'Customize key bindings', href: '/shortcuts', icon: <Settings className="w-4 h-4" />, category: 'page', keywords: ['keyboard', 'shortcut', 'keybind', 'hotkey', 'remap'] },
+  { id: 'audit', title: 'Audit Log', subtitle: 'Track all changes and actions', href: '/audit', icon: <FileText className="w-4 h-4" />, category: 'page', keywords: ['audit', 'log', 'history', 'change', 'track', 'who'] },
 ]
 
 export function CommandPalette() {

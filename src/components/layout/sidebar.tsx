@@ -36,6 +36,9 @@ import {
   KeyRound,
   Award,
   FileBarChart,
+  Keyboard,
+  ClipboardList,
+  ScrollText,
 } from 'lucide-react'
 
 const mainNav = [
@@ -74,6 +77,8 @@ const workspaceNav = [
   { name: 'Webhooks', href: '/webhooks', icon: Workflow },
   { name: 'Snapshots', href: '/snapshots', icon: Camera },
   { name: 'Backup', href: '/backup', icon: Archive },
+  { name: 'Shortcuts', href: '/shortcuts', icon: Keyboard },
+  { name: 'Audit Log', href: '/audit', icon: ScrollText },
 ]
 
 function NavSection({ label, items }: { label: string; items: typeof mainNav }) {
