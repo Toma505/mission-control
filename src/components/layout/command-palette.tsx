@@ -68,6 +68,11 @@ const PAGE_ITEMS: SearchItem[] = [
   { id: 'snapshots', title: 'Config Snapshots', subtitle: 'Save and restore configurations', href: '/snapshots', icon: <Shield className="w-4 h-4" />, category: 'page', keywords: ['snapshot', 'config', 'save', 'restore', 'budget', 'mode'] },
   { id: 'backup', title: 'Backup & Restore', subtitle: 'Export or import data', href: '/backup', icon: <Shield className="w-4 h-4" />, category: 'page', keywords: ['backup', 'restore', 'export', 'import', 'data'] },
   { id: 'presets', title: 'Model Presets', subtitle: 'One-click model configurations', href: '/presets', icon: <Rocket className="w-4 h-4" />, category: 'page', keywords: ['preset', 'model', 'config', 'template', 'quality', 'fast', 'cheap'] },
+  { id: 'prompts', title: 'Prompt Library', subtitle: 'Save and reuse system prompts', href: '/prompts', icon: <BookOpen className="w-4 h-4" />, category: 'page', keywords: ['prompt', 'template', 'library', 'system', 'instruction'] },
+  { id: 'cost-tags', title: 'Cost Allocation', subtitle: 'Tag sessions by project or client', href: '/cost-tags', icon: <Users className="w-4 h-4" />, category: 'page', keywords: ['tag', 'cost', 'project', 'client', 'allocation', 'billing'] },
+  { id: 'vault', title: 'API Key Vault', subtitle: 'Manage and rotate API keys', href: '/vault', icon: <KeyRound className="w-4 h-4" />, category: 'page', keywords: ['key', 'vault', 'api', 'secret', 'rotate', 'openrouter', 'anthropic'] },
+  { id: 'benchmarks', title: 'Model Benchmarks', subtitle: 'Compare model cost efficiency', href: '/benchmarks', icon: <BarChart3 className="w-4 h-4" />, category: 'page', keywords: ['benchmark', 'compare', 'model', 'efficiency', 'performance'] },
+  { id: 'reports', title: 'Scheduled Reports', subtitle: 'Automated cost and usage reports', href: '/reports', icon: <FileText className="w-4 h-4" />, category: 'page', keywords: ['report', 'schedule', 'export', 'csv', 'json', 'automated'] },
 ]
 
 export function CommandPalette() {
