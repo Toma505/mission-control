@@ -6,16 +6,14 @@
  * Cross-platform: Windows, macOS, Linux.
  */
 
-const { app, BrowserWindow, Tray, Menu, shell, ipcMain, nativeImage, dialog, clipboard } = require('electron')
+const { app, BrowserWindow, Tray, Menu, shell, ipcMain, nativeImage, dialog, clipboard, Notification } = require('electron')
 const { fork, spawn } = require('child_process')
 const path = require('path')
 const net = require('net')
 const fs = require('fs')
 const os = require('os')
-const crypto = require('crypto')
 const AutoLaunch = require('auto-launch')
 const { autoUpdater } = require('electron-updater')
-const { resolveLicenseSecret } = require('./license-secret')
 const { createSessionToken, loadOrCreateConfigEncryptionKey } = require('./security-context')
 
 // ─── Cross-platform user data path ──────────────────────────
@@ -189,98 +187,7 @@ function ensureDataDir() {
 
 // ─── License (HMAC-signed keys) ─────────────────────────────
 
-const BASE32 = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 const LICENSE_FILE = path.join(userDataPath, 'license.json')
-let licenseSecretCache = null
-
-function getLicenseSecret() {
-  if (!licenseSecretCache) {
-    licenseSecretCache = resolveLicenseSecret({ allowPlaceholder: !app.isPackaged })
-  }
-  return licenseSecretCache
-}
-
-function ensurePackagedLicenseSecret() {
-  if (!app.isPackaged) return true
-
-  try {
-    getLicenseSecret()
-    return true
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Mission Control is missing a valid release license secret.'
-    dialog.showErrorBox(
-      'Mission Control Build Error',
-      `${message}\n\nThis packaged build cannot validate licenses. Rebuild it with a real MC_LICENSE_SECRET before shipping.`,
-    )
-    app.quit()
-    return false
-  }
-}
-
-function toBase32(buffer, length) {
-  let result = ''
-  for (let i = 0; i < length; i++) {
-    result += BASE32[buffer[i] % BASE32.length]
-  }
-  return result
-}
-
-function readLicense() {
-  try { return JSON.parse(fs.readFileSync(LICENSE_FILE, 'utf-8')) }
-  catch { return null }
-}
-
-function saveLicense(key, email, machineId) {
-  fs.writeFileSync(LICENSE_FILE, JSON.stringify({
-    key,
-    email,
-    machineId,
-    activatedAt: new Date().toISOString(),
-  }))
-}
-
-function getMachineId() {
-  // Stable machine fingerprint: hostname + username + platform
-  const raw = `${os.hostname()}:${os.userInfo().username}:${os.platform()}:${os.arch()}`
-  return crypto.createHash('sha256').update(raw).digest('hex').slice(0, 16)
-}
-
-function validateLicenseKey(key) {
-  if (!key || typeof key !== 'string') return false
-
-  // Strip formatting: MC-XXXXX-XXXXX-XXXXX-XXXXX → MCXXXXXXXXXXXXXXXXXXXX
-  const clean = key.toUpperCase().replace(/[^A-Z0-9]/g, '')
-  if (!clean.startsWith('MC') || clean.length !== 22) return false
-
-  const payload = clean.slice(2)
-  const id = payload.slice(0, 8)
-  const sig = payload.slice(8, 20)
-
-  // Recompute HMAC and compare
-  const hmac = crypto.createHmac('sha256', getLicenseSecret()).update(id).digest()
-  const expectedSig = toBase32(hmac, 12)
-
-  return sig === expectedSig
-}
-
-ipcMain.handle('check-license', () => {
-  const license = readLicense()
-  if (!license) return { valid: false, email: null }
-
-  // Re-validate the stored key (catches tampering)
-  const valid = validateLicenseKey(license.key)
-  return { valid, email: license.email || null }
-})
-
-ipcMain.handle('activate-license', (_, { key, email }) => {
-  if (!validateLicenseKey(key)) {
-    return { ok: false, error: 'Invalid license key. Please check and try again.' }
-  }
-
-  const machineId = getMachineId()
-  saveLicense(key.toUpperCase(), email, machineId)
-  return { ok: true }
-})
 
 ipcMain.handle('get-platform', () => process.platform)
 ipcMain.handle('get-session-token', () => sessionToken)
@@ -376,6 +283,77 @@ autoUpdater.autoDownload = false
 autoUpdater.autoInstallOnAppQuit = true
 
 let updateStatus = { status: 'idle', info: null, error: null, progress: null }
+let manualUpdateCheckRequested = false
+let manualUpdateDownloadRequested = false
+
+function getUpdaterCacheDir() {
+  if (process.platform !== 'win32') return null
+
+  const localAppData = process.env.LOCALAPPDATA
+  if (!localAppData) return null
+
+  return path.join(localAppData, 'mission-control-updater')
+}
+
+function clearWindowsUpdaterCache() {
+  const updaterCacheDir = getUpdaterCacheDir()
+  if (!updaterCacheDir) return
+
+  try {
+    fs.rmSync(path.join(updaterCacheDir, 'installer.exe'), { force: true })
+  } catch {}
+
+  try {
+    fs.rmSync(path.join(updaterCacheDir, 'pending'), { recursive: true, force: true })
+  } catch {}
+}
+
+function requestUpdateCheck({ manual = false } = {}) {
+  if (!app.isPackaged) {
+    return { status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null }
+  }
+
+  if (manual) manualUpdateCheckRequested = true
+  autoUpdater.checkForUpdates()
+  return updateStatus
+}
+
+async function startUpdateDownload({ manual = false } = {}) {
+  if (!app.isPackaged) {
+    return { status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null }
+  }
+
+  if (manual) manualUpdateDownloadRequested = true
+
+  clearWindowsUpdaterCache()
+
+  updateStatus = {
+    ...updateStatus,
+    status: 'downloading',
+    error: null,
+    progress: updateStatus.progress || { percent: 0 },
+  }
+  mainWindow?.webContents.send('update-status', updateStatus)
+
+  if (manual) {
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Downloading Update',
+      message: 'Mission Control is downloading the update in the background.',
+      detail: 'Keep using the app normally. You will be prompted to restart when the update is ready.',
+      buttons: ['OK'],
+      defaultId: 0,
+    }).catch(() => {})
+  }
+
+  try {
+    await autoUpdater.downloadUpdate()
+  } catch (err) {
+    throw err
+  }
+
+  return updateStatus
+}
 
 function setupAutoUpdater() {
   autoUpdater.on('checking-for-update', () => {
@@ -386,6 +364,7 @@ function setupAutoUpdater() {
   autoUpdater.on('update-available', (info) => {
     updateStatus = { status: 'available', info, error: null, progress: null }
     mainWindow?.webContents.send('update-status', updateStatus)
+    manualUpdateCheckRequested = false
 
     dialog.showMessageBox(mainWindow, {
       type: 'info',
@@ -395,13 +374,29 @@ function setupAutoUpdater() {
       buttons: ['Download', 'Later'],
       defaultId: 0,
     }).then(({ response }) => {
-      if (response === 0) autoUpdater.downloadUpdate()
+      if (response === 0) {
+        void startUpdateDownload({ manual: true }).catch((err) => {
+          updateStatus = { status: 'error', info: null, error: err.message, progress: null }
+          mainWindow?.webContents.send('update-status', updateStatus)
+        })
+      }
     })
   })
 
   autoUpdater.on('update-not-available', (info) => {
     updateStatus = { status: 'up-to-date', info, error: null, progress: null }
     mainWindow?.webContents.send('update-status', updateStatus)
+
+    if (manualUpdateCheckRequested) {
+      manualUpdateCheckRequested = false
+      dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        title: 'Mission Control is Up to Date',
+        message: `You already have the latest version${info?.version ? ` (${info.version})` : ''}.`,
+        buttons: ['OK'],
+        defaultId: 0,
+      }).catch(() => {})
+    }
   })
 
   autoUpdater.on('download-progress', (progress) => {
@@ -412,6 +407,8 @@ function setupAutoUpdater() {
   autoUpdater.on('update-downloaded', (info) => {
     updateStatus = { status: 'downloaded', info, error: null, progress: null }
     mainWindow?.webContents.send('update-status', updateStatus)
+    manualUpdateCheckRequested = false
+    manualUpdateDownloadRequested = false
 
     dialog.showMessageBox(mainWindow, {
       type: 'info',
@@ -431,18 +428,28 @@ function setupAutoUpdater() {
   autoUpdater.on('error', (err) => {
     updateStatus = { status: 'error', info: null, error: err.message, progress: null }
     mainWindow?.webContents.send('update-status', updateStatus)
+    manualUpdateDownloadRequested = false
+
+    if (manualUpdateCheckRequested) {
+      manualUpdateCheckRequested = false
+      dialog.showMessageBox(mainWindow, {
+        type: 'error',
+        title: 'Update Check Failed',
+        message: 'Mission Control could not check for updates.',
+        detail: err.message,
+        buttons: ['OK'],
+        defaultId: 0,
+      }).catch(() => {})
+    }
   })
 }
 
 ipcMain.handle('updater-check', () => {
-  if (!app.isPackaged) return { status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null }
-  autoUpdater.checkForUpdates()
-  return updateStatus
+  return requestUpdateCheck({ manual: true })
 })
 
 ipcMain.handle('updater-download', () => {
-  autoUpdater.downloadUpdate()
-  return updateStatus
+  return startUpdateDownload({ manual: true })
 })
 
 ipcMain.handle('updater-install', () => {
@@ -617,14 +624,106 @@ async function createTray() {
   await refreshTrayMenu()
 }
 
+// Live tray status data (refreshed periodically)
+let trayStatus = { mode: 'unknown', dailySpend: null, connected: false }
+
+async function fetchTrayStatus() {
+  try {
+    const http = require('http')
+    const fetchLocal = (urlPath) => new Promise((resolve) => {
+      const req = http.get(`http://127.0.0.1:${PORT}${urlPath}`, {
+        headers: { 'x-mc-token': sessionToken },
+        timeout: 3000,
+      }, (res) => {
+        let data = ''
+        res.on('data', (chunk) => { data += chunk })
+        res.on('end', () => {
+          try { resolve(JSON.parse(data)) } catch { resolve(null) }
+        })
+      })
+      req.on('error', () => resolve(null))
+      req.on('timeout', () => { req.destroy(); resolve(null) })
+    })
+
+    const [mode, budget] = await Promise.all([
+      fetchLocal('/api/mode'),
+      fetchLocal('/api/budget'),
+    ])
+
+    trayStatus = {
+      mode: mode?.mode || 'unknown',
+      dailySpend: budget?.spend?.daily ?? null,
+      connected: mode?.connected || false,
+    }
+
+    // Update tooltip with live info
+    if (tray) {
+      const parts = ['Mission Control']
+      if (trayStatus.connected) {
+        parts.push(`Mode: ${trayStatus.mode}`)
+        if (trayStatus.dailySpend !== null) {
+          parts.push(`Today: $${Number(trayStatus.dailySpend).toFixed(2)}`)
+        }
+      } else {
+        parts.push('Disconnected')
+      }
+      tray.setToolTip(parts.join(' · '))
+    }
+  } catch {}
+}
+
+// Refresh tray status every 60 seconds
+let trayStatusInterval = null
+function startTrayStatusPolling() {
+  fetchTrayStatus()
+  if (trayStatusInterval) clearInterval(trayStatusInterval)
+  trayStatusInterval = setInterval(fetchTrayStatus, 60_000)
+}
+
 async function refreshTrayMenu() {
   if (!tray) return
 
   let autoLaunchEnabled = false
   try { autoLaunchEnabled = await autoLauncher.isEnabled() } catch {}
 
+  // Build status line for tray menu
+  const statusLabel = trayStatus.connected
+    ? `● ${trayStatus.mode} mode${trayStatus.dailySpend !== null ? ` · $${Number(trayStatus.dailySpend).toFixed(2)} today` : ''}`
+    : '○ Disconnected'
+
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Open Mission Control', click: () => showMainWindow() },
+    { type: 'separator' },
+    { label: statusLabel, enabled: false },
+    { type: 'separator' },
+    {
+      label: 'Quick: Switch to Budget Mode',
+      click: () => {
+        const http = require('http')
+        const postData = JSON.stringify({ mode: 'budget' })
+        const req = http.request({
+          hostname: '127.0.0.1', port: PORT, path: '/api/mode',
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-mc-token': sessionToken, 'Content-Length': Buffer.byteLength(postData) },
+        }, () => { fetchTrayStatus().then(refreshTrayMenu) })
+        req.write(postData)
+        req.end()
+      },
+    },
+    {
+      label: 'Quick: Switch to Best Mode',
+      click: () => {
+        const http = require('http')
+        const postData = JSON.stringify({ mode: 'best' })
+        const req = http.request({
+          hostname: '127.0.0.1', port: PORT, path: '/api/mode',
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-mc-token': sessionToken, 'Content-Length': Buffer.byteLength(postData) },
+        }, () => { fetchTrayStatus().then(refreshTrayMenu) })
+        req.write(postData)
+        req.end()
+      },
+    },
     { type: 'separator' },
     {
       label: 'Start on Login',
@@ -655,7 +754,7 @@ async function refreshTrayMenu() {
     {
       label: 'Check for Updates...',
       click: () => {
-        if (app.isPackaged) autoUpdater.checkForUpdates()
+        if (app.isPackaged) requestUpdateCheck({ manual: true })
         else dialog.showMessageBox(mainWindow, { type: 'info', title: 'Updates', message: 'Updates are disabled in development mode.' })
       },
     },
@@ -713,6 +812,8 @@ function startServer() {
         NODE_ENV: 'production',
         // Point data directory to user's persistent storage
         MC_DATA_DIR: dataDir,
+        MC_USER_DATA_DIR: userDataPath,
+        MC_DESKTOP_APP_VERSION: app.getVersion(),
         MC_SESSION_TOKEN: sessionToken,
         MC_CONFIG_ENCRYPTION_KEY: configEncryptionKey,
       },
@@ -731,6 +832,8 @@ function startServer() {
         ...process.env,
         PORT: String(PORT),
         MC_DATA_DIR: dataDir,
+        MC_USER_DATA_DIR: userDataPath,
+        MC_DESKTOP_APP_VERSION: app.getVersion(),
         MC_SESSION_TOKEN: sessionToken,
         MC_CONFIG_ENCRYPTION_KEY: configEncryptionKey,
       },
@@ -754,6 +857,102 @@ function killServer() {
 
   serverProcess = null
 }
+
+// ─── Notifications ──────────────────────────────────────────
+
+ipcMain.handle('show-notification', (_, { title, body, urgency }) => {
+  if (!Notification.isSupported()) return { ok: false, error: 'Notifications not supported' }
+
+  const notification = new Notification({
+    title: title || 'Mission Control',
+    body: body || '',
+    icon: getIconPath(),
+    urgency: urgency || 'normal', // low, normal, critical
+  })
+
+  notification.on('click', () => showMainWindow())
+  notification.show()
+  return { ok: true }
+})
+
+// ─── Backup & Restore ───────────────────────────────────────
+
+ipcMain.handle('create-backup', async () => {
+  const dataDir = getDataDir()
+  const archiver = require('archiver') // not available — use manual zip approach
+
+  // Collect all data files
+  const files = {}
+  try {
+    const entries = fs.readdirSync(dataDir)
+    for (const entry of entries) {
+      const fullPath = path.join(dataDir, entry)
+      const stat = fs.statSync(fullPath)
+      if (stat.isFile()) {
+        files[entry] = fs.readFileSync(fullPath, 'utf-8')
+      }
+    }
+  } catch {}
+
+  // Include desktop settings and license
+  try { files['_desktop-settings.json'] = fs.readFileSync(DESKTOP_SETTINGS_FILE, 'utf-8') } catch {}
+  try { files['_license.json'] = fs.readFileSync(LICENSE_FILE, 'utf-8') } catch {}
+
+  const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+    title: 'Save Mission Control Backup',
+    defaultPath: path.join(app.getPath('downloads'), `mission-control-backup-${new Date().toISOString().slice(0, 10)}.json`),
+    filters: [{ name: 'MC Backup', extensions: ['json'] }],
+  })
+
+  if (canceled || !filePath) return { ok: false, error: 'Cancelled' }
+
+  const backup = {
+    version: 1,
+    appVersion: app.getVersion(),
+    createdAt: new Date().toISOString(),
+    platform: process.platform,
+    files,
+  }
+
+  fs.writeFileSync(filePath, JSON.stringify(backup, null, 2))
+  return { ok: true, path: filePath, fileCount: Object.keys(files).length }
+})
+
+ipcMain.handle('restore-backup', async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+    title: 'Restore Mission Control Backup',
+    filters: [{ name: 'MC Backup', extensions: ['json'] }],
+    properties: ['openFile'],
+  })
+
+  if (canceled || !filePaths[0]) return { ok: false, error: 'Cancelled' }
+
+  try {
+    const backup = JSON.parse(fs.readFileSync(filePaths[0], 'utf-8'))
+    if (backup.version !== 1 || !backup.files) {
+      return { ok: false, error: 'Invalid backup file' }
+    }
+
+    const dataDir = getDataDir()
+    try { fs.mkdirSync(dataDir, { recursive: true }) } catch {}
+
+    let restored = 0
+    for (const [name, content] of Object.entries(backup.files)) {
+      if (name === '_desktop-settings.json') {
+        fs.writeFileSync(DESKTOP_SETTINGS_FILE, content)
+      } else if (name === '_license.json') {
+        fs.writeFileSync(LICENSE_FILE, content)
+      } else {
+        fs.writeFileSync(path.join(dataDir, name), content)
+      }
+      restored++
+    }
+
+    return { ok: true, restored, createdAt: backup.createdAt }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
+})
 
 // ─── Window Controls ────────────────────────────────────────
 
@@ -783,8 +982,6 @@ if (!gotLock) {
 }
 
 app.on('ready', async () => {
-  if (!ensurePackagedLicenseSecret()) return
-
   sessionToken = createSessionToken()
   configEncryptionKey = loadOrCreateConfigEncryptionKey(userDataPath)
   if (!configEncryptionKey) {
@@ -812,11 +1009,14 @@ app.on('ready', async () => {
 
   createWindow()
 
+  // Start tray status polling now that server is ready
+  startTrayStatusPolling()
+
   // Auto-update: set up listeners and check for updates (packaged builds only)
   setupAutoUpdater()
   if (app.isPackaged) {
     // Delay initial check to let the app finish loading
-    setTimeout(() => autoUpdater.checkForUpdates(), 5000)
+    setTimeout(() => requestUpdateCheck({ manual: false }), 5000)
   }
 })
 
@@ -833,3 +1033,4 @@ app.on('activate', () => {
 app.on('before-quit', () => {
   killServer()
 })
+

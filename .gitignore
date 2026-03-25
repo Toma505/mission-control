@@ -7,8 +7,16 @@ data/
 *.db
 *.db-journal
 electron/icon.ico
-electron/.generated-license-secret.json
 
 # Build output
 release/
 dist/
+tsconfig.tsbuildinfo
+
+# Runtime / QA temp files
+*.err.log
+*.out.log
+QA-CLEAN-MACHINE.md
+qa-env/
+website-deploy.zip
+electron/.generated-license-secret.json

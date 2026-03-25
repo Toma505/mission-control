@@ -2,6 +2,7 @@ import { Users, Bot, Activity } from 'lucide-react'
 import { getAppBaseUrl } from '@/lib/app-url'
 import { PageEmptyState } from '@/components/layout/page-empty-state'
 import { UptimeTimeline } from '@/components/agents/uptime-timeline'
+import { AgentHealthScore } from '@/components/agents/agent-health-score'
 import { ExportButton } from '@/components/export/export-button'
 
 interface Agent {
@@ -100,6 +101,7 @@ export default async function AgentsPage() {
           </div>
 
           <UptimeTimeline />
+          <AgentHealthScore />
 
           {/* Agent list */}
           <div className="space-y-3">

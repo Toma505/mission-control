@@ -3,6 +3,7 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { apiFetch } from '@/lib/api-client'
+import { formatUpdaterMessage } from '@/lib/updater-status'
 import {
   AlertTriangle,
   Search,
@@ -51,7 +52,9 @@ const PAGE_ITEMS: SearchItem[] = [
   { id: 'dashboard', title: 'Dashboard', subtitle: 'System overview', href: '/', icon: <LayoutDashboard className="w-4 h-4" />, category: 'page', keywords: ['home', 'overview', 'status'] },
   { id: 'operations', title: 'Operations', subtitle: 'Pipeline jobs and automation', href: '/operations', icon: <Clapperboard className="w-4 h-4" />, category: 'page', keywords: ['jobs', 'pipeline', 'real estate', 'video', 'automation'] },
   { id: 'agents', title: 'Agents', subtitle: 'Agent management', href: '/agents', icon: <Users className="w-4 h-4" />, category: 'page', keywords: ['bot', 'agent', 'sessions', 'model'] },
+  { id: 'replay', title: 'Session Replay', subtitle: 'Browse agent conversation history', href: '/replay', icon: <Clock className="w-4 h-4" />, category: 'page', keywords: ['replay', 'session', 'conversation', 'history', 'transcript', 'chat'] },
   { id: 'costs', title: 'Costs', subtitle: 'Infrastructure and spend', href: '/costs', icon: <DollarSign className="w-4 h-4" />, category: 'page', keywords: ['money', 'billing', 'railway', 'credits', 'spend'] },
+  { id: 'analytics', title: 'Usage Analytics', subtitle: 'Token usage, model costs, anomaly detection', href: '/analytics', icon: <BarChart3 className="w-4 h-4" />, category: 'page', keywords: ['analytics', 'tokens', 'model', 'breakdown', 'anomaly', 'usage'] },
   { id: 'api-usage', title: 'API Usage', subtitle: 'Token consumption', href: '/api-usage', icon: <BarChart3 className="w-4 h-4" />, category: 'page', keywords: ['tokens', 'openrouter', 'anthropic', 'usage'] },
   { id: 'skills', title: 'Skills', subtitle: 'Plugin security scanner', href: '/skills', icon: <Shield className="w-4 h-4" />, category: 'page', keywords: ['plugins', 'install', 'scan'] },
   { id: 'journal', title: 'Journal', subtitle: 'Activity logs', href: '/journal', icon: <BookOpen className="w-4 h-4" />, category: 'page', keywords: ['logs', 'activity', 'history'] },
@@ -61,6 +64,19 @@ const PAGE_ITEMS: SearchItem[] = [
   { id: 'clients', title: 'Clients', subtitle: 'Integrations', href: '/clients', icon: <Briefcase className="w-4 h-4" />, category: 'page', keywords: ['discord', 'channels', 'integrations'] },
   { id: 'cron-jobs', title: 'Cron Jobs', subtitle: 'Scheduled tasks', href: '/cron-jobs', icon: <Clock className="w-4 h-4" />, category: 'page', keywords: ['schedule', 'cron', 'timer', 'automated'] },
   { id: 'weekly-recaps', title: 'Weekly Recaps', subtitle: 'Activity summaries', href: '/weekly-recaps', icon: <Calendar className="w-4 h-4" />, category: 'page', keywords: ['recap', 'summary', 'weekly'] },
+  { id: 'webhooks', title: 'Webhooks', subtitle: 'Slack, Discord, and HTTP integrations', href: '/webhooks', icon: <Plug className="w-4 h-4" />, category: 'page', keywords: ['webhook', 'slack', 'discord', 'integration', 'notify', 'pagerduty'] },
+  { id: 'snapshots', title: 'Config Snapshots', subtitle: 'Save and restore configurations', href: '/snapshots', icon: <Shield className="w-4 h-4" />, category: 'page', keywords: ['snapshot', 'config', 'save', 'restore', 'budget', 'mode'] },
+  { id: 'backup', title: 'Backup & Restore', subtitle: 'Export or import data', href: '/backup', icon: <Shield className="w-4 h-4" />, category: 'page', keywords: ['backup', 'restore', 'export', 'import', 'data'] },
+  { id: 'presets', title: 'Model Presets', subtitle: 'One-click model configurations', href: '/presets', icon: <Rocket className="w-4 h-4" />, category: 'page', keywords: ['preset', 'model', 'config', 'template', 'quality', 'fast', 'cheap'] },
+  { id: 'prompts', title: 'Prompt Library', subtitle: 'Save and reuse system prompts', href: '/prompts', icon: <BookOpen className="w-4 h-4" />, category: 'page', keywords: ['prompt', 'template', 'library', 'system', 'instruction'] },
+  { id: 'cost-tags', title: 'Cost Allocation', subtitle: 'Tag sessions by project or client', href: '/cost-tags', icon: <Users className="w-4 h-4" />, category: 'page', keywords: ['tag', 'cost', 'project', 'client', 'allocation', 'billing'] },
+  { id: 'vault', title: 'API Key Vault', subtitle: 'Manage and rotate API keys', href: '/vault', icon: <KeyRound className="w-4 h-4" />, category: 'page', keywords: ['key', 'vault', 'api', 'secret', 'rotate', 'openrouter', 'anthropic'] },
+  { id: 'benchmarks', title: 'Model Benchmarks', subtitle: 'Compare model cost efficiency', href: '/benchmarks', icon: <BarChart3 className="w-4 h-4" />, category: 'page', keywords: ['benchmark', 'compare', 'model', 'efficiency', 'performance'] },
+  { id: 'reports', title: 'Scheduled Reports', subtitle: 'Automated cost and usage reports', href: '/reports', icon: <FileText className="w-4 h-4" />, category: 'page', keywords: ['report', 'schedule', 'export', 'csv', 'json', 'automated'] },
+  { id: 'shortcuts', title: 'Keyboard Shortcuts', subtitle: 'Customize key bindings', href: '/shortcuts', icon: <Settings className="w-4 h-4" />, category: 'page', keywords: ['keyboard', 'shortcut', 'keybind', 'hotkey', 'remap'] },
+  { id: 'audit', title: 'Audit Log', subtitle: 'Track all changes and actions', href: '/audit', icon: <FileText className="w-4 h-4" />, category: 'page', keywords: ['audit', 'log', 'history', 'change', 'track', 'who'] },
+  { id: 'cost-compare', title: 'Cost Comparison', subtitle: 'Compare model costs across providers', href: '/cost-compare', icon: <DollarSign className="w-4 h-4" />, category: 'page', keywords: ['compare', 'provider', 'cost', 'model', 'anthropic', 'openai', 'google', 'deepseek'] },
+  { id: 'forecast', title: 'Usage Forecast', subtitle: 'Projected spending and recommendations', href: '/forecast', icon: <BarChart3 className="w-4 h-4" />, category: 'page', keywords: ['forecast', 'projection', 'budget', 'recommendation', 'savings', 'predict'] },
 ]
 
 export function CommandPalette() {
@@ -76,25 +92,6 @@ export function CommandPalette() {
     return typeof window !== 'undefined'
       ? (window as Window & { electronAPI?: ElectronAPI }).electronAPI
       : undefined
-  }
-
-  function formatUpdateMessage(result?: { status: string; info?: { version?: string } | null; error?: string | null } | null) {
-    switch (result?.status) {
-      case 'checking':
-        return 'Checking for updates...'
-      case 'available':
-        return result.info?.version ? `Update ${result.info.version} is available.` : 'An update is available.'
-      case 'up-to-date':
-        return 'Mission Control is up to date.'
-      case 'downloaded':
-        return 'Update downloaded. Restart Mission Control to install it.'
-      case 'dev':
-        return result.error || 'Updates are disabled in development mode.'
-      case 'error':
-        return result.error || 'Update check failed.'
-      default:
-        return 'Update check started.'
-    }
   }
 
   async function switchMode(mode: 'best' | 'budget' | 'auto') {
@@ -201,7 +198,7 @@ export function CommandPalette() {
         }
 
         const result = await electronAPI.updaterCheck()
-        return formatUpdateMessage(result)
+        return formatUpdaterMessage(result) || 'Update check started.'
       },
     },
     {

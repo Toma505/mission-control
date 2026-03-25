@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Rocket,
 } from 'lucide-react'
+import { formatUpdaterMessage, type UpdaterStatus } from '@/lib/updater-status'
 import { OPEN_DIAGNOSTICS_EVENT } from './desktop-events'
 
 interface Notification {
@@ -30,36 +31,17 @@ interface Notification {
   onAction?: () => void | Promise<void>
 }
 
-type UpdateStatus = {
-  status: string
-  info?: { version?: string } | null
-  error?: string | null
-}
-
 type ElectronAPI = {
-  updaterStatus?: () => Promise<UpdateStatus>
-  updaterDownload?: () => Promise<UpdateStatus>
+  updaterStatus?: () => Promise<UpdaterStatus>
+  updaterDownload?: () => Promise<UpdaterStatus>
   updaterInstall?: () => Promise<void>
-  onUpdateStatus?: (callback: (status: UpdateStatus) => void) => (() => void) | void
+  onUpdateStatus?: (callback: (status: UpdaterStatus) => void) => (() => void) | void
 }
 
 function getElectronAPI() {
   return typeof window !== 'undefined'
     ? (window as Window & { electronAPI?: ElectronAPI }).electronAPI
     : undefined
-}
-
-function formatUpdateMessage(status?: UpdateStatus | null) {
-  switch (status?.status) {
-    case 'available':
-      return status.info?.version ? `Version ${status.info.version} is ready to download.` : 'A desktop update is ready to download.'
-    case 'downloaded':
-      return 'The update is downloaded and ready to install.'
-    case 'error':
-      return status.error || 'Desktop update checks are failing.'
-    default:
-      return null
-  }
 }
 
 export function Notifications() {
@@ -262,9 +244,37 @@ export function Notifications() {
         }
       } catch {}
 
+      // Persistent notifications from the notification store
+      try {
+        const persistRes = await fetch('/api/notifications', { cache: 'no-store' })
+        if (persistRes.ok) {
+          const persistData = await persistRes.json()
+          for (const pn of (persistData.notifications || []).slice(0, 10)) {
+            // Avoid duplicates with smart alerts
+            if (nextNotifications.some(n => n.title === pn.title && n.message === pn.message)) continue
+            nextNotifications.push({
+              id: `persist-${pn.id}`,
+              type: pn.type === 'budget' ? 'warning' : pn.type === 'alert' ? 'warning' : 'info',
+              title: pn.title,
+              message: pn.message,
+              timestamp: new Date(pn.timestamp),
+              read: pn.read,
+              icon: pn.type === 'budget'
+                ? <DollarSign className="w-4 h-4 text-red-400" />
+                : pn.type === 'alert'
+                ? <AlertTriangle className="w-4 h-4 text-amber-400" />
+                : pn.type === 'webhook'
+                ? <Zap className="w-4 h-4 text-violet-400" />
+                : <Info className="w-4 h-4 text-sky-400" />,
+              ...(pn.href ? { actionLabel: 'View', onAction: () => navigateTo(pn.href) } : {}),
+            })
+          }
+        }
+      } catch {}
+
       try {
         const updateStatus = await electronAPI?.updaterStatus?.()
-        const updateMessage = formatUpdateMessage(updateStatus)
+        const updateMessage = formatUpdaterMessage(updateStatus)
         if (updateStatus?.status === 'available' && updateMessage) {
           nextNotifications.push({
             id: 'desktop-update-available',
@@ -278,6 +288,16 @@ export function Notifications() {
             onAction: async () => {
               await electronAPI?.updaterDownload?.()
             },
+          })
+        } else if (updateStatus?.status === 'downloading' && updateMessage) {
+          nextNotifications.push({
+            id: 'desktop-update-downloading',
+            type: 'info',
+            title: 'Downloading desktop update',
+            message: updateMessage,
+            timestamp: new Date(),
+            read: false,
+            icon: <Download className="w-4 h-4 text-sky-400" />,
           })
         } else if (updateStatus?.status === 'downloaded' && updateMessage) {
           nextNotifications.push({
@@ -297,7 +317,9 @@ export function Notifications() {
           nextNotifications.push({
             id: 'desktop-update-error',
             type: 'warning',
-            title: 'Update check failed',
+            title: updateMessage.includes('No public desktop release')
+              ? 'Desktop release not published yet'
+              : 'Update check failed',
             message: updateMessage,
             timestamp: new Date(),
             read: false,

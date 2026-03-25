@@ -1,6 +1,6 @@
 {
   "name": "mission-control",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "Desktop dashboard for OpenClaw AI agent platform",
   "productName": "Mission Control",
   "author": {
@@ -19,8 +19,10 @@
   "main": "electron/main.prod.js",
   "scripts": {
     "dev": "next dev -H 127.0.0.1",
+    "build:web": "npm run db:generate && next build",
     "build": "npm run db:generate && next build && node electron/prepare-standalone.js",
     "start": "next start",
+    "start:web": "next start",
     "lint": "eslint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
@@ -29,14 +31,13 @@
     "electron": "electron electron/main.js",
     "electron:prod": "electron electron/main.prod.js",
     "prepare:icon": "node electron/generate-icon.js",
-    "prepare:license": "node electron/prepare-license-secret.js",
     "prepare:standalone": "node electron/prepare-standalone.js",
     "desktop": "node electron/generate-icon.js && electron electron/main.js",
-    "dist": "npm run prepare:icon && npm run build && npm run prepare:license && electron-builder",
-    "dist:win": "npm run prepare:icon && npm run build && npm run prepare:license && electron-builder --win",
-    "dist:mac": "npm run prepare:icon && npm run build && npm run prepare:license && electron-builder --mac",
-    "dist:linux": "npm run prepare:icon && npm run build && npm run prepare:license && electron-builder --linux",
-    "generate:keys": "node scripts/generate-license.js",
+    "dist": "npm run prepare:icon && npm run build && electron-builder",
+    "dist:win": "npm run prepare:icon && npm run build && electron-builder --win",
+    "dist:mac": "npm run prepare:icon && npm run build && electron-builder --mac",
+    "dist:linux": "npm run prepare:icon && npm run build && electron-builder --linux",
+    "email:test": "tsx scripts/send-test-license-email.ts",
     "postinstall": "npm run db:generate"
   },
   "build": {
@@ -75,6 +76,7 @@
       ".next/standalone/**/*"
     ],
     "win": {
+      "artifactName": "Mission-Control-Setup-${version}.${ext}",
       "target": [
         {
           "target": "nsis",
@@ -83,7 +85,7 @@
           ]
         }
       ],
-      "signAndEditExecutable": false,
+      "signAndEditExecutable": true,
       "icon": "electron/icon.ico"
     },
     "nsis": {
@@ -95,7 +97,8 @@
       "installerHeaderIcon": "electron/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Mission Control"
+      "shortcutName": "Mission Control",
+      "include": "electron/installer.nsh"
     },
     "mac": {
       "target": [
@@ -149,6 +152,7 @@
     "jszip": "^3.10.1",
     "lucide-react": "^0.577.0",
     "next": "16.1.6",
+    "nodemailer": "^8.0.3",
     "prisma": "^7.5.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -158,6 +162,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/nodemailer": "^7.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.20",

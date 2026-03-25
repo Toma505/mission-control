@@ -4,6 +4,7 @@ import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { getEffectiveConfig, DATA_DIR } from '@/lib/connection-config'
+import { appendAudit } from '@/app/api/audit-log/route'
 
 const BUDGET_FILE = path.join(DATA_DIR, 'budget.json')
 
@@ -188,6 +189,13 @@ export async function PUT(request: NextRequest) {
     }
 
     await writeBudget(updated)
+
+    const changes: string[] = []
+    if (current.dailyLimit !== updated.dailyLimit) changes.push(`daily $${current.dailyLimit}→$${updated.dailyLimit}`)
+    if (current.monthlyLimit !== updated.monthlyLimit) changes.push(`monthly $${current.monthlyLimit}→$${updated.monthlyLimit}`)
+    if (current.autoThrottle !== updated.autoThrottle) changes.push(`auto-throttle ${updated.autoThrottle ? 'on' : 'off'}`)
+    if (changes.length) appendAudit('Budget updated', 'budget', changes.join(', '))
+
     return NextResponse.json({ ok: true, budget: updated })
   } catch (error) {
     return NextResponse.json(

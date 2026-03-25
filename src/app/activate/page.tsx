@@ -5,17 +5,12 @@ import { useRouter } from 'next/navigation'
 import { Key, Loader2, CheckCircle2, AlertCircle, Zap } from 'lucide-react'
 import { FramelessPageChrome } from '@/components/layout/frameless-page-chrome'
 
-declare global {
-  interface Window {
-    electronAPI?: {
-      checkLicense: () => Promise<{ valid: boolean; email: string | null }>
-      activateLicense: (data: { key: string; email: string }) => Promise<{ ok: boolean; error?: string }>
-    }
-  }
-}
+const LICENSE_KEY_PATTERN = /^MC(?:-[A-Z0-9]{5}){4}$/
+const LICENSE_KEY_MAX_LENGTH = 26
 
 export default function ActivatePage() {
   const router = useRouter()
+  const pricingUrl = process.env.NEXT_PUBLIC_MISSION_CONTROL_PRICING_URL || 'https://orqpilot.com/pricing/'
   const [licenseKey, setLicenseKey] = useState('')
   const [email, setEmail] = useState('')
   const [activating, setActivating] = useState(false)
@@ -23,16 +18,10 @@ export default function ActivatePage() {
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
-    // If not running in Electron, skip activation
-    if (!window.electronAPI?.checkLicense) {
-      router.push('/setup')
-      return
-    }
-
-    // Check if already activated
-    window.electronAPI.checkLicense()
-      .then(result => {
-        if (result.valid) {
+    fetch('/api/license', { cache: 'no-store' })
+      .then(async (response) => {
+        const result = await response.json().catch(() => ({ licensed: false }))
+        if (response.ok && result.licensed) {
           router.push('/setup')
         } else {
           setChecking(false)
@@ -57,24 +46,33 @@ export default function ActivatePage() {
     setLicenseKey(formatted)
   }
 
+  const isLicenseKeyComplete = LICENSE_KEY_PATTERN.test(licenseKey)
+
   async function activate() {
-    if (!window.electronAPI?.activateLicense) return
     setActivating(true)
     setError('')
 
     try {
-      const result = await window.electronAPI.activateLicense({ key: licenseKey, email })
+      const response = await fetch('/api/license/activate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ key: licenseKey, email }),
+      })
+      const result = await response.json().catch(() => ({ ok: false, error: 'Activation failed' }))
       if (result.ok) {
         router.push('/setup')
       } else {
         const rawError = result.error || 'Activation failed'
-        // Provide actionable context for common errors
-        if (rawError.toLowerCase().includes('invalid') || rawError.toLowerCase().includes('not found')) {
+        if (result.code === 'email_mismatch') {
+          setError('This key does not match the purchase email on record. Use the same checkout email from your receipt.')
+        } else if (result.code === 'machine_limit') {
+          setError('This key has already been used on the maximum number of machines allowed by the plan. Contact support@orqpilot.com to transfer a seat.')
+        } else if (result.code === 'refunded' || result.code === 'revoked') {
+          setError(rawError)
+        } else if (rawError.toLowerCase().includes('invalid') || rawError.toLowerCase().includes('not found')) {
           setError('Invalid license key. Double-check the key from your purchase confirmation email.')
-        } else if (rawError.toLowerCase().includes('expired')) {
-          setError('This license has expired. Visit openclaw.dev/mission-control to renew.')
-        } else if (rawError.toLowerCase().includes('machine') || rawError.toLowerCase().includes('fingerprint')) {
-          setError('This key is already activated on another device. Contact support@openclaw.dev for help.')
         } else {
           setError('Activation could not be completed. Verify your license details and try again.')
         }
@@ -103,7 +101,7 @@ export default function ActivatePage() {
             <Zap className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
           </div>
           <h1 className="text-3xl font-bold text-text-primary">Mission Control</h1>
-          <p className="text-text-secondary text-sm">Enter your license key to get started</p>
+          <p className="text-text-secondary text-sm">Mission Control by OrqPilot · enter your license key to get started</p>
         </div>
 
         {/* Activation Form */}
@@ -118,7 +116,7 @@ export default function ActivatePage() {
                 onChange={e => handleKeyChange(e.target.value)}
                 placeholder="MC-XXXXX-XXXXX-XXXXX-XXXXX"
                 className="w-full pl-10 pr-3 py-2.5 rounded-lg glass-inset text-text-primary text-sm font-mono placeholder:text-text-muted/50 focus:outline-none focus:ring-1"
-                maxLength={24}
+                maxLength={LICENSE_KEY_MAX_LENGTH}
               />
             </div>
           </div>
@@ -144,7 +142,7 @@ export default function ActivatePage() {
 
           <button
             onClick={activate}
-            disabled={licenseKey.length < 24 || !email || activating}
+            disabled={!isLicenseKeyComplete || !email || activating}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ background: 'var(--accent-primary)' }}
           >
@@ -160,7 +158,7 @@ export default function ActivatePage() {
         {/* Purchase link */}
         <p className="text-center text-[11px] text-text-muted">
           Don&apos;t have a license?{' '}
-          <a href="https://openclaw.dev/mission-control" target="_blank" rel="noreferrer" className="text-text-secondary hover:text-text-primary underline">
+          <a href={pricingUrl} target="_blank" rel="noreferrer" className="text-text-secondary hover:text-text-primary underline">
             Purchase one here
           </a>
         </p>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
 import { getEffectiveConfig } from '@/lib/connection-config'
+import { appendAudit } from '@/app/api/audit-log/route'
 
 async function getAuth() {
   const config = await getEffectiveConfig()
@@ -147,6 +148,9 @@ export async function POST(request: NextRequest) {
       const errBody = await saveRes.text().catch(() => 'no body')
       throw new Error(`Config save failed (${saveRes.status}): ${errBody}`)
     }
+
+    const previousMode = detectMode(JSON.parse(configData.content))
+    appendAudit('Mode changed', 'mode', `Switched to ${mode} (${selectedMode.model.primary})`, previousMode)
 
     return NextResponse.json({
       ok: true,

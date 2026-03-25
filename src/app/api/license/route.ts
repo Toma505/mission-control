@@ -1,36 +1,203 @@
 /**
- * License status endpoint — used by middleware to gate first-launch routing.
+ * Desktop license status endpoint.
  *
- * Checks whether a license.json file exists in the user data directory
- * with a key and email. The actual HMAC validation happens in Electron's
- * main process; this is a lightweight presence check so the server-side
- * middleware can decide between /activate and /setup.
+ * The packaged app keeps a local leased activation record in license.json.
+ * While the lease is valid we trust it locally. Once it expires we renew it
+ * against the public license authority on app.orqpilot.com.
  */
 
-import { NextResponse } from 'next/server'
-import { readFile } from 'fs/promises'
-import { join } from 'path'
+import { NextRequest, NextResponse } from 'next/server'
 
-// License path: Electron sets MC_USER_DATA_DIR to the userData root.
-// Fallback for dev mode uses cwd/data (same level).
-const USER_DATA_DIR = process.env.MC_USER_DATA_DIR || process.env.MC_DATA_DIR || join(process.cwd(), 'data')
-const LICENSE_PATH = join(USER_DATA_DIR, 'license.json')
+import {
+  clearLocalLicenseState,
+  getLicenseAuthorityUrl,
+  getLocalMachineContext,
+  isLeaseValid,
+  readLocalLicenseState,
+  shouldRefreshLease,
+  writeLocalLicenseState,
+} from '@/lib/local-license'
+import { sanitizeError } from '@/lib/sanitize-error'
 
-export async function GET() {
+const LICENSE_INVALIDATION_CODES = new Set([
+  'email_mismatch',
+  'not_fulfilled',
+  'refunded',
+  'revoked',
+  'machine_limit',
+  'not_registered',
+])
+
+async function bootstrapLegacyLicenseLease(localLicense: Awaited<ReturnType<typeof readLocalLicenseState>>) {
+  if (!localLicense?.email) return null
+
+  const machine = getLocalMachineContext()
+  const response = await fetch(`${getLicenseAuthorityUrl()}/api/license-control/activate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      key: localLicense.key,
+      email: localLicense.email,
+      machineId: machine.machineId,
+      machineName: machine.machineName,
+      platform: machine.platform,
+      arch: machine.arch,
+      appVersion: machine.appVersion,
+    }),
+    cache: 'no-store',
+  })
+
+  const data = await response.json().catch(() => ({})) as {
+    activationId?: string
+    licenseKey?: string
+    leaseValidUntil?: string
+    code?: string
+    error?: string
+  }
+
+  if (!response.ok || !data.leaseValidUntil) {
+    return { ok: false as const, response, data }
+  }
+
+  const now = new Date().toISOString()
+  await writeLocalLicenseState({
+    ...localLicense,
+    key: data.licenseKey?.trim().toUpperCase() || localLicense.key,
+    machineId: machine.machineId,
+    machineName: machine.machineName,
+    platform: machine.platform,
+    arch: machine.arch,
+    appVersion: machine.appVersion,
+    activationId: data.activationId || localLicense.activationId,
+    activatedAt: localLicense.activatedAt || now,
+    lastValidatedAt: now,
+    leaseValidUntil: data.leaseValidUntil,
+  })
+
+  return {
+    ok: true as const,
+    leaseValidUntil: data.leaseValidUntil,
+    email: localLicense.email,
+  }
+}
+
+export async function GET(request: NextRequest) {
   try {
-    const raw = await readFile(LICENSE_PATH, 'utf-8')
-    // Strip UTF-8 BOM if present (e.g. from manual edits or scripts)
-    const clean = raw.charCodeAt(0) === 0xFEFF ? raw.slice(1) : raw
-    const data = JSON.parse(clean)
-
-    // Basic structure check — key and email must be present
-    if (data.key && data.email) {
-      return NextResponse.json({ licensed: true })
+    const localLicense = await readLocalLicenseState()
+    if (!localLicense) {
+      return NextResponse.json({ licensed: false })
     }
 
-    return NextResponse.json({ licensed: false })
-  } catch {
-    // File doesn't exist or is unreadable — no license
-    return NextResponse.json({ licensed: false })
+    const leaseStillValid = isLeaseValid(localLicense)
+    const forceRefresh = request.nextUrl.searchParams.get('refresh') === '1'
+    const refreshDue = shouldRefreshLease(localLicense)
+
+    if (!localLicense.activationId) {
+      const bootstrapped = await bootstrapLegacyLicenseLease(localLicense)
+      if (bootstrapped?.ok) {
+        return NextResponse.json({
+          licensed: true,
+          email: bootstrapped.email,
+          leaseValidUntil: bootstrapped.leaseValidUntil,
+          migrated: true,
+        })
+      }
+    }
+
+    if (leaseStillValid && !forceRefresh && !refreshDue) {
+      return NextResponse.json({
+        licensed: true,
+        email: localLicense.email,
+        leaseValidUntil: localLicense.leaseValidUntil,
+      })
+    }
+
+    const machine = getLocalMachineContext()
+    const response = await fetch(`${getLicenseAuthorityUrl()}/api/license-control/validate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        key: localLicense.key,
+        machineId: machine.machineId,
+      }),
+      cache: 'no-store',
+    })
+
+    const data = await response.json().catch(() => ({})) as {
+      activationId?: string
+      licenseKey?: string
+      leaseValidUntil?: string
+      code?: string
+    }
+
+    if (!data.leaseValidUntil) {
+      if (data.code === 'not_registered' || data.code === 'not_found') {
+        const bootstrapped = await bootstrapLegacyLicenseLease(localLicense)
+        if (bootstrapped?.ok) {
+          return NextResponse.json({
+            licensed: true,
+            email: bootstrapped.email,
+            leaseValidUntil: bootstrapped.leaseValidUntil,
+            migrated: true,
+          })
+        }
+      }
+
+      if (!response.ok && data.code && LICENSE_INVALIDATION_CODES.has(data.code)) {
+        await clearLocalLicenseState()
+      }
+
+      if (leaseStillValid && (!data.code || !LICENSE_INVALIDATION_CODES.has(data.code))) {
+        return NextResponse.json({
+          licensed: true,
+          email: localLicense.email,
+          leaseValidUntil: localLicense.leaseValidUntil,
+          validationDeferred: true,
+        })
+      }
+
+      return NextResponse.json(
+        { licensed: false, code: data.code || 'validation_failed' },
+        { status: response.status >= 400 ? response.status : 400 },
+      )
+    }
+
+    await writeLocalLicenseState({
+      ...localLicense,
+      key: data.licenseKey?.trim().toUpperCase() || localLicense.key,
+      machineId: machine.machineId,
+      machineName: machine.machineName,
+      platform: machine.platform,
+      arch: machine.arch,
+      appVersion: machine.appVersion,
+      activationId: data.activationId || localLicense.activationId,
+      lastValidatedAt: new Date().toISOString(),
+      leaseValidUntil: data.leaseValidUntil,
+    })
+
+    return NextResponse.json({
+      licensed: true,
+      email: localLicense.email,
+      leaseValidUntil: data.leaseValidUntil,
+    })
+  } catch (error) {
+    const localLicense = await readLocalLicenseState()
+    if (localLicense && isLeaseValid(localLicense)) {
+      return NextResponse.json({
+        licensed: true,
+        email: localLicense.email,
+        leaseValidUntil: localLicense.leaseValidUntil,
+        validationDeferred: true,
+      })
+    }
+
+    return NextResponse.json(
+      { licensed: false, error: sanitizeError(error, 'Failed to validate local license') },
+      { status: 500 },
+    )
   }
 }

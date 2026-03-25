@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://missioncontrol.openclaw.dev/sitemap.xml
+Sitemap: https://orqpilot.com/sitemap.xml

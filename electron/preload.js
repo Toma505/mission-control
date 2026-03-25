@@ -7,10 +7,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   close: () => ipcRenderer.send('window-close'),
   quit: () => ipcRenderer.invoke('quit-app'),
 
-  // License
-  checkLicense: () => ipcRenderer.invoke('check-license'),
-  activateLicense: (data) => ipcRenderer.invoke('activate-license', data),
-
   // Platform info
   getPlatform: () => ipcRenderer.invoke('get-platform'),
   getSessionToken: () => ipcRenderer.invoke('get-session-token'),
@@ -26,6 +22,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Desktop behavior
   getCloseToTray: () => ipcRenderer.invoke('get-close-to-tray'),
   setCloseToTray: (enabled) => ipcRenderer.invoke('set-close-to-tray', enabled),
+
+  // Notifications
+  showNotification: (opts) => ipcRenderer.invoke('show-notification', opts),
+
+  // Backup & Restore
+  createBackup: () => ipcRenderer.invoke('create-backup'),
+  restoreBackup: () => ipcRenderer.invoke('restore-backup'),
 
   // Auto-updater
   updaterCheck: () => ipcRenderer.invoke('updater-check'),

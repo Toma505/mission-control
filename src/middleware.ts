@@ -1,85 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-/**
- * Middleware handles three things:
- * 1. Redirects unconfigured users to /activate (if unlicensed) or /setup (if licensed)
- * 2. Blocks API requests from non-localhost origins (CSRF protection)
- * 3. Sets security headers on all responses
- */
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+function generateNonce() {
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  let binary = ''
 
-  // ─── Setup / activation redirect for page navigations ───────
-  if (
-    !pathname.startsWith('/api') &&
-    !pathname.startsWith('/setup') &&
-    !pathname.startsWith('/activate') &&
-    !pathname.startsWith('/_next') &&
-    !pathname.includes('.')
-  ) {
-    try {
-      const baseUrl = request.nextUrl.origin
-      const res = await fetch(`${baseUrl}/api/connection`, { cache: 'no-store' })
-      const data = await res.json()
-
-      if (!data.configured) {
-        const destination = await getUnconfiguredDestination(baseUrl)
-        return NextResponse.redirect(new URL(destination, request.url))
-      }
-    } catch {
-      try {
-        const baseUrl = request.nextUrl.origin
-        const destination = await getUnconfiguredDestination(baseUrl)
-        return NextResponse.redirect(new URL(destination, request.url))
-      } catch {
-        return NextResponse.redirect(new URL('/activate', request.url))
-      }
-    }
-
-    return addSecurityHeaders(NextResponse.next())
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte)
   }
 
-  // ─── API security: origin validation ──────────────────────
-  if (pathname.startsWith('/api')) {
-    // Allow same-origin requests (renderer → embedded server)
-    // Block cross-origin requests from external sites (CSRF protection)
-    const origin = request.headers.get('origin')
-
-    if (origin) {
-      // Browser requests always include Origin on cross-origin POSTs.
-      // Only allow requests from the same origin (localhost/127.0.0.1).
-      const requestHost = request.headers.get('host') || ''
-      let originHost: string
-      try {
-        originHost = new URL(origin).host
-      } catch {
-        return new NextResponse(
-          JSON.stringify({ error: 'Invalid origin' }),
-          { status: 403, headers: { 'Content-Type': 'application/json' } }
-        )
-      }
-
-      if (originHost !== requestHost) {
-        return new NextResponse(
-          JSON.stringify({ error: 'Cross-origin requests are not allowed' }),
-          { status: 403, headers: { 'Content-Type': 'application/json' } }
-        )
-      }
-    }
-
-    // Non-browser requests (curl, Electron main process) omit Origin.
-    // These are allowed through — write endpoints additionally require
-    // the session token via isAuthorized() in each route handler.
-
-    return addSecurityHeaders(NextResponse.next())
-  }
-
-  return addSecurityHeaders(NextResponse.next())
+  return btoa(binary)
 }
 
-/**
- * Checks license status to decide where unconfigured users should land.
- */
+function buildContentSecurityPolicy(nonce: string) {
+  const isDev = process.env.NODE_ENV !== 'production'
+  const connectSrc = ["'self'"]
+
+  if (isDev) {
+    connectSrc.push(
+      'http://127.0.0.1:3000',
+      'http://localhost:3000',
+      'ws://127.0.0.1:3000',
+      'ws://localhost:3000',
+    )
+  }
+
+  const scriptSrc = ["'self'", "'unsafe-inline'"]
+  if (isDev) {
+    scriptSrc.push("'unsafe-eval'")
+  }
+
+  return [
+    "default-src 'self'",
+    `script-src ${scriptSrc.join(' ')}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    `connect-src ${connectSrc.join(' ')}`,
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join('; ')
+}
+
+function addSecurityHeaders(response: NextResponse, contentSecurityPolicy: string) {
+  response.headers.set('Content-Security-Policy', contentSecurityPolicy)
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'no-referrer')
+  return response
+}
+
 async function getUnconfiguredDestination(baseUrl: string): Promise<string> {
   try {
     const res = await fetch(`${baseUrl}/api/license`, { cache: 'no-store' })
@@ -90,15 +61,98 @@ async function getUnconfiguredDestination(baseUrl: string): Promise<string> {
   }
 }
 
-/**
- * Adds security headers to responses.
- */
-function addSecurityHeaders(response: NextResponse): NextResponse {
-  // Prevent the API from being embedded in iframes
-  response.headers.set('X-Frame-Options', 'DENY')
-  response.headers.set('X-Content-Type-Options', 'nosniff')
-  response.headers.set('Referrer-Policy', 'no-referrer')
-  return response
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  const nonce = generateNonce()
+  const contentSecurityPolicy = buildContentSecurityPolicy(nonce)
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
+  requestHeaders.set('Content-Security-Policy', contentSecurityPolicy)
+
+  const continueRequest = () =>
+    addSecurityHeaders(
+      NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      }),
+      contentSecurityPolicy,
+    )
+
+  if (
+    !pathname.startsWith('/api') &&
+    !pathname.startsWith('/setup') &&
+    !pathname.startsWith('/activate') &&
+    !pathname.startsWith('/purchase') &&
+    !pathname.startsWith('/download') &&
+    !pathname.startsWith('/_next') &&
+    !pathname.includes('.')
+  ) {
+    try {
+      const baseUrl = request.nextUrl.origin
+      const res = await fetch(`${baseUrl}/api/connection`, { cache: 'no-store' })
+      const data = await res.json()
+
+      if (!data.configured) {
+        const destination = await getUnconfiguredDestination(baseUrl)
+        return addSecurityHeaders(
+          NextResponse.redirect(new URL(destination, request.url)),
+          contentSecurityPolicy,
+        )
+      }
+    } catch {
+      try {
+        const baseUrl = request.nextUrl.origin
+        const destination = await getUnconfiguredDestination(baseUrl)
+        return addSecurityHeaders(
+          NextResponse.redirect(new URL(destination, request.url)),
+          contentSecurityPolicy,
+        )
+      } catch {
+        return addSecurityHeaders(
+          NextResponse.redirect(new URL('/activate', request.url)),
+          contentSecurityPolicy,
+        )
+      }
+    }
+
+    return continueRequest()
+  }
+
+  if (pathname.startsWith('/api')) {
+    const origin = request.headers.get('origin')
+
+    if (origin) {
+      const requestHost = request.headers.get('host') || ''
+      let originHost: string
+
+      try {
+        originHost = new URL(origin).host
+      } catch {
+        return addSecurityHeaders(
+          new NextResponse(JSON.stringify({ error: 'Invalid origin' }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+          contentSecurityPolicy,
+        )
+      }
+
+      if (originHost !== requestHost) {
+        return addSecurityHeaders(
+          new NextResponse(JSON.stringify({ error: 'Cross-origin requests are not allowed' }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+          contentSecurityPolicy,
+        )
+      }
+    }
+
+    return continueRequest()
+  }
+
+  return continueRequest()
 }
 
 export const config = {

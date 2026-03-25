@@ -26,6 +26,21 @@ import {
   Package,
   UsersRound,
   Workflow,
+  Archive,
+  Camera,
+  Sparkles,
+  PieChart,
+  History,
+  BookMarked,
+  Tags,
+  KeyRound,
+  Award,
+  FileBarChart,
+  Keyboard,
+  ClipboardList,
+  ScrollText,
+  GitCompare,
+  TrendingUp,
 } from 'lucide-react'
 
 const mainNav = [
@@ -33,13 +48,19 @@ const mainNav = [
   { name: 'Operations', href: '/operations', icon: Clapperboard },
   { name: 'Agents', href: '/agents', icon: Users },
   { name: 'Chat', href: '/chat', icon: MessageSquare },
+  { name: 'Replay', href: '/replay', icon: History },
   { name: 'Plugins', href: '/plugins', icon: Package },
   { name: 'Skills', href: '/skills', icon: Shield },
+  { name: 'Presets', href: '/presets', icon: Sparkles },
   { name: 'Workflows', href: '/workflows', icon: Workflow },
 ]
 
 const monitorNav = [
   { name: 'Costs', href: '/costs', icon: DollarSign },
+  { name: 'Analytics', href: '/analytics', icon: PieChart },
+  { name: 'Benchmarks', href: '/benchmarks', icon: Award },
+  { name: 'Compare', href: '/cost-compare', icon: GitCompare },
+  { name: 'Forecast', href: '/forecast', icon: TrendingUp },
   { name: 'API Usage', href: '/api-usage', icon: BarChart3 },
   { name: 'Instances', href: '/instances', icon: Globe },
   { name: 'Alerts', href: '/alerts', icon: BellRing },
@@ -53,6 +74,15 @@ const workspaceNav = [
   { name: 'Workshop', href: '/workshop', icon: Wrench },
   { name: 'Clients', href: '/clients', icon: Briefcase },
   { name: 'Cron Jobs', href: '/cron-jobs', icon: Clock },
+  { name: 'Prompts', href: '/prompts', icon: BookMarked },
+  { name: 'Cost Tags', href: '/cost-tags', icon: Tags },
+  { name: 'Key Vault', href: '/vault', icon: KeyRound },
+  { name: 'Reports', href: '/reports', icon: FileBarChart },
+  { name: 'Webhooks', href: '/webhooks', icon: Workflow },
+  { name: 'Snapshots', href: '/snapshots', icon: Camera },
+  { name: 'Backup', href: '/backup', icon: Archive },
+  { name: 'Shortcuts', href: '/shortcuts', icon: Keyboard },
+  { name: 'Audit Log', href: '/audit', icon: ScrollText },
 ]
 
 function NavSection({ label, items }: { label: string; items: typeof mainNav }) {
