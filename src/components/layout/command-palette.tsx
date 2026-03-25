@@ -75,6 +75,8 @@ const PAGE_ITEMS: SearchItem[] = [
   { id: 'reports', title: 'Scheduled Reports', subtitle: 'Automated cost and usage reports', href: '/reports', icon: <FileText className="w-4 h-4" />, category: 'page', keywords: ['report', 'schedule', 'export', 'csv', 'json', 'automated'] },
   { id: 'shortcuts', title: 'Keyboard Shortcuts', subtitle: 'Customize key bindings', href: '/shortcuts', icon: <Settings className="w-4 h-4" />, category: 'page', keywords: ['keyboard', 'shortcut', 'keybind', 'hotkey', 'remap'] },
   { id: 'audit', title: 'Audit Log', subtitle: 'Track all changes and actions', href: '/audit', icon: <FileText className="w-4 h-4" />, category: 'page', keywords: ['audit', 'log', 'history', 'change', 'track', 'who'] },
+  { id: 'cost-compare', title: 'Cost Comparison', subtitle: 'Compare model costs across providers', href: '/cost-compare', icon: <DollarSign className="w-4 h-4" />, category: 'page', keywords: ['compare', 'provider', 'cost', 'model', 'anthropic', 'openai', 'google', 'deepseek'] },
+  { id: 'forecast', title: 'Usage Forecast', subtitle: 'Projected spending and recommendations', href: '/forecast', icon: <BarChart3 className="w-4 h-4" />, category: 'page', keywords: ['forecast', 'projection', 'budget', 'recommendation', 'savings', 'predict'] },
 ]
 
 export function CommandPalette() {

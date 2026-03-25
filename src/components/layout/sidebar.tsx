@@ -39,6 +39,8 @@ import {
   Keyboard,
   ClipboardList,
   ScrollText,
+  GitCompare,
+  TrendingUp,
 } from 'lucide-react'
 
 const mainNav = [
@@ -57,6 +59,8 @@ const monitorNav = [
   { name: 'Costs', href: '/costs', icon: DollarSign },
   { name: 'Analytics', href: '/analytics', icon: PieChart },
   { name: 'Benchmarks', href: '/benchmarks', icon: Award },
+  { name: 'Compare', href: '/cost-compare', icon: GitCompare },
+  { name: 'Forecast', href: '/forecast', icon: TrendingUp },
   { name: 'API Usage', href: '/api-usage', icon: BarChart3 },
   { name: 'Instances', href: '/instances', icon: Globe },
   { name: 'Alerts', href: '/alerts', icon: BellRing },
