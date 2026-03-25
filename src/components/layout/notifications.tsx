@@ -244,6 +244,34 @@ export function Notifications() {
         }
       } catch {}
 
+      // Persistent notifications from the notification store
+      try {
+        const persistRes = await fetch('/api/notifications', { cache: 'no-store' })
+        if (persistRes.ok) {
+          const persistData = await persistRes.json()
+          for (const pn of (persistData.notifications || []).slice(0, 10)) {
+            // Avoid duplicates with smart alerts
+            if (nextNotifications.some(n => n.title === pn.title && n.message === pn.message)) continue
+            nextNotifications.push({
+              id: `persist-${pn.id}`,
+              type: pn.type === 'budget' ? 'warning' : pn.type === 'alert' ? 'warning' : 'info',
+              title: pn.title,
+              message: pn.message,
+              timestamp: new Date(pn.timestamp),
+              read: pn.read,
+              icon: pn.type === 'budget'
+                ? <DollarSign className="w-4 h-4 text-red-400" />
+                : pn.type === 'alert'
+                ? <AlertTriangle className="w-4 h-4 text-amber-400" />
+                : pn.type === 'webhook'
+                ? <Zap className="w-4 h-4 text-violet-400" />
+                : <Info className="w-4 h-4 text-sky-400" />,
+              ...(pn.href ? { actionLabel: 'View', onAction: () => navigateTo(pn.href) } : {}),
+            })
+          }
+        }
+      } catch {}
+
       try {
         const updateStatus = await electronAPI?.updaterStatus?.()
         const updateMessage = formatUpdaterMessage(updateStatus)
