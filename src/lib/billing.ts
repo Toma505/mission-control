@@ -449,6 +449,7 @@ export interface StripeCheckoutSessionLike {
   payment_status?: string | null
   payment_intent?: string | null
   customer?: string | null
+  created?: number | null
   amount_total?: number | null
   currency?: string | null
   customer_details?: {
@@ -510,6 +511,108 @@ export async function fulfillStripeCheckoutSession(session: StripeCheckoutSessio
     refundedAt: existing?.refundedAt || null,
     refundReason: existing?.refundReason || null,
     refundNotes: existing?.refundNotes || null,
+  }
+
+  await upsertLicenseOrder(order)
+  return order
+}
+
+async function listRecentStripeCheckoutSessions(limit = 100) {
+  const safeLimit = Math.min(Math.max(limit, 1), 100)
+  const stripeResponse = await fetch(`https://api.stripe.com/v1/checkout/sessions?limit=${safeLimit}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${getStripeSecretKey()}`,
+    },
+    cache: 'no-store',
+  })
+
+  const text = await stripeResponse.text()
+  if (!stripeResponse.ok) {
+    throw new Error(`Failed to list Stripe checkout sessions: ${text.slice(0, 200)}`)
+  }
+
+  const payload = JSON.parse(text) as { data?: StripeCheckoutSessionLike[] }
+  return Array.isArray(payload.data) ? payload.data : []
+}
+
+export async function recoverMissingStripeLicenseOrder(input: {
+  licenseKey: string
+  email: string
+}) {
+  const normalizedEmail = normalizeEmail(input.email)
+  const normalizedLicenseKey = input.licenseKey.trim().toUpperCase()
+  if (!normalizedEmail || !normalizedLicenseKey) return null
+
+  const sessions = await listRecentStripeCheckoutSessions()
+  const matchingSessions = sessions
+    .filter((session) => {
+      const sessionEmail = normalizeEmail(session.customer_details?.email || session.customer_email || '')
+      const planId = session.metadata?.planId || ''
+      const product = session.metadata?.product || ''
+      return (
+        session.payment_status === 'paid' &&
+        sessionEmail === normalizedEmail &&
+        product === 'mission-control' &&
+        !!getBillingPlan(planId)
+      )
+    })
+    .sort((left, right) => (right.created || 0) - (left.created || 0))
+
+  const recoverableSessions: StripeCheckoutSessionLike[] = []
+  for (const session of matchingSessions) {
+    const existingOrder = await findLicenseOrderBySessionId(session.id)
+    if (existingOrder) {
+      if ((existingOrder.licenseKey || '').toUpperCase() === normalizedLicenseKey) {
+        return existingOrder
+      }
+      continue
+    }
+
+    recoverableSessions.push(session)
+  }
+
+  if (recoverableSessions.length !== 1) {
+    return null
+  }
+
+  const session = recoverableSessions[0]
+  const plan = getBillingPlan(session.metadata?.planId || '')
+  if (!plan) return null
+
+  const fulfilledAtDate = session.created ? new Date(session.created * 1000) : new Date()
+  const fulfilledAt = fulfilledAtDate.toISOString()
+  const order: LicenseOrder = {
+    id: `order_${session.id}`,
+    provider: 'stripe',
+    status: 'fulfilled',
+    planId: plan.id,
+    planName: plan.name,
+    machineLimit: plan.machineLimit,
+    updateExpiresAt: computeUpdatesExpiry(fulfilledAtDate),
+    licenseControlStatus: 'active',
+    revokedAt: null,
+    revocationReason: null,
+    email: normalizedEmail,
+    licenseKey: normalizedLicenseKey,
+    successAccessToken: generateSuccessAccessToken(),
+    activations: [],
+    stripeSessionId: session.id,
+    stripePaymentIntentId: session.payment_intent || null,
+    stripeCustomerId: session.customer || null,
+    amountTotal: session.amount_total ?? null,
+    currency: session.currency ?? null,
+    customerName: session.customer_details?.name || null,
+    downloadUrl: getMissionControlDownloadUrl(),
+    emailDeliveryStatus: 'pending',
+    emailDeliverySentAt: null,
+    emailDeliveryError: null,
+    createdAt: fulfilledAt,
+    updatedAt: fulfilledAt,
+    fulfilledAt,
+    refundedAt: null,
+    refundReason: null,
+    refundNotes: null,
   }
 
   await upsertLicenseOrder(order)
@@ -626,7 +729,13 @@ export async function activateLicenseRegistration(input: {
   arch?: string | null
   appVersion?: string | null
 }): Promise<LicenseActivationResult> {
-  const order = await findLicenseOrderByKey(input.licenseKey)
+  let order = await findLicenseOrderByKey(input.licenseKey)
+  if (!order) {
+    order = await recoverMissingStripeLicenseOrder({
+      licenseKey: input.licenseKey,
+      email: input.email,
+    })
+  }
   if (!order) return buildLicenseControlError('not_found')
   if (order.status === 'refunded') return buildLicenseControlError('refunded', order)
   if (!order.licenseKey || order.status !== 'fulfilled') return buildLicenseControlError('not_fulfilled', order)

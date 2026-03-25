@@ -20,7 +20,6 @@ import {
 import { sanitizeError } from '@/lib/sanitize-error'
 
 const LICENSE_INVALIDATION_CODES = new Set([
-  'not_found',
   'email_mismatch',
   'not_fulfilled',
   'refunded',
@@ -133,7 +132,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!data.leaseValidUntil) {
-      if (data.code === 'not_registered') {
+      if (data.code === 'not_registered' || data.code === 'not_found') {
         const bootstrapped = await bootstrapLegacyLicenseLease(localLicense)
         if (bootstrapped?.ok) {
           return NextResponse.json({
