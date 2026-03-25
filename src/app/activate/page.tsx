@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation'
 import { Key, Loader2, CheckCircle2, AlertCircle, Zap } from 'lucide-react'
 import { FramelessPageChrome } from '@/components/layout/frameless-page-chrome'
 
+const LICENSE_KEY_PATTERN = /^MC(?:-[A-Z0-9]{5}){4}$/
+const LICENSE_KEY_MAX_LENGTH = 26
+
 export default function ActivatePage() {
   const router = useRouter()
   const pricingUrl = process.env.NEXT_PUBLIC_MISSION_CONTROL_PRICING_URL || 'https://orqpilot.com/pricing/'
@@ -42,6 +45,8 @@ export default function ActivatePage() {
     }
     setLicenseKey(formatted)
   }
+
+  const isLicenseKeyComplete = LICENSE_KEY_PATTERN.test(licenseKey)
 
   async function activate() {
     setActivating(true)
@@ -111,7 +116,7 @@ export default function ActivatePage() {
                 onChange={e => handleKeyChange(e.target.value)}
                 placeholder="MC-XXXXX-XXXXX-XXXXX-XXXXX"
                 className="w-full pl-10 pr-3 py-2.5 rounded-lg glass-inset text-text-primary text-sm font-mono placeholder:text-text-muted/50 focus:outline-none focus:ring-1"
-                maxLength={24}
+                maxLength={LICENSE_KEY_MAX_LENGTH}
               />
             </div>
           </div>
@@ -137,7 +142,7 @@ export default function ActivatePage() {
 
           <button
             onClick={activate}
-            disabled={licenseKey.length < 24 || !email || activating}
+            disabled={!isLicenseKeyComplete || !email || activating}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ background: 'var(--accent-primary)' }}
           >
