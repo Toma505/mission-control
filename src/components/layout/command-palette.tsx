@@ -62,6 +62,7 @@ const PAGE_ITEMS: SearchItem[] = [
   { id: 'clients', title: 'Clients', subtitle: 'Integrations', href: '/clients', icon: <Briefcase className="w-4 h-4" />, category: 'page', keywords: ['discord', 'channels', 'integrations'] },
   { id: 'cron-jobs', title: 'Cron Jobs', subtitle: 'Scheduled tasks', href: '/cron-jobs', icon: <Clock className="w-4 h-4" />, category: 'page', keywords: ['schedule', 'cron', 'timer', 'automated'] },
   { id: 'weekly-recaps', title: 'Weekly Recaps', subtitle: 'Activity summaries', href: '/weekly-recaps', icon: <Calendar className="w-4 h-4" />, category: 'page', keywords: ['recap', 'summary', 'weekly'] },
+  { id: 'webhooks', title: 'Webhooks', subtitle: 'Slack, Discord, and HTTP integrations', href: '/webhooks', icon: <Plug className="w-4 h-4" />, category: 'page', keywords: ['webhook', 'slack', 'discord', 'integration', 'notify', 'pagerduty'] },
   { id: 'snapshots', title: 'Config Snapshots', subtitle: 'Save and restore configurations', href: '/snapshots', icon: <Shield className="w-4 h-4" />, category: 'page', keywords: ['snapshot', 'config', 'save', 'restore', 'budget', 'mode'] },
   { id: 'backup', title: 'Backup & Restore', subtitle: 'Export or import data', href: '/backup', icon: <Shield className="w-4 h-4" />, category: 'page', keywords: ['backup', 'restore', 'export', 'import', 'data'] },
 ]

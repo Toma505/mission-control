@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { fireWebhooks } from '@/app/api/webhooks/route'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { DATA_DIR, getEffectiveConfig } from '@/lib/connection-config'
@@ -164,6 +165,12 @@ export async function GET() {
 
     if (dirty) {
       await writeAlerts(config)
+
+      // Fire webhooks for triggered alerts (non-blocking)
+      for (const alert of triggered) {
+        const event = alert.ruleId.includes('budget') ? 'budget.exceeded' : 'alert.triggered'
+        fireWebhooks(event, `${alert.ruleName}: ${alert.message}`).catch(() => {})
+      }
     }
 
     return NextResponse.json({ triggered, metrics })

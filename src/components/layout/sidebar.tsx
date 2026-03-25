@@ -55,6 +55,7 @@ const workspaceNav = [
   { name: 'Workshop', href: '/workshop', icon: Wrench },
   { name: 'Clients', href: '/clients', icon: Briefcase },
   { name: 'Cron Jobs', href: '/cron-jobs', icon: Clock },
+  { name: 'Webhooks', href: '/webhooks', icon: Workflow },
   { name: 'Snapshots', href: '/snapshots', icon: Camera },
   { name: 'Backup', href: '/backup', icon: Archive },
 ]
