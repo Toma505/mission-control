@@ -261,6 +261,16 @@ export function Notifications() {
               await electronAPI?.updaterDownload?.()
             },
           })
+        } else if (updateStatus?.status === 'downloading' && updateMessage) {
+          nextNotifications.push({
+            id: 'desktop-update-downloading',
+            type: 'info',
+            title: 'Downloading desktop update',
+            message: updateMessage,
+            timestamp: new Date(),
+            read: false,
+            icon: <Download className="w-4 h-4 text-sky-400" />,
+          })
         } else if (updateStatus?.status === 'downloaded' && updateMessage) {
           nextNotifications.push({
             id: 'desktop-update-downloaded',

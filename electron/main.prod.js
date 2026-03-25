@@ -283,6 +283,77 @@ autoUpdater.autoDownload = false
 autoUpdater.autoInstallOnAppQuit = true
 
 let updateStatus = { status: 'idle', info: null, error: null, progress: null }
+let manualUpdateCheckRequested = false
+let manualUpdateDownloadRequested = false
+
+function getUpdaterCacheDir() {
+  if (process.platform !== 'win32') return null
+
+  const localAppData = process.env.LOCALAPPDATA
+  if (!localAppData) return null
+
+  return path.join(localAppData, 'mission-control-updater')
+}
+
+function clearWindowsUpdaterCache() {
+  const updaterCacheDir = getUpdaterCacheDir()
+  if (!updaterCacheDir) return
+
+  try {
+    fs.rmSync(path.join(updaterCacheDir, 'installer.exe'), { force: true })
+  } catch {}
+
+  try {
+    fs.rmSync(path.join(updaterCacheDir, 'pending'), { recursive: true, force: true })
+  } catch {}
+}
+
+function requestUpdateCheck({ manual = false } = {}) {
+  if (!app.isPackaged) {
+    return { status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null }
+  }
+
+  if (manual) manualUpdateCheckRequested = true
+  autoUpdater.checkForUpdates()
+  return updateStatus
+}
+
+async function startUpdateDownload({ manual = false } = {}) {
+  if (!app.isPackaged) {
+    return { status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null }
+  }
+
+  if (manual) manualUpdateDownloadRequested = true
+
+  clearWindowsUpdaterCache()
+
+  updateStatus = {
+    ...updateStatus,
+    status: 'downloading',
+    error: null,
+    progress: updateStatus.progress || { percent: 0 },
+  }
+  mainWindow?.webContents.send('update-status', updateStatus)
+
+  if (manual) {
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Downloading Update',
+      message: 'Mission Control is downloading the update in the background.',
+      detail: 'Keep using the app normally. You will be prompted to restart when the update is ready.',
+      buttons: ['OK'],
+      defaultId: 0,
+    }).catch(() => {})
+  }
+
+  try {
+    await autoUpdater.downloadUpdate()
+  } catch (err) {
+    throw err
+  }
+
+  return updateStatus
+}
 
 function setupAutoUpdater() {
   autoUpdater.on('checking-for-update', () => {
@@ -293,6 +364,7 @@ function setupAutoUpdater() {
   autoUpdater.on('update-available', (info) => {
     updateStatus = { status: 'available', info, error: null, progress: null }
     mainWindow?.webContents.send('update-status', updateStatus)
+    manualUpdateCheckRequested = false
 
     dialog.showMessageBox(mainWindow, {
       type: 'info',
@@ -302,13 +374,29 @@ function setupAutoUpdater() {
       buttons: ['Download', 'Later'],
       defaultId: 0,
     }).then(({ response }) => {
-      if (response === 0) autoUpdater.downloadUpdate()
+      if (response === 0) {
+        void startUpdateDownload({ manual: true }).catch((err) => {
+          updateStatus = { status: 'error', info: null, error: err.message, progress: null }
+          mainWindow?.webContents.send('update-status', updateStatus)
+        })
+      }
     })
   })
 
   autoUpdater.on('update-not-available', (info) => {
     updateStatus = { status: 'up-to-date', info, error: null, progress: null }
     mainWindow?.webContents.send('update-status', updateStatus)
+
+    if (manualUpdateCheckRequested) {
+      manualUpdateCheckRequested = false
+      dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        title: 'Mission Control is Up to Date',
+        message: `You already have the latest version${info?.version ? ` (${info.version})` : ''}.`,
+        buttons: ['OK'],
+        defaultId: 0,
+      }).catch(() => {})
+    }
   })
 
   autoUpdater.on('download-progress', (progress) => {
@@ -319,6 +407,8 @@ function setupAutoUpdater() {
   autoUpdater.on('update-downloaded', (info) => {
     updateStatus = { status: 'downloaded', info, error: null, progress: null }
     mainWindow?.webContents.send('update-status', updateStatus)
+    manualUpdateCheckRequested = false
+    manualUpdateDownloadRequested = false
 
     dialog.showMessageBox(mainWindow, {
       type: 'info',
@@ -338,18 +428,28 @@ function setupAutoUpdater() {
   autoUpdater.on('error', (err) => {
     updateStatus = { status: 'error', info: null, error: err.message, progress: null }
     mainWindow?.webContents.send('update-status', updateStatus)
+    manualUpdateDownloadRequested = false
+
+    if (manualUpdateCheckRequested) {
+      manualUpdateCheckRequested = false
+      dialog.showMessageBox(mainWindow, {
+        type: 'error',
+        title: 'Update Check Failed',
+        message: 'Mission Control could not check for updates.',
+        detail: err.message,
+        buttons: ['OK'],
+        defaultId: 0,
+      }).catch(() => {})
+    }
   })
 }
 
 ipcMain.handle('updater-check', () => {
-  if (!app.isPackaged) return { status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null }
-  autoUpdater.checkForUpdates()
-  return updateStatus
+  return requestUpdateCheck({ manual: true })
 })
 
 ipcMain.handle('updater-download', () => {
-  autoUpdater.downloadUpdate()
-  return updateStatus
+  return startUpdateDownload({ manual: true })
 })
 
 ipcMain.handle('updater-install', () => {
@@ -562,7 +662,7 @@ async function refreshTrayMenu() {
     {
       label: 'Check for Updates...',
       click: () => {
-        if (app.isPackaged) autoUpdater.checkForUpdates()
+        if (app.isPackaged) requestUpdateCheck({ manual: true })
         else dialog.showMessageBox(mainWindow, { type: 'info', title: 'Updates', message: 'Updates are disabled in development mode.' })
       },
     },
@@ -821,7 +921,7 @@ app.on('ready', async () => {
   setupAutoUpdater()
   if (app.isPackaged) {
     // Delay initial check to let the app finish loading
-    setTimeout(() => autoUpdater.checkForUpdates(), 5000)
+    setTimeout(() => requestUpdateCheck({ manual: false }), 5000)
   }
 })
 
