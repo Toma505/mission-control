@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { mkdir, readFile, writeFile } from 'fs/promises'
+import path from 'path'
 import { sanitizeError } from '@/lib/sanitize-error'
 import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
 import { isConfigured, runCommand, getOpenClawPlugins } from '@/lib/openclaw'
-import { getEffectiveConfig } from '@/lib/connection-config'
+import { DATA_DIR } from '@/lib/connection-config'
 
 /**
  * Plugin Marketplace API.
  *
- * GET  — list installed plugins + available marketplace plugins
- * POST — install, uninstall, or update a plugin
+ * GET  - list installed plugins + available marketplace plugins
+ * POST - install, uninstall, or update a plugin
  */
 
 interface MarketplacePlugin {
@@ -18,10 +20,11 @@ interface MarketplacePlugin {
   author: string
   version: string
   category: string
-  downloads: number
-  rating: number
   tags: string[]
   homepage?: string
+  npmPackage?: string
+  downloads?: number
+  rating?: number
   installed: boolean
   installedVersion?: string
   hasUpdate: boolean
@@ -34,9 +37,25 @@ interface InstalledPlugin {
   description?: string
 }
 
-// Known OpenClaw plugins from the ecosystem
-// In production, this would come from a real marketplace API
-const MARKETPLACE_CATALOG: Omit<MarketplacePlugin, 'installed' | 'installedVersion' | 'hasUpdate'>[] = [
+interface PluginCatalogEntry {
+  id: string
+  name: string
+  description: string
+  author: string
+  version: string
+  category: string
+  tags: string[]
+  homepage?: string
+  npmPackage?: string
+  downloads?: number
+  rating?: number
+}
+
+const CATALOG_FILE = path.join(DATA_DIR, 'plugin-catalog.json')
+
+// No public OpenClaw marketplace API is available yet, so seed a catalog in
+// DATA_DIR/plugin-catalog.json and let operators edit it without code changes.
+const DEFAULT_PLUGIN_CATALOG: PluginCatalogEntry[] = [
   {
     id: 'security-scanner',
     name: 'Security Scanner',
@@ -44,20 +63,16 @@ const MARKETPLACE_CATALOG: Omit<MarketplacePlugin, 'installed' | 'installedVersi
     author: 'OpenClaw',
     version: '1.2.0',
     category: 'security',
-    downloads: 2840,
-    rating: 4.8,
     tags: ['security', 'scanning', 'safety'],
     homepage: 'https://github.com/openclaw/plugin-security-scanner',
   },
   {
     id: 'cost-optimizer',
     name: 'Cost Optimizer',
-    description: 'Automatically routes requests to the cheapest model that meets quality thresholds. Saves 20-40% on average.',
+    description: 'Automatically routes requests to the cheapest model that meets quality thresholds.',
     author: 'OpenClaw',
     version: '2.0.1',
     category: 'cost',
-    downloads: 1950,
-    rating: 4.6,
     tags: ['cost', 'optimization', 'routing'],
     homepage: 'https://github.com/openclaw/plugin-cost-optimizer',
   },
@@ -68,43 +83,35 @@ const MARKETPLACE_CATALOG: Omit<MarketplacePlugin, 'installed' | 'installedVersi
     author: 'OpenClaw',
     version: '1.0.3',
     category: 'ops',
-    downloads: 1200,
-    rating: 4.5,
     tags: ['rate-limit', 'throttle', 'queue'],
     homepage: 'https://github.com/openclaw/plugin-rate-limiter',
   },
   {
     id: 'output-logger',
     name: 'Output Logger',
-    description: 'Structured logging of all agent inputs and outputs. Supports file, SQLite, and webhook destinations.',
+    description: 'Structured logging of agent inputs and outputs with file, SQLite, and webhook destinations.',
     author: 'OpenClaw',
     version: '1.1.0',
     category: 'ops',
-    downloads: 980,
-    rating: 4.3,
     tags: ['logging', 'audit', 'observability'],
     homepage: 'https://github.com/openclaw/plugin-output-logger',
   },
   {
     id: 'discord-notifications',
     name: 'Discord Notifications',
-    description: 'Send agent events, alerts, and task completions directly to a Discord channel via webhooks.',
+    description: 'Send agent events, alerts, and task completions directly to Discord via webhooks.',
     author: 'Community',
     version: '1.0.0',
     category: 'integration',
-    downloads: 750,
-    rating: 4.2,
     tags: ['discord', 'notifications', 'webhook'],
   },
   {
     id: 'slack-integration',
     name: 'Slack Integration',
-    description: 'Bidirectional Slack integration — control agents from Slack and receive status updates in channels.',
+    description: 'Bidirectional Slack integration for status updates and lightweight control flows.',
     author: 'Community',
     version: '0.9.2',
     category: 'integration',
-    downloads: 620,
-    rating: 4.0,
     tags: ['slack', 'integration', 'chat'],
   },
   {
@@ -114,170 +121,265 @@ const MARKETPLACE_CATALOG: Omit<MarketplacePlugin, 'installed' | 'installedVersi
     author: 'OpenClaw',
     version: '1.3.0',
     category: 'ops',
-    downloads: 540,
-    rating: 4.7,
     tags: ['backup', 'storage', 's3'],
     homepage: 'https://github.com/openclaw/plugin-auto-backup',
   },
   {
     id: 'content-filter',
     name: 'Content Filter',
-    description: 'Customizable content filtering with allowlists, blocklists, and regex patterns for agent outputs.',
+    description: 'Allowlist, blocklist, and regex filtering for generated agent output.',
     author: 'OpenClaw',
     version: '1.0.1',
     category: 'security',
-    downloads: 430,
-    rating: 4.1,
     tags: ['filter', 'moderation', 'safety'],
     homepage: 'https://github.com/openclaw/plugin-content-filter',
   },
   {
     id: 'webhook-relay',
     name: 'Webhook Relay',
-    description: 'Forward agent events to any HTTP endpoint. Supports retries, batching, and signature verification.',
+    description: 'Forward agent events to external HTTP endpoints with retry and signature support.',
     author: 'Community',
     version: '1.1.1',
     category: 'integration',
-    downloads: 380,
-    rating: 4.4,
     tags: ['webhook', 'events', 'relay'],
   },
   {
     id: 'model-benchmark',
     name: 'Model Benchmark',
-    description: 'Run automated quality benchmarks across models. Compare latency, accuracy, and cost per task type.',
+    description: 'Run automated quality benchmarks across models to compare latency, accuracy, and cost.',
     author: 'Community',
     version: '0.8.0',
     category: 'dev',
-    downloads: 290,
-    rating: 3.9,
     tags: ['benchmark', 'testing', 'quality'],
   },
   {
     id: 'prompt-cache',
     name: 'Prompt Cache',
-    description: 'Intelligent caching layer for repeated prompts. Reduces API calls by 30-60% for predictable workloads.',
+    description: 'Reduce repeated prompt costs with an intelligent caching layer for predictable workloads.',
     author: 'OpenClaw',
     version: '1.0.0',
     category: 'cost',
-    downloads: 850,
-    rating: 4.5,
     tags: ['cache', 'optimization', 'performance'],
     homepage: 'https://github.com/openclaw/plugin-prompt-cache',
   },
   {
     id: 'memory-manager',
     name: 'Memory Manager',
-    description: 'Long-term memory for agents with vector storage, semantic search, and automatic context injection.',
+    description: 'Long-term memory for agents with vector storage and automatic context injection.',
     author: 'OpenClaw',
     version: '2.1.0',
     category: 'dev',
-    downloads: 1100,
-    rating: 4.7,
     tags: ['memory', 'context', 'vector'],
     homepage: 'https://github.com/openclaw/plugin-memory-manager',
   },
 ]
 
-function parseInstalledPlugins(raw: string): InstalledPlugin[] {
-  const plugins: InstalledPlugin[] = []
+function normalizePluginKey(value: string): string {
+  return value.trim().toLowerCase().replace(/^@/, '').replace(/\s+/g, '-')
+}
 
-  // Try table format: │ name │ version │ enabled │
-  const tableRows = raw.match(/│\s*(\S+)\s*│\s*(\S+)\s*│\s*(\S+)\s*│/g)
-  if (tableRows) {
-    for (const row of tableRows) {
-      const match = row.match(/│\s*(\S+)\s*│\s*(\S+)\s*│\s*(\S+)\s*│/)
-      if (match && match[1] !== 'name' && match[1] !== '─') {
-        plugins.push({
-          name: match[1],
-          version: match[2],
-          enabled: match[3] !== 'false' && match[3] !== 'disabled',
-        })
-      }
-    }
-    if (plugins.length > 0) return plugins
+function canonicalizeInstalledPluginName(value: string): string | null {
+  const trimmed = value.trim()
+  if (!trimmed) return null
+
+  const stockMatch = trimmed.match(/^stock:([a-z0-9-]+)(?:\/index\.ts)?$/i)
+  if (stockMatch) {
+    return stockMatch[1].toLowerCase()
   }
 
-  // Try list format: - plugin-name@1.0.0 (enabled)
-  const listRegex = /[-•]\s*(\S+?)(?:@(\S+))?\s*(?:\((\w+)\))?/g
-  let m
-  while ((m = listRegex.exec(raw)) !== null) {
-    plugins.push({
-      name: m[1],
-      version: m[2] || 'unknown',
-      enabled: m[3] !== 'disabled',
+  const scopedMatch = trimmed.match(/^@[^/]+\/([a-z0-9-]+)$/i)
+  if (scopedMatch) {
+    return scopedMatch[1].toLowerCase()
+  }
+
+  if (/[\\/_-]$/.test(trimmed)) return null
+
+  const cleaned = trimmed.replace(/[,:;]+$/, '')
+  if (!cleaned || cleaned !== cleaned.toLowerCase()) return null
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(cleaned)) return null
+
+  return cleaned
+}
+
+function titleCaseFromId(value: string): string {
+  return value
+    .split(/[-_/]/g)
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+async function readCatalog(): Promise<PluginCatalogEntry[]> {
+  try {
+    const text = await readFile(CATALOG_FILE, 'utf-8')
+    const parsed = JSON.parse(text)
+    return Array.isArray(parsed) ? parsed : DEFAULT_PLUGIN_CATALOG
+  } catch {
+    await mkdir(path.dirname(CATALOG_FILE), { recursive: true })
+    await writeFile(CATALOG_FILE, JSON.stringify(DEFAULT_PLUGIN_CATALOG, null, 2))
+    return DEFAULT_PLUGIN_CATALOG
+  }
+}
+
+function findCatalogMatch(catalog: PluginCatalogEntry[], pluginName: string) {
+  const normalized = normalizePluginKey(pluginName)
+  return catalog.find(entry => {
+    const keys = [entry.id, entry.name, entry.npmPackage].filter(Boolean) as string[]
+    return keys.some(key => normalizePluginKey(key) === normalized)
+  })
+}
+
+function looksLikeVersion(value: string): boolean {
+  return /\d+\.\d+/.test(value) || value === 'unknown'
+}
+
+function finalizeParsedPlugins(plugins: InstalledPlugin[]): InstalledPlugin[] {
+  const ignored = new Set(['name', 'id', 'version', 'enabled', 'disabled'])
+  const deduped = new Map<string, InstalledPlugin>()
+
+  for (const plugin of plugins) {
+    const canonicalName = canonicalizeInstalledPluginName(plugin.name)
+    if (!canonicalName) continue
+
+    const normalized = normalizePluginKey(canonicalName)
+    if (ignored.has(normalized)) continue
+    if (deduped.has(normalized)) continue
+
+    deduped.set(normalized, {
+      ...plugin,
+      name: canonicalName,
+      version: plugin.version || 'unknown',
     })
   }
 
-  // Try line-by-line
-  if (plugins.length === 0) {
-    const lines = raw.split('\n').filter(l => l.trim() && !l.startsWith('─') && !l.startsWith('='))
-    for (const line of lines) {
-      const trimmed = line.trim()
-      if (trimmed && !trimmed.toLowerCase().includes('plugin') && !trimmed.toLowerCase().includes('no ')) {
-        const parts = trimmed.split(/[\s@]+/)
-        plugins.push({
-          name: parts[0],
-          version: parts[1] || 'unknown',
-          enabled: true,
-        })
-      }
-    }
+  return [...deduped.values()]
+}
+
+function parseInstalledPlugins(raw: string): InstalledPlugin[] {
+  const plugins: InstalledPlugin[] = []
+
+  for (const line of raw.split('\n')) {
+    if (!/[|]/.test(line) && !line.includes('│')) continue
+
+    const columns = line
+      .split(/[|│]/)
+      .map(part => part.trim())
+      .filter(Boolean)
+
+    if (columns.length < 5) continue
+    if (/^name$/i.test(columns[0]) && /^id$/i.test(columns[1])) continue
+
+    const sourceColumn = columns[3]
+    const idColumn = columns[1]
+    const pluginName = canonicalizeInstalledPluginName(sourceColumn) || canonicalizeInstalledPluginName(idColumn)
+    if (!pluginName) continue
+
+    const versionColumn = looksLikeVersion(columns[4]) ? columns[4] : 'unknown'
+    const enabledColumn = columns[2] || 'enabled'
+
+    plugins.push({
+      name: pluginName,
+      version: versionColumn,
+      enabled: /loaded|enabled|true/i.test(enabledColumn),
+    })
   }
 
-  return plugins
+  if (plugins.length > 0) {
+    return finalizeParsedPlugins(plugins)
+  }
+
+  const listRegex = /[-•]\s*(\S+?)(?:@(\S+))?\s*(?:\((\w+)\))?/g
+  let match: RegExpExecArray | null
+  while ((match = listRegex.exec(raw)) !== null) {
+    plugins.push({
+      name: match[1],
+      version: match[2] || 'unknown',
+      enabled: match[3] !== 'disabled',
+    })
+  }
+
+  if (plugins.length > 0) {
+    return finalizeParsedPlugins(plugins)
+  }
+
+  const lines = raw
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line && !line.startsWith('─') && !line.startsWith('='))
+
+  for (const line of lines) {
+    const tokens = line.split(/\s+/)
+    const nameToken = tokens.find(token => canonicalizeInstalledPluginName(token))
+    if (!nameToken) continue
+
+    const versionToken = tokens.find(token => looksLikeVersion(token)) || 'unknown'
+    plugins.push({
+      name: nameToken,
+      version: versionToken,
+      enabled: !tokens.some(token => /disabled|false/i.test(token)),
+    })
+  }
+
+  return finalizeParsedPlugins(plugins)
 }
 
 export async function GET() {
   try {
+    const catalog = await readCatalog()
+
     if (!(await isConfigured())) {
       return NextResponse.json({
         installed: [],
-        marketplace: MARKETPLACE_CATALOG.map(p => ({
-          ...p,
+        marketplace: catalog.map(entry => ({
+          ...entry,
           installed: false,
           hasUpdate: false,
         })),
-        categories: [...new Set(MARKETPLACE_CATALOG.map(p => p.category))],
+        categories: [...new Set(catalog.map(entry => entry.category))],
       })
     }
 
-    // Get installed plugins from OpenClaw
     let installed: InstalledPlugin[] = []
     try {
       const raw = await getOpenClawPlugins()
       installed = parseInstalledPlugins(raw)
     } catch {
-      // OpenClaw might not support plugin listing — continue with empty
+      installed = []
     }
 
-    const installedNames = new Set(installed.map(p => p.name.toLowerCase()))
-
-    // Merge installed status with marketplace catalog
-    const marketplace: MarketplacePlugin[] = MARKETPLACE_CATALOG.map(mp => {
-      const inst = installed.find(ip =>
-        ip.name.toLowerCase() === mp.id ||
-        ip.name.toLowerCase() === mp.name.toLowerCase().replace(/\s+/g, '-')
-      )
+    const marketplace: MarketplacePlugin[] = catalog.map(entry => {
+      const installedPlugin = installed.find(plugin => findCatalogMatch([entry], plugin.name))
 
       return {
-        ...mp,
-        installed: !!inst,
-        installedVersion: inst?.version,
-        hasUpdate: inst ? inst.version !== mp.version : false,
+        ...entry,
+        installed: !!installedPlugin,
+        installedVersion: installedPlugin?.version,
+        hasUpdate: installedPlugin ? installedPlugin.version !== entry.version : false,
       }
     })
 
+    const uncataloguedInstalled = installed
+      .filter(plugin => !findCatalogMatch(catalog, plugin.name))
+      .map<MarketplacePlugin>(plugin => ({
+        id: plugin.name,
+        name: titleCaseFromId(plugin.name),
+        description: 'Installed plugin discovered from OpenClaw. Add it to plugin-catalog.json to enrich its metadata.',
+        author: 'Installed',
+        version: plugin.version,
+        category: 'installed',
+        tags: ['installed'],
+        installed: true,
+        installedVersion: plugin.version,
+        hasUpdate: false,
+      }))
+
     return NextResponse.json({
-      installed: installed.map(p => ({
-        ...p,
-        marketplaceMatch: MARKETPLACE_CATALOG.find(mp =>
-          mp.id === p.name.toLowerCase() ||
-          mp.name.toLowerCase().replace(/\s+/g, '-') === p.name.toLowerCase()
-        ),
+      installed: installed.map(plugin => ({
+        ...plugin,
+        marketplaceMatch: findCatalogMatch(catalog, plugin.name),
       })),
-      marketplace,
-      categories: [...new Set(MARKETPLACE_CATALOG.map(p => p.category))],
+      marketplace: [...marketplace, ...uncataloguedInstalled],
+      categories: [...new Set([...catalog.map(entry => entry.category), ...uncataloguedInstalled.map(entry => entry.category)])],
     })
   } catch (error) {
     return NextResponse.json(

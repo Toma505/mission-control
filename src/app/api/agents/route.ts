@@ -9,9 +9,40 @@ import {
   parseStatusOutput,
 } from '@/lib/openclaw'
 
+const DEMO_AGENT_DATA = {
+  connected: false,
+  demo: true,
+  agents: [
+    {
+      name: 'default',
+      model: 'claude-sonnet-4',
+      description: 'Main conversational agent',
+      enabled: true,
+    },
+    {
+      name: 'scout',
+      model: 'deepseek-chat-v3',
+      description: 'Research and topic discovery',
+      enabled: true,
+    },
+    {
+      name: 'editor',
+      model: 'claude-sonnet-4',
+      description: 'Script editing and polish',
+      enabled: true,
+    },
+  ],
+  sessions: [
+    { key: 'agent:default:main', age: '2h ago' },
+    { key: 'agent:scout:pipeline', age: '45m ago' },
+  ],
+  agentInfo: '3 agents configured',
+  memory: '512MB',
+}
+
 export async function GET() {
   if (!(await isConfigured())) {
-    return NextResponse.json({ connected: false, agents: [], sessions: [] })
+    return NextResponse.json(DEMO_AGENT_DATA)
   }
 
   try {
@@ -67,12 +98,16 @@ export async function GET() {
 
     return NextResponse.json({
       connected: true,
+      demo: false,
       agents,
       sessions,
       agentInfo: status.agents,
       memory: status.memory,
     })
   } catch (error) {
-    return NextResponse.json({ connected: false, error: sanitizeError(error, 'Could not fetch agent data'), agents: [], sessions: [] })
+    return NextResponse.json({
+      ...DEMO_AGENT_DATA,
+      error: sanitizeError(error, 'Could not fetch agent data'),
+    })
   }
 }

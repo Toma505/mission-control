@@ -83,6 +83,7 @@ export function SessionReplay() {
   const [selectedSession, setSelectedSession] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'assistant'>('all')
+  const [demoMode, setDemoMode] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -97,6 +98,7 @@ export function SessionReplay() {
         setError(data.error)
         return
       }
+      setDemoMode(!!data.demo)
       const sessionList: SessionWithMessages[] = (data.sessions || []).map((s: SessionInfo) => ({
         ...s,
         messages: [],
@@ -135,6 +137,9 @@ export function SessionReplay() {
       .then(r => r.json())
       .then(data => {
         const messages: Message[] = data.messages || []
+        if (typeof data.demo === 'boolean') {
+          setDemoMode(data.demo)
+        }
         const totalText = messages.map(m => m.content).join('')
         setSessions(prev => prev.map(s =>
           s.key === selectedSession
@@ -272,6 +277,11 @@ export function SessionReplay() {
       <div className="flex-1 glass rounded-2xl flex flex-col overflow-hidden">
         {/* Toolbar */}
         <div className="p-4 border-b border-[var(--glass-border)]">
+          {demoMode && (
+            <div className="mb-3 rounded-xl border border-amber-400/20 bg-amber-400/5 px-3 py-2">
+              <p className="text-xs font-medium text-amber-200">Demo data — connect OpenClaw to replay live sessions.</p>
+            </div>
+          )}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-accent-primary" />

@@ -25,36 +25,81 @@ async function setupFetch(path: string, options?: RequestInit): Promise<Response
   })
 }
 
-export async function GET(request: NextRequest) {
-  if (!(await isConfigured())) {
-    return NextResponse.json({ error: 'Not configured' }, { status: 503 })
-  }
+const DEMO_SESSIONS = [
+  { key: 'agent:default:main', agent: 'default', age: '2h ago', status: 'active' },
+  { key: 'agent:scout:research', agent: 'scout', age: '5h ago', status: 'idle' },
+]
 
+const DEMO_HISTORY: Record<string, { role: 'user' | 'assistant' | 'system'; content: string }[]> = {
+  'agent:default:main': [
+    { role: 'user', content: "Research trending AI topics for this week's video" },
+    {
+      role: 'assistant',
+      content: "I found 5 trending topics:\n\n1. **Claude 4 release** — Anthropic's latest model with extended thinking\n2. **OpenAI Codex CLI** — New terminal-based coding agent\n3. **Google Gemini 2.5 Flash** — Fast and cheap multimodal model\n4. **Local LLMs hitting GPT-4 level** — Llama 3.3 benchmarks\n5. **AI agent frameworks** — CrewAI vs LangGraph comparison\n\nShall I draft outlines for any of these?",
+    },
+    { role: 'user', content: 'Draft an outline for topic 1' },
+    {
+      role: 'assistant',
+      content: "Here's a script outline for 'Claude 4 Release':\n\n**Hook:** \"Anthropic just mass-deployed a model that thinks before it speaks\"\n\n**Section 1: What changed**\n- Extended thinking (chain-of-thought visible)\n- 200k context window\n- Tool use improvements\n\n**Section 2: Real-world testing**\n- Coding benchmarks vs GPT-4o\n- Cost comparison ($3/MTok vs $15/MTok)\n- Speed test results\n\n**Section 3: Who should switch**\n- Best for: complex reasoning, long documents\n- Skip if: simple tasks, budget-constrained\n\n**CTA:** Link to OpenRouter for testing",
+    },
+  ],
+}
+
+const DEMO_SESSION_KEYS = new Set([
+  ...DEMO_SESSIONS.map(session => session.key),
+  ...Object.keys(DEMO_HISTORY),
+])
+
+function demoSessionsResponse() {
+  return NextResponse.json({
+    sessions: DEMO_SESSIONS,
+    demo: true,
+  })
+}
+
+function demoHistoryResponse(sessionKey: string) {
+  return NextResponse.json({
+    messages: DEMO_HISTORY[sessionKey] || [],
+    demo: true,
+  })
+}
+
+export async function GET(request: NextRequest) {
   const action = request.nextUrl.searchParams.get('action') || 'sessions'
   const sessionKey = request.nextUrl.searchParams.get('session') || ''
+  const configured = await isConfigured()
+
+  if (!configured) {
+    if (action === 'sessions') return demoSessionsResponse()
+    if (action === 'history' && sessionKey) return demoHistoryResponse(sessionKey)
+    return NextResponse.json({ error: 'Not configured' }, { status: 503 })
+  }
 
   try {
     if (action === 'sessions') {
       // List all active sessions
       const result = await runCommand('openclaw.sessions')
       if (!result.ok) {
-        return NextResponse.json({ sessions: [], raw: result.error || 'Could not list sessions' })
+        return demoSessionsResponse()
       }
 
       // Parse session list from output
       const sessions = parseSessionList(result.output || '')
-      return NextResponse.json({ sessions, raw: result.output })
+      return NextResponse.json({ sessions, raw: result.output, demo: false })
     }
 
     if (action === 'history' && sessionKey) {
       // Get chat history for a specific session
       const result = await runCommand('openclaw.sessions.history', sessionKey)
       if (!result.ok) {
-        return NextResponse.json({ messages: [], raw: result.error || 'Could not fetch history' })
+        if (DEMO_SESSION_KEYS.has(sessionKey)) {
+          return demoHistoryResponse(sessionKey)
+        }
+        return NextResponse.json({ messages: [], raw: result.error || 'Could not fetch history', demo: false })
       }
 
       const messages = parseMessages(result.output || '')
-      return NextResponse.json({ messages, raw: result.output })
+      return NextResponse.json({ messages, raw: result.output, demo: false })
     }
 
     if (action === 'status') {
