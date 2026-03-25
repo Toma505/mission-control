@@ -28,7 +28,12 @@ jobs:
 
       - name: Build Windows artifacts
         env:
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          # Code signing — set WIN_CSC_LINK and WIN_CSC_KEY_PASSWORD as
+          # GitHub repo secrets once the OV certificate (.pfx) is acquired.
+          # Until then, builds are unsigned but functional.
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.WIN_CSC_LINK != '' && 'true' || 'false' }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
           MC_LICENSE_SECRET: ${{ secrets.MC_LICENSE_SECRET }}
         run: |
           npm run prepare:icon
