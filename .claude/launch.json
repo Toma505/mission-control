@@ -14,10 +14,10 @@
       "port": 5555
     },
     {
-      "name": "MC Website",
+      "name": "OrqPilot Website",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "C:/Users/tomas/mission-control/website", "-l", "4200"],
-      "port": 4200
+      "runtimeArgs": ["serve", "website", "-l", "4201", "-s"],
+      "port": 4201
     }
   ]
 }
