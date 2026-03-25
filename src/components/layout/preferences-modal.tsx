@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { X, Monitor, Moon, Sun, RotateCcw, Palette, Type, Gauge, Layout, Zap, Plug, CheckCircle2, XCircle, ExternalLink } from 'lucide-react'
-import { useSettings, Theme, AccentColor, FontSize, RefreshInterval } from '@/contexts/settings-context'
+import { useSettings, Theme, AccentColor, FontSize, RefreshInterval, ThemeSchedule } from '@/contexts/settings-context'
 
 interface Props {
   open: boolean
@@ -194,6 +194,85 @@ export function PreferencesModal({ open, onClose }: Props) {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Theme Schedule */}
+              <div>
+                <ToggleSetting
+                  label="Auto Theme Schedule"
+                  description="Automatically switch between light and dark themes by time of day"
+                  checked={settings.themeSchedule?.enabled ?? false}
+                  onChange={v => updateSetting('themeSchedule', { ...settings.themeSchedule, enabled: v })}
+                />
+                {settings.themeSchedule?.enabled && (
+                  <div className="mt-3 space-y-3 pl-1">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] block mb-1">Day theme at</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="time"
+                            value={settings.themeSchedule.lightStart}
+                            onChange={e => updateSetting('themeSchedule', { ...settings.themeSchedule, lightStart: e.target.value })}
+                            className="flex-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg px-2.5 py-1.5 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-primary,#3b82f6)]/50"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] block mb-1">Night theme at</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="time"
+                            value={settings.themeSchedule.darkStart}
+                            onChange={e => updateSetting('themeSchedule', { ...settings.themeSchedule, darkStart: e.target.value })}
+                            className="flex-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg px-2.5 py-1.5 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-primary,#3b82f6)]/50"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] block mb-1">Day theme</label>
+                        <div className="flex gap-1.5">
+                          {THEMES.map(t => (
+                            <button
+                              key={t.value}
+                              onClick={() => updateSetting('themeSchedule', { ...settings.themeSchedule, lightTheme: t.value })}
+                              className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-medium border transition-all ${
+                                settings.themeSchedule.lightTheme === t.value
+                                  ? 'border-[var(--accent-primary,#3b82f6)] bg-[var(--accent-primary,#3b82f6)]/10 text-[var(--text-primary)]'
+                                  : 'border-[var(--glass-border)] text-[var(--text-muted)] hover:border-[var(--text-muted)]'
+                              }`}
+                            >
+                              {t.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] block mb-1">Night theme</label>
+                        <div className="flex gap-1.5">
+                          {THEMES.map(t => (
+                            <button
+                              key={t.value}
+                              onClick={() => updateSetting('themeSchedule', { ...settings.themeSchedule, darkTheme: t.value })}
+                              className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-medium border transition-all ${
+                                settings.themeSchedule.darkTheme === t.value
+                                  ? 'border-[var(--accent-primary,#3b82f6)] bg-[var(--accent-primary,#3b82f6)]/10 text-[var(--text-primary)]'
+                                  : 'border-[var(--glass-border)] text-[var(--text-muted)] hover:border-[var(--text-muted)]'
+                              }`}
+                            >
+                              {t.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-[var(--text-muted)]">
+                      {settings.themeSchedule.lightTheme} from {settings.themeSchedule.lightStart} &middot; {settings.themeSchedule.darkTheme} from {settings.themeSchedule.darkStart}
+                    </p>
+                  </div>
+                )}
               </div>
             </>
           )}

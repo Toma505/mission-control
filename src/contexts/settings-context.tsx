@@ -8,6 +8,14 @@ export type SidebarPosition = 'left' | 'right'
 export type FontSize = 'small' | 'medium' | 'large'
 export type RefreshInterval = 15 | 30 | 60 | 120
 
+export interface ThemeSchedule {
+  enabled: boolean
+  lightTheme: Theme
+  darkTheme: Theme
+  lightStart: string // "HH:MM" e.g. "07:00"
+  darkStart: string  // "HH:MM" e.g. "19:00"
+}
+
 export interface Settings {
   theme: Theme
   accentColor: AccentColor
@@ -17,6 +25,7 @@ export interface Settings {
   refreshInterval: RefreshInterval
   animationsEnabled: boolean
   compactMode: boolean
+  themeSchedule: ThemeSchedule
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -28,6 +37,13 @@ const DEFAULT_SETTINGS: Settings = {
   refreshInterval: 30,
   animationsEnabled: true,
   compactMode: false,
+  themeSchedule: {
+    enabled: false,
+    lightTheme: 'light',
+    darkTheme: 'dark',
+    lightStart: '07:00',
+    darkStart: '19:00',
+  },
 }
 
 interface SettingsContextType {
@@ -168,6 +184,34 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     // Scrollbar styling for light mode
     root.dataset.theme = settings.theme
   }, [settings, mounted])
+
+  // Theme schedule: auto-switch based on time of day
+  useEffect(() => {
+    if (!mounted || !settings.themeSchedule?.enabled) return
+
+    function checkSchedule() {
+      const { lightStart, darkStart, lightTheme, darkTheme } = settings.themeSchedule
+      const now = new Date()
+      const mins = now.getHours() * 60 + now.getMinutes()
+      const [lh, lm] = lightStart.split(':').map(Number)
+      const [dh, dm] = darkStart.split(':').map(Number)
+      const lightMins = lh * 60 + lm
+      const darkMins = dh * 60 + dm
+
+      const shouldBeLight = lightMins < darkMins
+        ? mins >= lightMins && mins < darkMins
+        : mins >= lightMins || mins < darkMins
+
+      const target = shouldBeLight ? lightTheme : darkTheme
+      if (target !== settings.theme) {
+        updateSetting('theme', target)
+      }
+    }
+
+    checkSchedule()
+    const interval = setInterval(checkSchedule, 60_000)
+    return () => clearInterval(interval)
+  }, [mounted, settings.themeSchedule]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [saveWarning, setSaveWarning] = useState(false)
 
