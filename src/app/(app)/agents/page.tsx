@@ -17,23 +17,23 @@ interface Session {
   age: string
 }
 
-async function getAgents(): Promise<{ connected: boolean; agents: Agent[]; sessions: Session[]; agentInfo: string; memory: string }> {
+async function getAgents(): Promise<{ connected: boolean; demo?: boolean; agents: Agent[]; sessions: Session[]; agentInfo: string; memory: string }> {
   const baseUrl = getAppBaseUrl()
   try {
     const res = await fetch(`${baseUrl}/api/agents`, { cache: 'no-store' })
-    if (!res.ok) return { connected: false, agents: [], sessions: [], agentInfo: '', memory: '' }
+    if (!res.ok) return { connected: false, demo: false, agents: [], sessions: [], agentInfo: '', memory: '' }
     return await res.json()
   } catch {
-    return { connected: false, agents: [], sessions: [], agentInfo: '', memory: '' }
+    return { connected: false, demo: false, agents: [], sessions: [], agentInfo: '', memory: '' }
   }
 }
 
 export default async function AgentsPage() {
-  const { connected, agents, sessions, agentInfo, memory } = await getAgents()
+  const { connected, demo, agents, sessions, agentInfo, memory } = await getAgents()
 
-  const hasData = connected && (agents.length > 0 || sessions.length > 0)
+  const hasData = agents.length > 0 || sessions.length > 0
 
-  if (!connected) {
+  if (!connected && !demo) {
     return (
       <div className="space-y-6">
         <div className="flex items-start justify-between gap-3">
@@ -61,16 +61,30 @@ export default async function AgentsPage() {
           <h1 className="text-3xl font-bold text-text-primary mb-2">Agents</h1>
           <p className="text-sm text-text-secondary">
             Manage and monitor your AI agents
-            {connected && (
+            {connected ? (
               <span className="ml-2 inline-flex items-center gap-1 text-xs text-status-active">
                 <span className="w-1.5 h-1.5 rounded-full bg-status-active animate-pulse" />
                 OpenClaw connected
               </span>
-            )}
+            ) : demo ? (
+              <span className="ml-2 inline-flex items-center gap-1 text-xs text-amber-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-300" />
+                Demo data
+              </span>
+            ) : null}
           </p>
         </div>
         <ExportButton type="usage" />
       </div>
+
+      {demo && (
+        <div className="glass rounded-2xl p-4 border border-amber-400/20 bg-amber-400/5">
+          <p className="text-sm font-medium text-amber-200">Demo data — connect OpenClaw to see live data.</p>
+          <p className="text-xs text-amber-100/70 mt-1">
+            Agent definitions, sessions, and memory stats below are sample data to preview the workspace.
+          </p>
+        </div>
+      )}
 
       {!hasData ? (
         <PageEmptyState
