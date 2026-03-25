@@ -6,7 +6,7 @@
  * Cross-platform: Windows, macOS, Linux.
  */
 
-const { app, BrowserWindow, Tray, Menu, shell, ipcMain, nativeImage, dialog, clipboard } = require('electron')
+const { app, BrowserWindow, Tray, Menu, shell, ipcMain, nativeImage, dialog, clipboard, Notification } = require('electron')
 const { fork, spawn } = require('child_process')
 const path = require('path')
 const net = require('net')
@@ -665,6 +665,102 @@ function killServer() {
 
   serverProcess = null
 }
+
+// ─── Notifications ──────────────────────────────────────────
+
+ipcMain.handle('show-notification', (_, { title, body, urgency }) => {
+  if (!Notification.isSupported()) return { ok: false, error: 'Notifications not supported' }
+
+  const notification = new Notification({
+    title: title || 'Mission Control',
+    body: body || '',
+    icon: getIconPath(),
+    urgency: urgency || 'normal', // low, normal, critical
+  })
+
+  notification.on('click', () => showMainWindow())
+  notification.show()
+  return { ok: true }
+})
+
+// ─── Backup & Restore ───────────────────────────────────────
+
+ipcMain.handle('create-backup', async () => {
+  const dataDir = getDataDir()
+  const archiver = require('archiver') // not available — use manual zip approach
+
+  // Collect all data files
+  const files = {}
+  try {
+    const entries = fs.readdirSync(dataDir)
+    for (const entry of entries) {
+      const fullPath = path.join(dataDir, entry)
+      const stat = fs.statSync(fullPath)
+      if (stat.isFile()) {
+        files[entry] = fs.readFileSync(fullPath, 'utf-8')
+      }
+    }
+  } catch {}
+
+  // Include desktop settings and license
+  try { files['_desktop-settings.json'] = fs.readFileSync(DESKTOP_SETTINGS_FILE, 'utf-8') } catch {}
+  try { files['_license.json'] = fs.readFileSync(LICENSE_FILE, 'utf-8') } catch {}
+
+  const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+    title: 'Save Mission Control Backup',
+    defaultPath: path.join(app.getPath('downloads'), `mission-control-backup-${new Date().toISOString().slice(0, 10)}.json`),
+    filters: [{ name: 'MC Backup', extensions: ['json'] }],
+  })
+
+  if (canceled || !filePath) return { ok: false, error: 'Cancelled' }
+
+  const backup = {
+    version: 1,
+    appVersion: app.getVersion(),
+    createdAt: new Date().toISOString(),
+    platform: process.platform,
+    files,
+  }
+
+  fs.writeFileSync(filePath, JSON.stringify(backup, null, 2))
+  return { ok: true, path: filePath, fileCount: Object.keys(files).length }
+})
+
+ipcMain.handle('restore-backup', async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+    title: 'Restore Mission Control Backup',
+    filters: [{ name: 'MC Backup', extensions: ['json'] }],
+    properties: ['openFile'],
+  })
+
+  if (canceled || !filePaths[0]) return { ok: false, error: 'Cancelled' }
+
+  try {
+    const backup = JSON.parse(fs.readFileSync(filePaths[0], 'utf-8'))
+    if (backup.version !== 1 || !backup.files) {
+      return { ok: false, error: 'Invalid backup file' }
+    }
+
+    const dataDir = getDataDir()
+    try { fs.mkdirSync(dataDir, { recursive: true }) } catch {}
+
+    let restored = 0
+    for (const [name, content] of Object.entries(backup.files)) {
+      if (name === '_desktop-settings.json') {
+        fs.writeFileSync(DESKTOP_SETTINGS_FILE, content)
+      } else if (name === '_license.json') {
+        fs.writeFileSync(LICENSE_FILE, content)
+      } else {
+        fs.writeFileSync(path.join(dataDir, name), content)
+      }
+      restored++
+    }
+
+    return { ok: true, restored, createdAt: backup.createdAt }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
+})
 
 // ─── Window Controls ────────────────────────────────────────
 

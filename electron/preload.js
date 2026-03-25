@@ -23,6 +23,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getCloseToTray: () => ipcRenderer.invoke('get-close-to-tray'),
   setCloseToTray: (enabled) => ipcRenderer.invoke('set-close-to-tray', enabled),
 
+  // Notifications
+  showNotification: (opts) => ipcRenderer.invoke('show-notification', opts),
+
+  // Backup & Restore
+  createBackup: () => ipcRenderer.invoke('create-backup'),
+  restoreBackup: () => ipcRenderer.invoke('restore-backup'),
+
   // Auto-updater
   updaterCheck: () => ipcRenderer.invoke('updater-check'),
   updaterDownload: () => ipcRenderer.invoke('updater-download'),
