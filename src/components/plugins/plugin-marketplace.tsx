@@ -7,7 +7,6 @@ import {
   Download,
   Trash2,
   RefreshCw,
-  Star,
   Shield,
   DollarSign,
   Wrench,
@@ -28,10 +27,11 @@ interface MarketplacePlugin {
   author: string
   version: string
   category: string
-  downloads: number
-  rating: number
+  downloads?: number
+  rating?: number
   tags: string[]
   homepage?: string
+  npmPackage?: string
   installed: boolean
   installedVersion?: string
   hasUpdate: boolean
@@ -168,6 +168,9 @@ export function PluginMarketplace() {
           </div>
           <p className="text-sm text-text-secondary mt-1">
             Browse, install, and manage OpenClaw plugins
+          </p>
+          <p className="text-xs text-text-muted mt-2">
+            Marketplace entries are loaded from your local plugin catalog so teams can curate the list without code changes.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -317,16 +320,19 @@ export function PluginMarketplace() {
                   ))}
                 </div>
 
-                {/* Stats + category badge */}
+                {/* Metadata + category badge */}
                 <div className="flex items-center gap-3 mb-4 text-[11px] text-text-muted">
-                  <span className="inline-flex items-center gap-1">
-                    <Download className="w-3 h-3" />
-                    {formatDownloads(plugin.downloads)}
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <Star className="w-3 h-3 text-amber-400" />
-                    {plugin.rating.toFixed(1)}
-                  </span>
+                  {typeof plugin.downloads === 'number' && plugin.downloads > 0 && (
+                    <span className="inline-flex items-center gap-1">
+                      <Download className="w-3 h-3" />
+                      {formatDownloads(plugin.downloads)}
+                    </span>
+                  )}
+                  {plugin.npmPackage && (
+                    <span className="truncate text-text-muted/70">
+                      {plugin.npmPackage}
+                    </span>
+                  )}
                   <span className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-medium border ${catColor}`}>
                     {CATEGORY_LABELS[plugin.category] || plugin.category}
                   </span>
