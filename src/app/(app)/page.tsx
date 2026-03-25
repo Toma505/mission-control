@@ -4,6 +4,7 @@ import { ActivityFeed } from '@/components/dashboard/activity-feed'
 import { QuickLinks } from '@/components/dashboard/quick-links'
 import { CostWidget } from '@/components/dashboard/bandwidth-widget'
 import { RefreshControl } from '@/components/dashboard/refresh-control'
+import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
 import { getAppBaseUrl } from '@/lib/app-url'
 
 async function getDashboardData() {
@@ -97,6 +98,9 @@ export default async function Home() {
           </Link>
         </div>
       )}
+
+      {/* Onboarding checklist (auto-hides when complete or dismissed) */}
+      <OnboardingChecklist />
 
       {/* Status cards row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
