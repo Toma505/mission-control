@@ -38,7 +38,6 @@ jobs:
         run: |
           npm run prepare:icon
           npm run build
-          npm run prepare:license
           npx electron-builder --win --publish never
 
       - name: Upload Windows artifacts
@@ -75,7 +74,6 @@ jobs:
         run: |
           npm run prepare:icon
           npm run build
-          npm run prepare:license
           npx electron-builder --mac --publish never
 
       - name: Upload macOS artifacts
@@ -123,7 +121,6 @@ jobs:
         run: |
           npm run prepare:icon
           npm run build
-          npm run prepare:license
           npx electron-builder --linux --publish never
 
       - name: Upload Linux artifacts
