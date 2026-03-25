@@ -31,6 +31,11 @@ import {
   Sparkles,
   PieChart,
   History,
+  BookMarked,
+  Tags,
+  KeyRound,
+  Award,
+  FileBarChart,
 } from 'lucide-react'
 
 const mainNav = [
@@ -48,6 +53,7 @@ const mainNav = [
 const monitorNav = [
   { name: 'Costs', href: '/costs', icon: DollarSign },
   { name: 'Analytics', href: '/analytics', icon: PieChart },
+  { name: 'Benchmarks', href: '/benchmarks', icon: Award },
   { name: 'API Usage', href: '/api-usage', icon: BarChart3 },
   { name: 'Instances', href: '/instances', icon: Globe },
   { name: 'Alerts', href: '/alerts', icon: BellRing },
@@ -61,6 +67,10 @@ const workspaceNav = [
   { name: 'Workshop', href: '/workshop', icon: Wrench },
   { name: 'Clients', href: '/clients', icon: Briefcase },
   { name: 'Cron Jobs', href: '/cron-jobs', icon: Clock },
+  { name: 'Prompts', href: '/prompts', icon: BookMarked },
+  { name: 'Cost Tags', href: '/cost-tags', icon: Tags },
+  { name: 'Key Vault', href: '/vault', icon: KeyRound },
+  { name: 'Reports', href: '/reports', icon: FileBarChart },
   { name: 'Webhooks', href: '/webhooks', icon: Workflow },
   { name: 'Snapshots', href: '/snapshots', icon: Camera },
   { name: 'Backup', href: '/backup', icon: Archive },
