@@ -84,7 +84,7 @@
           ]
         }
       ],
-      "signAndEditExecutable": false,
+      "signAndEditExecutable": true,
       "icon": "electron/icon.ico"
     },
     "nsis": {
