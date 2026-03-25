@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
       error?: string
       code?: string
       activationId?: string
+      licenseKey?: string
       leaseValidUntil?: string
     }
 
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     const now = new Date().toISOString()
     await writeLocalLicenseState({
-      key: key.toUpperCase(),
+      key: data.licenseKey?.trim().toUpperCase() || key.toUpperCase(),
       email,
       machineId: machine.machineId,
       machineName: machine.machineName,

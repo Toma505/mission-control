@@ -58,6 +58,7 @@ function buildTestOrder(recipient: string, planName: string, licenseKey: string)
     revocationReason: null,
     email: recipient,
     licenseKey,
+    licenseKeyAliases: [],
     successAccessToken: null,
     activations: [],
     stripeSessionId: `cs_test_${randomUUID().replace(/-/g, '')}`,
