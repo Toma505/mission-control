@@ -32,6 +32,10 @@ export function formatUpdaterMessage(status?: UpdaterStatus | null) {
       return 'Checking for updates...'
     case 'available':
       return status.info?.version ? `Update ${status.info.version} is available.` : 'An update is available.'
+    case 'downloading':
+      return status.progress?.percent
+        ? `Downloading update (${Math.round(status.progress.percent)}%).`
+        : 'Downloading update...'
     case 'up-to-date':
       return 'Mission Control is up to date.'
     case 'downloaded':
