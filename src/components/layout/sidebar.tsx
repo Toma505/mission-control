@@ -29,6 +29,7 @@ import {
   Archive,
   Camera,
   Sparkles,
+  PieChart,
 } from 'lucide-react'
 
 const mainNav = [
@@ -44,6 +45,7 @@ const mainNav = [
 
 const monitorNav = [
   { name: 'Costs', href: '/costs', icon: DollarSign },
+  { name: 'Analytics', href: '/analytics', icon: PieChart },
   { name: 'API Usage', href: '/api-usage', icon: BarChart3 },
   { name: 'Instances', href: '/instances', icon: Globe },
   { name: 'Alerts', href: '/alerts', icon: BellRing },

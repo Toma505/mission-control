@@ -53,6 +53,7 @@ const PAGE_ITEMS: SearchItem[] = [
   { id: 'operations', title: 'Operations', subtitle: 'Pipeline jobs and automation', href: '/operations', icon: <Clapperboard className="w-4 h-4" />, category: 'page', keywords: ['jobs', 'pipeline', 'real estate', 'video', 'automation'] },
   { id: 'agents', title: 'Agents', subtitle: 'Agent management', href: '/agents', icon: <Users className="w-4 h-4" />, category: 'page', keywords: ['bot', 'agent', 'sessions', 'model'] },
   { id: 'costs', title: 'Costs', subtitle: 'Infrastructure and spend', href: '/costs', icon: <DollarSign className="w-4 h-4" />, category: 'page', keywords: ['money', 'billing', 'railway', 'credits', 'spend'] },
+  { id: 'analytics', title: 'Usage Analytics', subtitle: 'Token usage, model costs, anomaly detection', href: '/analytics', icon: <BarChart3 className="w-4 h-4" />, category: 'page', keywords: ['analytics', 'tokens', 'model', 'breakdown', 'anomaly', 'usage'] },
   { id: 'api-usage', title: 'API Usage', subtitle: 'Token consumption', href: '/api-usage', icon: <BarChart3 className="w-4 h-4" />, category: 'page', keywords: ['tokens', 'openrouter', 'anthropic', 'usage'] },
   { id: 'skills', title: 'Skills', subtitle: 'Plugin security scanner', href: '/skills', icon: <Shield className="w-4 h-4" />, category: 'page', keywords: ['plugins', 'install', 'scan'] },
   { id: 'journal', title: 'Journal', subtitle: 'Activity logs', href: '/journal', icon: <BookOpen className="w-4 h-4" />, category: 'page', keywords: ['logs', 'activity', 'history'] },

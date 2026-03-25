@@ -624,14 +624,106 @@ async function createTray() {
   await refreshTrayMenu()
 }
 
+// Live tray status data (refreshed periodically)
+let trayStatus = { mode: 'unknown', dailySpend: null, connected: false }
+
+async function fetchTrayStatus() {
+  try {
+    const http = require('http')
+    const fetchLocal = (urlPath) => new Promise((resolve) => {
+      const req = http.get(`http://127.0.0.1:${PORT}${urlPath}`, {
+        headers: { 'x-mc-token': sessionToken },
+        timeout: 3000,
+      }, (res) => {
+        let data = ''
+        res.on('data', (chunk) => { data += chunk })
+        res.on('end', () => {
+          try { resolve(JSON.parse(data)) } catch { resolve(null) }
+        })
+      })
+      req.on('error', () => resolve(null))
+      req.on('timeout', () => { req.destroy(); resolve(null) })
+    })
+
+    const [mode, budget] = await Promise.all([
+      fetchLocal('/api/mode'),
+      fetchLocal('/api/budget'),
+    ])
+
+    trayStatus = {
+      mode: mode?.mode || 'unknown',
+      dailySpend: budget?.spend?.daily ?? null,
+      connected: mode?.connected || false,
+    }
+
+    // Update tooltip with live info
+    if (tray) {
+      const parts = ['Mission Control']
+      if (trayStatus.connected) {
+        parts.push(`Mode: ${trayStatus.mode}`)
+        if (trayStatus.dailySpend !== null) {
+          parts.push(`Today: $${Number(trayStatus.dailySpend).toFixed(2)}`)
+        }
+      } else {
+        parts.push('Disconnected')
+      }
+      tray.setToolTip(parts.join(' · '))
+    }
+  } catch {}
+}
+
+// Refresh tray status every 60 seconds
+let trayStatusInterval = null
+function startTrayStatusPolling() {
+  fetchTrayStatus()
+  if (trayStatusInterval) clearInterval(trayStatusInterval)
+  trayStatusInterval = setInterval(fetchTrayStatus, 60_000)
+}
+
 async function refreshTrayMenu() {
   if (!tray) return
 
   let autoLaunchEnabled = false
   try { autoLaunchEnabled = await autoLauncher.isEnabled() } catch {}
 
+  // Build status line for tray menu
+  const statusLabel = trayStatus.connected
+    ? `● ${trayStatus.mode} mode${trayStatus.dailySpend !== null ? ` · $${Number(trayStatus.dailySpend).toFixed(2)} today` : ''}`
+    : '○ Disconnected'
+
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Open Mission Control', click: () => showMainWindow() },
+    { type: 'separator' },
+    { label: statusLabel, enabled: false },
+    { type: 'separator' },
+    {
+      label: 'Quick: Switch to Budget Mode',
+      click: () => {
+        const http = require('http')
+        const postData = JSON.stringify({ mode: 'budget' })
+        const req = http.request({
+          hostname: '127.0.0.1', port: PORT, path: '/api/mode',
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-mc-token': sessionToken, 'Content-Length': Buffer.byteLength(postData) },
+        }, () => { fetchTrayStatus().then(refreshTrayMenu) })
+        req.write(postData)
+        req.end()
+      },
+    },
+    {
+      label: 'Quick: Switch to Best Mode',
+      click: () => {
+        const http = require('http')
+        const postData = JSON.stringify({ mode: 'best' })
+        const req = http.request({
+          hostname: '127.0.0.1', port: PORT, path: '/api/mode',
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-mc-token': sessionToken, 'Content-Length': Buffer.byteLength(postData) },
+        }, () => { fetchTrayStatus().then(refreshTrayMenu) })
+        req.write(postData)
+        req.end()
+      },
+    },
     { type: 'separator' },
     {
       label: 'Start on Login',
@@ -916,6 +1008,9 @@ app.on('ready', async () => {
   }
 
   createWindow()
+
+  // Start tray status polling now that server is ready
+  startTrayStatusPolling()
 
   // Auto-update: set up listeners and check for updates (packaged builds only)
   setupAutoUpdater()
