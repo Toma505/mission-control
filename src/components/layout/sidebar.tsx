@@ -30,6 +30,7 @@ import {
   Camera,
   Sparkles,
   PieChart,
+  History,
 } from 'lucide-react'
 
 const mainNav = [
@@ -37,6 +38,7 @@ const mainNav = [
   { name: 'Operations', href: '/operations', icon: Clapperboard },
   { name: 'Agents', href: '/agents', icon: Users },
   { name: 'Chat', href: '/chat', icon: MessageSquare },
+  { name: 'Replay', href: '/replay', icon: History },
   { name: 'Plugins', href: '/plugins', icon: Package },
   { name: 'Skills', href: '/skills', icon: Shield },
   { name: 'Presets', href: '/presets', icon: Sparkles },
