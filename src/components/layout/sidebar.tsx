@@ -28,6 +28,7 @@ import {
   Workflow,
   Archive,
   Camera,
+  Sparkles,
 } from 'lucide-react'
 
 const mainNav = [
@@ -37,6 +38,7 @@ const mainNav = [
   { name: 'Chat', href: '/chat', icon: MessageSquare },
   { name: 'Plugins', href: '/plugins', icon: Package },
   { name: 'Skills', href: '/skills', icon: Shield },
+  { name: 'Presets', href: '/presets', icon: Sparkles },
   { name: 'Workflows', href: '/workflows', icon: Workflow },
 ]
 
