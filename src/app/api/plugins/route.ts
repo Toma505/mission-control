@@ -287,6 +287,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Plugin ID is required' }, { status: 400 })
     }
 
+    function friendlyError(raw: string | undefined, fallback: string): string {
+      if (!raw) return fallback
+      if (/command not allowed|not.?allowed|forbidden/i.test(raw)) {
+        return 'Plugin management requires a fully connected OpenClaw instance. Check your connection settings.'
+      }
+      return raw
+    }
+
     switch (action) {
       case 'install': {
         const result = await runCommand('openclaw.plugins.install', pluginId)
@@ -294,7 +302,7 @@ export async function POST(request: NextRequest) {
           ok: result.ok,
           message: result.ok
             ? `Successfully installed ${pluginId}`
-            : result.error || `Failed to install ${pluginId}`,
+            : friendlyError(result.error, `Failed to install ${pluginId}`),
           output: result.output,
         })
       }
@@ -304,7 +312,7 @@ export async function POST(request: NextRequest) {
           ok: result.ok,
           message: result.ok
             ? `Successfully uninstalled ${pluginId}`
-            : result.error || `Failed to uninstall ${pluginId}`,
+            : friendlyError(result.error, `Failed to uninstall ${pluginId}`),
           output: result.output,
         })
       }
@@ -314,7 +322,7 @@ export async function POST(request: NextRequest) {
           ok: result.ok,
           message: result.ok
             ? `Successfully updated ${pluginId}`
-            : result.error || `Failed to update ${pluginId}`,
+            : friendlyError(result.error, `Failed to update ${pluginId}`),
           output: result.output,
         })
       }
@@ -324,7 +332,7 @@ export async function POST(request: NextRequest) {
           ok: result.ok,
           message: result.ok
             ? `Enabled ${pluginId}`
-            : result.error || `Failed to enable ${pluginId}`,
+            : friendlyError(result.error, `Failed to enable ${pluginId}`),
         })
       }
       case 'disable': {
@@ -333,7 +341,7 @@ export async function POST(request: NextRequest) {
           ok: result.ok,
           message: result.ok
             ? `Disabled ${pluginId}`
-            : result.error || `Failed to disable ${pluginId}`,
+            : friendlyError(result.error, `Failed to disable ${pluginId}`),
         })
       }
       default:
