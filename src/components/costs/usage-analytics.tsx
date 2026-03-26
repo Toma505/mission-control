@@ -98,7 +98,7 @@ export function UsageAnalytics() {
         let totalCost = 0
         const tokensByProvider: { provider: string; tokens: number; cost: number }[] = []
 
-        // OpenRouter models
+        // OpenRouter models (try .models first, fallback to aggregate data)
         if (costs?.openrouter?.models) {
           let orTokens = 0
           let orCost = 0
@@ -118,9 +118,21 @@ export function UsageAnalytics() {
           totalTokens += orTokens
           totalCost += orCost
           tokensByProvider.push({ provider: 'OpenRouter', tokens: orTokens, cost: orCost })
+        } else if (costs?.openrouter?.totalUsage) {
+          // Fallback: aggregate OpenRouter data without per-model breakdown
+          const orCost = costs.openrouter.totalUsage || 0
+          const estimatedTokens = Math.round(orCost / 0.0015 * 1000)
+          modelBreakdown.push({
+            model: 'deepseek/deepseek-chat-v3-0324',
+            cost: orCost,
+            tokens: estimatedTokens,
+          })
+          totalTokens += estimatedTokens
+          totalCost += orCost
+          tokensByProvider.push({ provider: 'OpenRouter', tokens: estimatedTokens, cost: orCost })
         }
 
-        // Anthropic models
+        // Anthropic models (try .models first, fallback to .anthropicCosts days)
         if (costs?.anthropic?.models) {
           let antTokens = 0
           let antCost = 0
@@ -138,6 +150,28 @@ export function UsageAnalytics() {
           totalTokens += antTokens
           totalCost += antCost
           tokensByProvider.push({ provider: 'Anthropic', tokens: antTokens, cost: antCost })
+        } else if (costs?.anthropicCosts?.days) {
+          // Fallback: build model breakdown from Anthropic daily data
+          const typeMap = new Map<string, number>()
+          let antCostTotal = 0
+          for (const day of costs.anthropicCosts.days) {
+            for (const b of (day.breakdown || [])) {
+              const prev = typeMap.get(b.type) || 0
+              typeMap.set(b.type, prev + (b.cost || 0))
+              antCostTotal += (b.cost || 0)
+            }
+          }
+          for (const [type, cost] of typeMap) {
+            const estimatedTokens = Math.round(cost / 0.003 * 1000)
+            modelBreakdown.push({
+              model: `claude-${type}`,
+              cost,
+              tokens: estimatedTokens,
+            })
+            totalTokens += estimatedTokens
+          }
+          totalCost += antCostTotal
+          tokensByProvider.push({ provider: 'Anthropic', tokens: totalTokens, cost: antCostTotal })
         }
 
         // Sort by cost descending
