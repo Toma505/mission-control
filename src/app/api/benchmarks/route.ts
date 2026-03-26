@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
-import { getEffectiveConfig } from '@/lib/connection-config'
+import { readFile } from 'fs/promises'
+import path from 'path'
+import { getEffectiveConfig, DATA_DIR } from '@/lib/connection-config'
 
 interface ModelBenchmark {
   model: string
@@ -47,6 +49,29 @@ export async function GET() {
               })
             }
           }
+        }
+      } catch {}
+    }
+
+    // If no benchmarks from OpenRouter, try local cost data
+    if (benchmarks.length === 0) {
+      try {
+        const orData = JSON.parse(await readFile(path.join(DATA_DIR, 'openrouter-costs.json'), 'utf-8'))
+        if (orData.days && Array.isArray(orData.days)) {
+          const totalCost = orData.days.reduce((s: number, d: any) => s + (d.total || 0), 0)
+          const model = orData.model || 'deepseek/deepseek-chat-v3-0324'
+          const estimatedTokens = Math.round(totalCost / 0.0015 * 1000) // rough estimate
+          grandTotalCost = totalCost
+          grandTotalTokens = estimatedTokens
+          benchmarks.push({
+            model,
+            provider: 'OpenRouter',
+            totalCost,
+            totalTokens: estimatedTokens,
+            costPerKTokens: estimatedTokens > 0 ? (totalCost / estimatedTokens) * 1000 : 0,
+            usageShare: 100,
+            efficiency: 'good',
+          })
         }
       } catch {}
     }

@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server'
+import { readFile } from 'fs/promises'
+import path from 'path'
 import { sanitizeError } from '@/lib/sanitize-error'
 import { isConfigured, getOpenClawConfig } from '@/lib/openclaw'
+import { DATA_DIR } from '@/lib/connection-config'
+
+async function readLocalClients() {
+  try {
+    const text = await readFile(path.join(DATA_DIR, 'clients.json'), 'utf-8')
+    const data = JSON.parse(text)
+    return Array.isArray(data) ? data : []
+  } catch { return [] }
+}
 
 export async function GET() {
   if (!(await isConfigured())) {
-    return NextResponse.json({ connected: false, clients: [] })
+    const clients = await readLocalClients()
+    return NextResponse.json({ connected: false, clients })
   }
 
   try {
@@ -29,8 +41,11 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({ connected: true, clients })
+    const localClients = await readLocalClients()
+    const finalClients = clients.length > localClients.length ? clients : localClients.length > 0 ? localClients : clients
+    return NextResponse.json({ connected: true, clients: finalClients })
   } catch (error) {
-    return NextResponse.json({ connected: false, error: sanitizeError(error, 'Could not fetch client data'), clients: [] })
+    const clients = await readLocalClients()
+    return NextResponse.json({ connected: false, error: sanitizeError(error, 'Could not fetch client data'), clients })
   }
 }

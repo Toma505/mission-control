@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server'
+import { readFile } from 'fs/promises'
+import path from 'path'
 import { sanitizeError } from '@/lib/sanitize-error'
 import { isConfigured, runCommand } from '@/lib/openclaw'
+import { DATA_DIR } from '@/lib/connection-config'
+
+async function readLocalDocs() {
+  try {
+    const text = await readFile(path.join(DATA_DIR, 'documents.json'), 'utf-8')
+    const data = JSON.parse(text)
+    return Array.isArray(data) ? data : []
+  } catch { return [] }
+}
 
 export async function GET() {
   if (!(await isConfigured())) {
-    return NextResponse.json({ connected: false, documents: [] })
+    const documents = await readLocalDocs()
+    return NextResponse.json({ connected: false, documents })
   }
 
   try {
@@ -31,8 +43,10 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({ connected: true, documents })
+    const finalDocs = documents.length > 0 ? documents : await readLocalDocs()
+    return NextResponse.json({ connected: true, documents: finalDocs })
   } catch (error) {
-    return NextResponse.json({ connected: false, error: sanitizeError(error, 'Could not fetch documents'), documents: [] })
+    const documents = await readLocalDocs()
+    return NextResponse.json({ connected: false, error: sanitizeError(error, 'Could not fetch documents'), documents })
   }
 }

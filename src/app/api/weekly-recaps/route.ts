@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server'
+import { readFile } from 'fs/promises'
+import path from 'path'
 import { sanitizeError } from '@/lib/sanitize-error'
 import { isConfigured, getOpenClawLogs, getOpenClawSystemStatus, parseStatusOutput } from '@/lib/openclaw'
+import { DATA_DIR } from '@/lib/connection-config'
+
+async function readLocalRecaps() {
+  try {
+    const text = await readFile(path.join(DATA_DIR, 'weekly-recaps.json'), 'utf-8')
+    const data = JSON.parse(text)
+    return Array.isArray(data) ? data : []
+  } catch { return [] }
+}
 
 export async function GET() {
   if (!(await isConfigured())) {
-    return NextResponse.json({ connected: false, recaps: [] })
+    const recaps = await readLocalRecaps()
+    return NextResponse.json({ connected: false, recaps })
   }
 
   try {
@@ -42,8 +54,10 @@ export async function GET() {
       })
     }
 
-    return NextResponse.json({ connected: true, recaps })
+    const finalRecaps = recaps.length > 0 ? recaps : await readLocalRecaps()
+    return NextResponse.json({ connected: true, recaps: finalRecaps })
   } catch (error) {
-    return NextResponse.json({ connected: false, error: sanitizeError(error, 'Could not fetch weekly recaps'), recaps: [] })
+    const recaps = await readLocalRecaps()
+    return NextResponse.json({ connected: false, error: sanitizeError(error, 'Could not fetch weekly recaps'), recaps })
   }
 }

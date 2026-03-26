@@ -108,9 +108,32 @@ const EMPTY_RESPONSE: OperationsResponse = {
 
 // ─── Route ───────────────────────────────────────────────────
 
+async function readLocalOps() {
+  try {
+    const { readFile } = await import('fs/promises')
+    const path = await import('path')
+    const { DATA_DIR } = await import('@/lib/connection-config')
+    const text = await readFile(path.join(DATA_DIR, 'operations.json'), 'utf-8')
+    const data = JSON.parse(text)
+    if (!Array.isArray(data)) return null
+    const jobs = data.map((op: any) => ({
+      id: op.id,
+      address: op.name,
+      costs: { scout: 0, editor: 0, narrator: 0, veo: 0, voiceover: 0, outreach: 0, total: op.cost || 0 },
+      status: { step: op.status === 'running' ? 'In Progress' : 'Done', status: op.status, startedAt: op.startedAt, completedSteps: [] },
+    }))
+    const totalSpent = jobs.reduce((s: number, j: any) => s + j.costs.total, 0)
+    return {
+      jobs,
+      summary: { totalJobs: jobs.length, completed: jobs.filter((j: any) => j.status.status === 'completed').length, totalSpent: Math.round(totalSpent * 100) / 100, avgCost: jobs.length > 0 ? Math.round(totalSpent / jobs.length * 100) / 100 : 0 },
+    }
+  } catch { return null }
+}
+
 export async function GET() {
   if (!(await isAppConfigured())) {
-    return NextResponse.json(EMPTY_RESPONSE)
+    const localData = await readLocalOps()
+    return NextResponse.json(localData || EMPTY_RESPONSE)
   }
 
   try {
@@ -121,8 +144,9 @@ export async function GET() {
         "ls /data/workspace/jobs 2>/dev/null || echo '[]'"
       )
     } catch {
-      // Directory doesn't exist yet — no jobs have run
-      return NextResponse.json(EMPTY_RESPONSE)
+      // Directory doesn't exist yet — fall back to local data
+      const localData = await readLocalOps()
+      return NextResponse.json(localData || EMPTY_RESPONSE)
     }
 
     // Parse directory listing — one entry per line, skip empty lines
@@ -134,7 +158,8 @@ export async function GET() {
       .filter((l) => l && l !== '[]' && SAFE_DIR_NAME.test(l))
 
     if (dirNames.length === 0) {
-      return NextResponse.json(EMPTY_RESPONSE)
+      const localData = await readLocalOps()
+      return NextResponse.json(localData || EMPTY_RESPONSE)
     }
 
     // 2. Fetch cost.json and status.json for every job in parallel
@@ -196,8 +221,8 @@ export async function GET() {
 
     return NextResponse.json(response)
   } catch (error) {
-    // If OpenClaw is unreachable or anything else fails, return empty
-    console.error('[operations] Failed to fetch jobs:', sanitizeError(error, 'unknown error'))
-    return NextResponse.json(EMPTY_RESPONSE)
+    // If OpenClaw is unreachable, fall back to local data
+    const localData = await readLocalOps()
+    return NextResponse.json(localData || EMPTY_RESPONSE)
   }
 }

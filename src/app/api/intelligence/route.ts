@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server'
+import { readFile } from 'fs/promises'
+import path from 'path'
 import { sanitizeError } from '@/lib/sanitize-error'
 import { isConfigured, runCommand } from '@/lib/openclaw'
+import { DATA_DIR } from '@/lib/connection-config'
+
+async function readLocalIntelligence() {
+  try {
+    const text = await readFile(path.join(DATA_DIR, 'intelligence.json'), 'utf-8')
+    const data = JSON.parse(text)
+    return Array.isArray(data) ? data : []
+  } catch { return [] }
+}
 
 export async function GET() {
   if (!(await isConfigured())) {
-    return NextResponse.json({ connected: false, memories: [] })
+    const insights = await readLocalIntelligence()
+    return NextResponse.json({ connected: false, memories: insights })
   }
 
   try {
@@ -28,8 +40,10 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({ connected: true, memories })
+    const finalMemories = memories.length > 0 ? memories : await readLocalIntelligence()
+    return NextResponse.json({ connected: true, memories: finalMemories })
   } catch (error) {
-    return NextResponse.json({ connected: false, error: sanitizeError(error, 'Could not fetch intelligence data'), memories: [] })
+    const memories = await readLocalIntelligence()
+    return NextResponse.json({ connected: false, error: sanitizeError(error, 'Could not fetch intelligence data'), memories })
   }
 }
