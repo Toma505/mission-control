@@ -2,14 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sanitizeError } from '@/lib/sanitize-error'
 import { isAuthorized, isTrustedLocalhostRequest, localOnlyResponse, unauthorizedResponse } from '@/lib/api-auth'
 import { validateExternalUrl } from '@/lib/url-validator'
-import { readConnectionConfig, writeConnectionConfig } from '@/lib/connection-config'
+import {
+  isConnectionConfigEncryptionAvailable,
+  readConnectionConfig,
+  writeConnectionConfig,
+} from '@/lib/connection-config'
 
 export async function GET(request: NextRequest) {
+  const encryptionAvailable = isConnectionConfigEncryptionAvailable()
+
   if (!isTrustedLocalhostRequest(request)) {
     return NextResponse.json({
       configured: false,
       source: 'public',
       openclawUrl: null,
+      encryptionAvailable,
     })
   }
 
@@ -22,6 +29,7 @@ export async function GET(request: NextRequest) {
       configured: envConfigured,
       source: envConfigured ? 'env' : 'none',
       openclawUrl: envConfigured ? process.env.OPENCLAW_API_URL : null,
+      encryptionAvailable,
     })
   }
 
@@ -31,6 +39,7 @@ export async function GET(request: NextRequest) {
     openclawUrl: config.openclawUrl,
     hasOpenrouterKey: !!config.openrouterApiKey,
     configuredAt: config.configuredAt,
+    encryptionAvailable,
   })
 }
 

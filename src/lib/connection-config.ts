@@ -5,9 +5,14 @@
  * MC_CONFIG_ENCRYPTION_KEY through the embedded server environment.
  */
 
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto'
+import { createCipheriv, createDecipheriv, randomBytes } from 'crypto'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
+import {
+  getEncryptionKeyBuffer,
+  isSecretEncryptionAvailable,
+  UNENCRYPTED_STORAGE_WARNING,
+} from '@/lib/secret-encryption'
 
 export interface ConnectionConfig {
   openclawUrl: string
@@ -31,6 +36,7 @@ interface PersistedConnectionConfig {
   setupPassword?: string
   openrouterApiKey?: string
   openrouterMgmtKey?: string
+  _warning?: string
 }
 
 interface ConnectionSecrets {
@@ -43,15 +49,9 @@ interface ConnectionSecrets {
 export const DATA_DIR = process.env.MC_DATA_DIR || join(process.cwd(), 'data')
 const CONFIG_PATH = join(DATA_DIR, 'connection.json')
 const CONFIG_VERSION = 2
-const CONFIG_ENCRYPTION_KEY = process.env.MC_CONFIG_ENCRYPTION_KEY || ''
 
 function stripBom(raw: string): string {
   return raw.replace(/^\uFEFF/, '')
-}
-
-function getEncryptionKeyBuffer(): Buffer | null {
-  if (!CONFIG_ENCRYPTION_KEY) return null
-  return createHash('sha256').update(CONFIG_ENCRYPTION_KEY).digest()
 }
 
 function encryptSecrets(secrets: ConnectionSecrets): EncryptedSecretsPayload | null {
@@ -166,6 +166,7 @@ export async function writeConnectionConfig(config: ConnectionConfig): Promise<v
   if (encryptedSecrets) {
     payload.encryptedSecrets = encryptedSecrets
   } else {
+    payload._warning = UNENCRYPTED_STORAGE_WARNING
     payload.setupPassword = config.setupPassword
     payload.openrouterApiKey = config.openrouterApiKey || ''
     payload.openrouterMgmtKey = config.openrouterMgmtKey || ''
@@ -197,4 +198,8 @@ export async function getEffectiveConfig(): Promise<{
 export async function isAppConfigured(): Promise<boolean> {
   const config = await getEffectiveConfig()
   return !!config.openclawUrl && !!config.setupPassword
+}
+
+export function isConnectionConfigEncryptionAvailable(): boolean {
+  return isSecretEncryptionAvailable()
 }
