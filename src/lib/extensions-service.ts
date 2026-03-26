@@ -69,6 +69,8 @@ function mergeCatalogEntry(
   entry: ExtensionCatalogEntry,
   installedPlugin?: InstalledExtensionRecord
 ): ExtensionRecord {
+  const isBundledOpenClawExtension = installedPlugin?.source === 'openclaw'
+
   return {
     id: entry.id,
     name: entry.name,
@@ -82,7 +84,10 @@ function mergeCatalogEntry(
     installed: !!installedPlugin,
     enabled: installedPlugin?.enabled ?? false,
     source: installedPlugin?.source ?? 'marketplace',
-    hasUpdate: installedPlugin ? installedPlugin.version !== entry.version : false,
+    hasUpdate:
+      installedPlugin && !isBundledOpenClawExtension
+        ? installedPlugin.version !== entry.version
+        : false,
     installedVersion: installedPlugin?.version,
   }
 }
