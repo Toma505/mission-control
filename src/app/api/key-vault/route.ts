@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { DATA_DIR } from '@/lib/connection-config'
-import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
+import { isAuthorized, isTrustedLocalhostRequest, localOnlyResponse, unauthorizedResponse } from '@/lib/api-auth'
 
 const VAULT_FILE = path.join(DATA_DIR, 'key-vault.json')
 
@@ -49,7 +49,10 @@ function detectProvider(key: string): string {
 }
 
 /** GET — list all keys (masked) */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!isTrustedLocalhostRequest(request)) return localOnlyResponse()
+  if (!isAuthorized(request)) return unauthorizedResponse()
+
   const keys = await readVault()
   // Never return the actual key
   const masked = keys.map(({ _key, ...rest }) => ({
@@ -61,6 +64,7 @@ export async function GET() {
 
 /** POST — add a new key */
 export async function POST(request: NextRequest) {
+  if (!isTrustedLocalhostRequest(request)) return localOnlyResponse()
   if (!isAuthorized(request)) return unauthorizedResponse()
 
   try {
@@ -106,6 +110,7 @@ export async function POST(request: NextRequest) {
 
 /** PATCH — toggle active, update name/notes, or rotate key */
 export async function PATCH(request: NextRequest) {
+  if (!isTrustedLocalhostRequest(request)) return localOnlyResponse()
   if (!isAuthorized(request)) return unauthorizedResponse()
 
   try {
@@ -136,6 +141,7 @@ export async function PATCH(request: NextRequest) {
 
 /** DELETE — remove a key */
 export async function DELETE(request: NextRequest) {
+  if (!isTrustedLocalhostRequest(request)) return localOnlyResponse()
   if (!isAuthorized(request)) return unauthorizedResponse()
 
   try {
