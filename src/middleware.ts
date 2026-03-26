@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+const LOCAL_API_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]'])
+const PUBLIC_API_ALLOWLIST = new Set([
+  '/api/commerce/checkout',
+  '/api/commerce/webhook',
+  '/api/license-control/activate',
+  '/api/license-control/validate',
+])
+
 function generateNonce() {
   const bytes = crypto.getRandomValues(new Uint8Array(16))
   let binary = ''
@@ -120,10 +128,27 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith('/api')) {
+    const requestHost = request.headers.get('x-forwarded-host') || request.headers.get('host') || ''
+    const normalizedHost = requestHost
+      .split(',')[0]
+      .trim()
+      .replace(/:\d+$/, '')
+      .toLowerCase()
+
+    if (!LOCAL_API_HOSTS.has(normalizedHost) && !PUBLIC_API_ALLOWLIST.has(pathname)) {
+      return addSecurityHeaders(
+        new NextResponse(JSON.stringify({ error: 'Not found' }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+        contentSecurityPolicy,
+      )
+    }
+
     const origin = request.headers.get('origin')
 
     if (origin) {
-      const requestHost = request.headers.get('host') || ''
+      const requestHostHeader = request.headers.get('host') || ''
       let originHost: string
 
       try {
@@ -138,7 +163,7 @@ export async function middleware(request: NextRequest) {
         )
       }
 
-      if (originHost !== requestHost) {
+      if (originHost !== requestHostHeader) {
         return addSecurityHeaders(
           new NextResponse(JSON.stringify({ error: 'Cross-origin requests are not allowed' }), {
             status: 403,

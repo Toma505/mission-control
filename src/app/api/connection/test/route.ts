@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
+import { isAuthorized, isTrustedLocalhostRequest, localOnlyResponse, unauthorizedResponse } from '@/lib/api-auth'
 import { validateExternalUrl } from '@/lib/url-validator'
 
 export async function POST(request: NextRequest) {
+  if (!isTrustedLocalhostRequest(request)) return localOnlyResponse()
   if (!isAuthorized(request)) return unauthorizedResponse()
 
   let body: { openclawUrl?: string; setupPassword?: string; openrouterApiKey?: string }

@@ -6,9 +6,13 @@
  * subsequent mutating API calls.
  */
 
-import { NextResponse } from 'next/server'
-import { getSessionToken } from '@/lib/api-auth'
+import { NextRequest, NextResponse } from 'next/server'
+import { getSessionToken, isTrustedLocalhostRequest, localOnlyResponse } from '@/lib/api-auth'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!isTrustedLocalhostRequest(request)) {
+    return localOnlyResponse()
+  }
+
   return NextResponse.json({ token: getSessionToken() })
 }

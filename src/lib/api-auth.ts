@@ -13,6 +13,8 @@
 import { NextRequest } from 'next/server'
 import { randomBytes } from 'crypto'
 
+const TRUSTED_LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]'])
+
 // ─── Session token ─────────────────────────────────────────
 // Priority: env var (set by Electron main process) > generated fallback
 // In dev mode a stable token is generated once per server start.
@@ -43,6 +45,30 @@ export function isAuthorized(request: NextRequest): boolean {
 export function unauthorizedResponse() {
   return new Response(JSON.stringify({ error: 'Unauthorized' }), {
     status: 401,
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
+function getRequestHost(request: NextRequest) {
+  const rawHost =
+    request.headers.get('x-forwarded-host') ||
+    request.headers.get('host') ||
+    ''
+
+  return rawHost
+    .split(',')[0]
+    .trim()
+    .replace(/:\d+$/, '')
+    .toLowerCase()
+}
+
+export function isTrustedLocalhostRequest(request: NextRequest) {
+  return TRUSTED_LOCAL_HOSTS.has(getRequestHost(request))
+}
+
+export function localOnlyResponse() {
+  return new Response(JSON.stringify({ error: 'Not found' }), {
+    status: 404,
     headers: { 'Content-Type': 'application/json' },
   })
 }

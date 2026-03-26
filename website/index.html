@@ -42,10 +42,10 @@
     "operatingSystem": "Windows 10+",
     "url": "https://orqpilot.com",
     "downloadUrl": "https://app.orqpilot.com/download/windows",
-    "screenshot": "https://orqpilot.com/screenshot-dashboard.png",
+    "screenshot": "https://orqpilot.com/screenshot.png",
     "softwareVersion": "1.0.5",
-    "releaseNotes": "v1.0.5 — Guided onboarding, keyboard shortcuts, audit log, multi-provider cost comparison, AI usage forecasting, session replay, model presets, webhook integrations, backup/restore, and config snapshots.",
-    "featureList": "Real-time agent monitoring, Auto-throttle cost control, Pipeline job tracking, One-click mode switching, Cost analytics with OpenRouter CSV import, Multi-channel view (Discord/DMs/pipelines), Budget alerts and notifications, Multi-provider cost comparison across 12 models, AI usage forecasting with smart recommendations, Session replay with per-message token costs, Model presets and custom configurations, Smart alerts with webhook integrations, Guided onboarding checklist, Keyboard shortcuts, Audit log, Backup and restore with config snapshots, Prompt library and API key vault, 3 themes with customizable accent colors",
+    "releaseNotes": "Full-featured release with cost forecasting, multi-provider comparison, prompt library, workflow builder, API key vault, smart alerts with webhooks, audit log, keyboard shortcuts, and real-time agent monitoring.",
+    "featureList": "Real-time agent monitoring, Auto-throttle cost control, Pipeline job tracking, One-click mode switching, Cost analytics with OpenRouter CSV import, Multi-channel view, Budget alerts and notifications, Multi-provider cost comparison, AI usage forecasting, Prompt library with templates, Workflow builder, API key vault, Smart alerts with Slack/Discord webhooks, Audit log, Keyboard shortcuts, Config snapshots and backup, Scheduled reports, Team management, Cost tagging, Cron job scheduling",
     "offers": [
       { "@type": "Offer", "name": "Personal", "price": "9.99", "priceCurrency": "USD", "description": "1 OpenClaw instance, 1 machine, monitoring dashboard, budget controls, exports, and 1 year of updates" },
         { "@type": "Offer", "name": "Pro", "price": "29.99", "priceCurrency": "USD", "description": "Unlimited instances, 3 machines, workflow builder, direct agent chat, alerts, exports, and 1 year of updates" },
@@ -758,8 +758,6 @@
       .why-mc [style*="grid-template-columns: repeat(3"] { grid-template-columns: 1fr !important; }
       .footer-grid { flex-direction: column; gap: 16px; text-align: center; }
       .footer-links { justify-content: center; }
-      .screenshot-grid { grid-template-columns: 1fr !important; }
-      .screenshot-grid > *:last-child { grid-column: 1 !important; }
     }
   </style>
 </head>
@@ -836,7 +834,7 @@
           <span class="title">Mission Control</span>
         </div>
         <div class="placeholder">
-          <img src="/screenshot-dashboard.png" alt="Mission Control dashboard showing real-time agent monitoring, live activity feed, budget tracking, and session management">
+          <img src="/screenshot-costs.png" alt="Mission Control costs dashboard showing $326 monthly spend, AI mode switcher, budget controls, and mode scheduling">
         </div>
       </div>
     </div>
@@ -913,7 +911,7 @@
   <div class="container">
     <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> FEATURES <span class="line"></span></div>
     <h2 class="reveal">Everything you need to run AI agents</h2>
-    <p class="subtitle reveal reveal-delay-1">30+ features built by an OpenClaw user who got tired of SSH-ing into Railway to check if things were working.</p>
+    <p class="subtitle reveal reveal-delay-1">Built by an OpenClaw user who got tired of SSH-ing into Railway to check if things were working.</p>
     <div class="feature-grid">
       <div class="feature-card reveal">
         <div class="feature-icon blue">
@@ -941,7 +939,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         </div>
         <h3>One-Click Mode Switch</h3>
-        <p>Switch between Best, Standard, Budget, and Auto modes instantly. No SSH, no config files, no terminal.</p>
+        <p>Switch between Performance, Standard, and Budget modes instantly. No SSH, no config files, no terminal.</p>
       </div>
       <div class="feature-card reveal reveal-delay-2">
         <div class="feature-icon red">
@@ -958,85 +956,84 @@
         <p>See all your agent's channels at once — Discord, DMs, automated pipelines. Everything in one place.</p>
       </div>
       <div class="feature-card reveal">
-        <div class="feature-icon blue">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        <div class="feature-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
-        <h3>Multi-Provider Cost Comparison</h3>
-        <p>See what your workload costs across Anthropic, OpenAI, Google, Deepseek, and local models — ranked by price.</p>
+        <h3>Multi-Provider Cost Compare</h3>
+        <p>See what your workload would cost on every major model — Anthropic, OpenAI, Google, DeepSeek, local. Find savings instantly.</p>
       </div>
       <div class="feature-card reveal reveal-delay-1">
         <div class="feature-icon green">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         </div>
         <h3>AI Usage Forecasting</h3>
-        <p>Projected end-of-month spending with budget gauge, days-until-exceeded, and smart recommendations to save money.</p>
+        <p>See projected end-of-month spend, days until budget exceeded, and smart recommendations to optimize costs.</p>
       </div>
       <div class="feature-card reveal reveal-delay-2">
-        <div class="feature-icon purple">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        </div>
-        <h3>Session Replay</h3>
-        <p>Browse full agent conversation history with per-message token costs, model info, and search highlighting.</p>
-      </div>
-      <div class="feature-card reveal">
         <div class="feature-icon amber">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        <h3>Prompt Library</h3>
+        <p>Save, organize, and reuse system prompts with template variables, categories, tags, and usage tracking.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-3">
+        <div class="feature-icon red">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         </div>
         <h3>Smart Alerts + Webhooks</h3>
-        <p>Configurable alert rules with OS notifications, plus webhook integrations for Slack, Discord, and HTTP endpoints.</p>
+        <p>Custom alert rules for spend, budget, and agent status. Push to Slack, Discord, or any webhook. Auto-throttle on triggers.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        </div>
+        <h3>API Key Vault</h3>
+        <p>Securely store and manage API keys for multiple providers. Encrypted at rest, never sent to external servers.</p>
       </div>
       <div class="feature-card reveal reveal-delay-1">
         <div class="feature-icon cyan">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </div>
-        <h3>Model Presets</h3>
-        <p>One-click agent configurations: Fast + Cheap, Balanced, Maximum Quality, Code Expert, Long Context, or create your own.</p>
-      </div>
-      <div class="feature-card reveal reveal-delay-2">
-        <div class="feature-icon red">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        </div>
-        <h3>Backup, Snapshots + More</h3>
-        <p>Full data backup/restore, config snapshots, prompt library, API key vault, cost tagging, keyboard shortcuts, and audit log.</p>
+        <h3>Workflow Builder</h3>
+        <p>Build multi-step agent pipelines with triggers, conditions, and actions. Automate content creation, research, and more.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ─── Feature Screenshots ─── -->
+<!-- ─── Screenshots In Action ─── -->
 <section style="padding: 80px 0; border-top: 1px solid var(--border);">
   <div class="container">
     <div class="section-label reveal" style="justify-content: center;"><span class="line"></span> IN ACTION <span class="line"></span></div>
-    <h2 class="reveal" style="font-size: 40px; font-weight: 800; letter-spacing: -0.03em; text-align: center; margin-bottom: 16px;">See it in action</h2>
-    <p class="reveal reveal-delay-1" style="text-align: center; color: var(--text-secondary); font-size: 17px; margin-bottom: 64px; max-width: 560px; margin-left: auto; margin-right: auto;">Real views from the app — not mockups, not Figma. This is what you get.</p>
-
-    <div class="screenshot-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-      <div class="reveal" style="border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-card);">
-        <img src="/screenshot-analytics.png" alt="AI usage forecast with budget gauge, spending projections, recommendations, and multi-provider cost comparison" style="width: 100%; display: block;">
-        <div style="padding: 20px;">
-          <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">Cost Intelligence</h3>
-          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Forecast your spending, compare costs across 12 models from 5 providers, and get smart recommendations like "switch to Gemini Flash to save 96%."</p>
+    <h2 class="reveal" style="font-size: 40px; font-weight: 800; letter-spacing: -0.03em; text-align: center; margin-bottom: 12px;">See it in action</h2>
+    <p class="reveal reveal-delay-1" style="text-align: center; color: var(--text-secondary); font-size: 17px; margin-bottom: 48px; max-width: 560px; margin-left: auto; margin-right: auto; line-height: 1.7;">Every screen is packed with real data. No placeholder mockups — this is what Mission Control actually looks like.</p>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; max-width: 1000px; margin: 0 auto;">
+      <div class="reveal" style="border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: rgba(255,255,255,0.02);">
+        <img src="/screenshot-dashboard.png" alt="Mission Control dashboard with live agent monitoring and activity feed" style="width: 100%; display: block;">
+        <div style="padding: 16px 20px;">
+          <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 4px;">Dashboard</h3>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">Real-time overview with status cards, live activity feed, and active sessions.</p>
         </div>
       </div>
-      <div class="reveal reveal-delay-1" style="border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-card);">
-        <img src="/screenshot-features.png" alt="Model presets, webhook integrations for Slack and Discord, and smart alert rules with auto-throttle actions" style="width: 100%; display: block;">
-        <div style="padding: 20px;">
-          <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">Presets, Alerts + Integrations</h3>
-          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">One-click model presets, configurable alert rules with auto-actions, and webhook integrations that fire to Slack, Discord, or any HTTP endpoint.</p>
+      <div class="reveal reveal-delay-1" style="border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: rgba(255,255,255,0.02);">
+        <img src="/screenshot-forecast.png" alt="AI usage forecast with budget gauge and spend projections" style="width: 100%; display: block;">
+        <div style="padding: 16px 20px;">
+          <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 4px;">Usage Forecast</h3>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">Budget gauge, projected end-of-month spend, and smart cost-saving recommendations.</p>
         </div>
       </div>
-      <div class="reveal reveal-delay-2" style="border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-card);">
-        <img src="/screenshot-forecast.png" alt="AI usage forecast with budget gauge showing 15% used, projected monthly spend, and recommendation to switch to Gemini Flash" style="width: 100%; display: block;">
-        <div style="padding: 20px;">
-          <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">Usage Forecasting</h3>
-          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Visual budget gauge, projected end-of-month spend, days until budget exceeded, and smart recommendations to save money.</p>
+      <div class="reveal reveal-delay-1" style="border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: rgba(255,255,255,0.02);">
+        <img src="/screenshot-compare.png" alt="Multi-provider cost comparison across 12 AI models" style="width: 100%; display: block;">
+        <div style="padding: 16px 20px;">
+          <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 4px;">Cost Comparison</h3>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">Compare costs across 12 models from 5 providers. See exactly how much you could save.</p>
         </div>
       </div>
-      <div class="reveal reveal-delay-3" style="border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-card);">
-        <img src="/screenshot-replay.png" alt="Activity audit log showing color-coded entries for mode changes, budget updates, alert triggers, and system events" style="width: 100%; display: block;">
-        <div style="padding: 20px;">
-          <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">Activity Audit Log</h3>
-          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">Every action tracked — mode changes, budget edits, alert triggers, backups, and more. Filter by category and trace exactly what happened.</p>
+      <div class="reveal reveal-delay-2" style="border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: rgba(255,255,255,0.02);">
+        <img src="/screenshot-prompts.png" alt="Prompt library with 7 templates, categories, and usage tracking" style="width: 100%; display: block;">
+        <div style="padding: 16px 20px;">
+          <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 4px;">Prompt Library</h3>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">Save and organize system prompts with variables, categories, tags, and usage stats.</p>
         </div>
       </div>
     </div>
