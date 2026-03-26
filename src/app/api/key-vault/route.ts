@@ -3,8 +3,15 @@ import { readFile, writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { DATA_DIR } from '@/lib/connection-config'
 import { isAuthorized, isTrustedLocalhostRequest, localOnlyResponse, unauthorizedResponse } from '@/lib/api-auth'
+import {
+  decryptSecretValue,
+  encryptSecretValue,
+  isEncryptedSecretValue,
+  isSecretEncryptionAvailable,
+} from '@/lib/secret-encryption'
 
 const VAULT_FILE = path.join(DATA_DIR, 'key-vault.json')
+let warnedAboutPlaintextVaultStorage = false
 
 export interface VaultKey {
   id: string
@@ -83,7 +90,27 @@ async function readVault(): Promise<VaultKey[]> {
     const text = await readFile(VAULT_FILE, 'utf-8')
     const data = JSON.parse(text)
     if (!Array.isArray(data)) return []
-    return data.map((entry: any, index: number) => normalizeVaultEntry(entry, index))
+
+    let needsMigration = false
+
+    const keys = data.map((entry: any, index: number) => {
+      const storedKey = typeof entry._key === 'string' ? entry._key : ''
+      const decryptedKey = isEncryptedSecretValue(storedKey)
+        ? decryptSecretValue(storedKey)
+        : storedKey
+
+      if (storedKey && !isEncryptedSecretValue(storedKey) && isSecretEncryptionAvailable()) {
+        needsMigration = true
+      }
+
+      return normalizeVaultEntry({ ...entry, _key: decryptedKey }, index)
+    })
+
+    if (needsMigration) {
+      await writeVault(keys)
+    }
+
+    return keys
   } catch {
     return []
   }
@@ -91,10 +118,20 @@ async function readVault(): Promise<VaultKey[]> {
 
 async function writeVault(keys: VaultKey[]) {
   await mkdir(path.dirname(VAULT_FILE), { recursive: true })
+  const encryptionAvailable = isSecretEncryptionAvailable()
+
+  if (!encryptionAvailable && !warnedAboutPlaintextVaultStorage) {
+    warnedAboutPlaintextVaultStorage = true
+    console.warn('[mc] Key vault encryption unavailable; API keys will be stored in plaintext.')
+  }
+
   await writeFile(
     VAULT_FILE,
     JSON.stringify(
-      keys.map(({ legacyMaskedValue, ...rest }) => rest),
+      keys.map(({ legacyMaskedValue, _key, ...rest }) => ({
+        ...rest,
+        _key: encryptionAvailable ? encryptSecretValue(_key) : _key,
+      })),
       null,
       2,
     ),

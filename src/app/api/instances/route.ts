@@ -2,41 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sanitizeError } from '@/lib/sanitize-error'
 import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
 import { readFile, writeFile, mkdir } from 'fs/promises'
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto'
 import path from 'path'
 import { DATA_DIR } from '@/lib/connection-config'
+import {
+  decryptSecretValue,
+  encryptSecretValue,
+  isSecretEncryptionAvailable,
+  UNENCRYPTED_STORAGE_WARNING,
+} from '@/lib/secret-encryption'
+import { validateManagedInstanceUrl } from '@/lib/url-validator'
 
 const INSTANCES_FILE = path.join(DATA_DIR, 'instances.json')
-const CONFIG_ENCRYPTION_KEY = process.env.MC_CONFIG_ENCRYPTION_KEY || ''
-
-function getEncryptionKeyBuffer(): Buffer | null {
-  if (!CONFIG_ENCRYPTION_KEY) return null
-  return createHash('sha256').update(CONFIG_ENCRYPTION_KEY).digest()
-}
-
-function encryptPassword(password: string): string {
-  const key = getEncryptionKeyBuffer()
-  if (!key) return password // Fallback: plaintext when no encryption key
-  const iv = randomBytes(12)
-  const cipher = createCipheriv('aes-256-gcm', key, iv)
-  const data = Buffer.concat([cipher.update(password, 'utf-8'), cipher.final()])
-  const tag = cipher.getAuthTag()
-  return `enc:${iv.toString('base64')}:${tag.toString('base64')}:${data.toString('base64')}`
-}
-
-function decryptPassword(stored: string): string {
-  if (!stored.startsWith('enc:')) return stored // Plaintext fallback
-  const key = getEncryptionKeyBuffer()
-  if (!key) return '' // Can't decrypt without key
-  const [, iv, tag, data] = stored.split(':')
-  try {
-    const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(iv, 'base64'))
-    decipher.setAuthTag(Buffer.from(tag, 'base64'))
-    return Buffer.concat([decipher.update(Buffer.from(data, 'base64')), decipher.final()]).toString('utf-8')
-  } catch {
-    return ''
-  }
-}
 
 export interface Instance {
   id: string
@@ -61,6 +37,7 @@ export interface Instance {
 
 interface InstancesConfig {
   instances: Instance[]
+  _warning?: string
 }
 
 const INSTANCE_COLORS = [
@@ -71,7 +48,11 @@ const INSTANCE_COLORS = [
 async function readInstances(): Promise<InstancesConfig> {
   try {
     const text = await readFile(INSTANCES_FILE, 'utf-8')
-    return JSON.parse(text)
+    const parsed = JSON.parse(text)
+    return {
+      instances: Array.isArray(parsed?.instances) ? parsed.instances : [],
+      _warning: typeof parsed?._warning === 'string' ? parsed._warning : undefined,
+    }
   } catch {
     return { instances: [] }
   }
@@ -79,12 +60,20 @@ async function readInstances(): Promise<InstancesConfig> {
 
 async function writeInstances(config: InstancesConfig) {
   await mkdir(path.dirname(INSTANCES_FILE), { recursive: true })
-  await writeFile(INSTANCES_FILE, JSON.stringify(config, null, 2))
+  const payload: InstancesConfig = {
+    instances: config.instances,
+  }
+
+  if (!isSecretEncryptionAvailable()) {
+    payload._warning = UNENCRYPTED_STORAGE_WARNING
+  }
+
+  await writeFile(INSTANCES_FILE, JSON.stringify(payload, null, 2))
 }
 
 /** Build Basic auth header matching openclaw.ts contract */
 function buildAuth(password: string): string {
-  const plainPassword = decryptPassword(password)
+  const plainPassword = decryptSecretValue(password)
   return 'Basic ' + Buffer.from(':' + plainPassword).toString('base64')
 }
 
@@ -216,6 +205,10 @@ export async function POST(request: NextRequest) {
       if (!name || !url || !password) {
         return NextResponse.json({ error: 'Name, URL, and password are required' }, { status: 400 })
       }
+      const urlError = validateManagedInstanceUrl(url)
+      if (urlError) {
+        return NextResponse.json({ error: urlError }, { status: 400 })
+      }
 
       // Normalize URL — strip trailing slash
       const normalizedUrl = url.replace(/\/+$/, '')
@@ -224,7 +217,7 @@ export async function POST(request: NextRequest) {
         id: `inst-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         name,
         url: normalizedUrl,
-        password: encryptPassword(password),
+        password: encryptSecretValue(password),
         enabled: true,
         color: body.instance.color || INSTANCE_COLORS[config.instances.length % INSTANCE_COLORS.length],
         addedAt: new Date().toISOString(),
@@ -246,8 +239,14 @@ export async function POST(request: NextRequest) {
 
       const updates = body.instance
       if (updates.name) config.instances[idx].name = updates.name
-      if (updates.url) config.instances[idx].url = updates.url.replace(/\/+$/, '')
-      if (updates.password) config.instances[idx].password = encryptPassword(updates.password)
+      if (updates.url) {
+        const urlError = validateManagedInstanceUrl(updates.url)
+        if (urlError) {
+          return NextResponse.json({ error: urlError }, { status: 400 })
+        }
+        config.instances[idx].url = updates.url.replace(/\/+$/, '')
+      }
+      if (updates.password) config.instances[idx].password = encryptSecretValue(updates.password)
       if (updates.color) config.instances[idx].color = updates.color
       if (typeof updates.enabled === 'boolean') config.instances[idx].enabled = updates.enabled
 
@@ -293,12 +292,16 @@ export async function POST(request: NextRequest) {
       if (!url || !password) {
         return NextResponse.json({ error: 'URL and password are required' }, { status: 400 })
       }
+      const urlError = validateManagedInstanceUrl(url)
+      if (urlError) {
+        return NextResponse.json({ error: urlError }, { status: 400 })
+      }
 
       const temp: Instance = {
         id: 'test',
         name: 'Test',
         url: url.replace(/\/+$/, ''),
-        password: encryptPassword(password),
+        password: encryptSecretValue(password),
         enabled: true,
         color: '#888',
         addedAt: new Date().toISOString(),

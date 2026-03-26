@@ -8,18 +8,7 @@ const PUBLIC_API_ALLOWLIST = new Set([
   '/api/license-control/validate',
 ])
 
-function generateNonce() {
-  const bytes = crypto.getRandomValues(new Uint8Array(16))
-  let binary = ''
-
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte)
-  }
-
-  return btoa(binary)
-}
-
-function buildContentSecurityPolicy(nonce: string) {
+function buildContentSecurityPolicy() {
   const isDev = process.env.NODE_ENV !== 'production'
   const connectSrc = ["'self'"]
 
@@ -32,6 +21,10 @@ function buildContentSecurityPolicy(nonce: string) {
     )
   }
 
+  // Next.js currently emits inline bootstrap/runtime scripts for this app.
+  // Adding a nonce here would cause browsers to ignore 'unsafe-inline',
+  // which previously broke activation and app-shell hydration in production.
+  // Keep script-src explicit until the app can attach CSP nonces end-to-end.
   const scriptSrc = ["'self'", "'unsafe-inline'"]
   if (isDev) {
     scriptSrc.push("'unsafe-eval'")
@@ -71,10 +64,8 @@ async function getUnconfiguredDestination(baseUrl: string): Promise<string> {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const nonce = generateNonce()
-  const contentSecurityPolicy = buildContentSecurityPolicy(nonce)
+  const contentSecurityPolicy = buildContentSecurityPolicy()
   const requestHeaders = new Headers(request.headers)
-  requestHeaders.set('x-nonce', nonce)
   requestHeaders.set('Content-Security-Policy', contentSecurityPolicy)
 
   const continueRequest = () =>

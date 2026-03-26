@@ -139,7 +139,7 @@ export function KeyVault() {
       <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/[0.05] border border-amber-500/10">
         <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
         <p className="text-[11px] text-text-muted">
-          Keys are stored locally and encrypted at rest via Windows DPAPI when running in the desktop app.
+          Keys are stored locally on this machine and encrypted at rest when the desktop app&apos;s secure storage is available.
           Keys are never sent to any external server by Mission Control.
         </p>
       </div>

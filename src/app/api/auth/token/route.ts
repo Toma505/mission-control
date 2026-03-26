@@ -1,18 +1,26 @@
 /**
- * Returns the session token to the renderer.
+ * Legacy HTTP bootstrap for the session token.
  *
- * This endpoint is only accessible from localhost (enforced by middleware).
- * The renderer calls this once on boot and caches the token for all
- * subsequent mutating API calls.
+ * The desktop renderer should retrieve the token via Electron IPC. This route
+ * stays opt-in for development troubleshooting only and is disabled by
+ * default, even on localhost.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getSessionToken, isTrustedLocalhostRequest, localOnlyResponse } from '@/lib/api-auth'
+import {
+  getSessionToken,
+  isHttpTokenBootstrapEnabled,
+  isTrustedLocalhostRequest,
+  localOnlyResponse,
+} from '@/lib/api-auth'
 
 export async function GET(request: NextRequest) {
-  if (!isTrustedLocalhostRequest(request)) {
+  if (!isTrustedLocalhostRequest(request) || !isHttpTokenBootstrapEnabled()) {
     return localOnlyResponse()
   }
 
-  return NextResponse.json({ token: getSessionToken() })
+  return NextResponse.json(
+    { token: getSessionToken() },
+    { headers: { 'Cache-Control': 'no-store' } },
+  )
 }

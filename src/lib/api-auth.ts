@@ -42,6 +42,10 @@ export function getSessionToken(): string {
   return SESSION_TOKEN
 }
 
+export function isHttpTokenBootstrapEnabled(): boolean {
+  return process.env.NODE_ENV === 'development' && process.env.MC_ALLOW_HTTP_TOKEN_BOOTSTRAP === 'true'
+}
+
 /**
  * Checks whether a mutating request carries the correct session token.
  *
