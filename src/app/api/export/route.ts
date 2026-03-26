@@ -175,7 +175,7 @@ function renderHtmlReport(type: ExportType, range: ExportRange, sections: { titl
       </head>
       <body>
         <h1>Mission Control Export</h1>
-        <p>Type: ${escapeHtml(type)} · Range: ${escapeHtml(range)} · Generated: ${escapeHtml(new Date().toLocaleString())}</p>
+        <p>Type: ${escapeHtml(type)} - Range: ${escapeHtml(range)} - Generated: ${escapeHtml(new Date().toLocaleString())}</p>
         ${sections.map((section) => renderSection(section.title, section.rows)).join('')}
         <script>
           window.addEventListener('load', () => {
@@ -188,18 +188,40 @@ function renderHtmlReport(type: ExportType, range: ExportRange, sections: { titl
 }
 
 export async function GET(request: NextRequest) {
-  const type = request.nextUrl.searchParams.get('type') as ExportType | null
-  const format = request.nextUrl.searchParams.get('format') as ExportFormat | null
-  const range = request.nextUrl.searchParams.get('range') as ExportRange | null
+  const requestedType = request.nextUrl.searchParams.get('type')
+  const requestedFormat = request.nextUrl.searchParams.get('format')
+  const requestedRange = request.nextUrl.searchParams.get('range')
 
-  if (!type || !VALID_TYPES.has(type)) {
-    return NextResponse.json({ error: 'Invalid export type' }, { status: 400 })
+  if (!requestedType && !requestedFormat && !requestedRange) {
+    return NextResponse.json({
+      ok: true,
+      message: 'Mission Control exports require a type, format, and range. The app normally supplies these automatically.',
+      defaults: {
+        type: 'all',
+        format: 'csv',
+        range: '30d',
+      },
+      options: {
+        types: Array.from(VALID_TYPES),
+        formats: Array.from(VALID_FORMATS),
+        ranges: Array.from(VALID_RANGES),
+      },
+      exampleUrl: '/api/export?type=all&format=csv&range=30d',
+    })
   }
-  if (!format || !VALID_FORMATS.has(format)) {
-    return NextResponse.json({ error: 'Invalid export format' }, { status: 400 })
+
+  const type = (requestedType || 'all') as ExportType
+  const format = (requestedFormat || 'csv') as ExportFormat
+  const range = (requestedRange || '30d') as ExportRange
+
+  if (!VALID_TYPES.has(type)) {
+    return NextResponse.json({ error: 'Invalid export type', type, validTypes: Array.from(VALID_TYPES) }, { status: 400 })
   }
-  if (!range || !VALID_RANGES.has(range)) {
-    return NextResponse.json({ error: 'Invalid export range' }, { status: 400 })
+  if (!VALID_FORMATS.has(format)) {
+    return NextResponse.json({ error: 'Invalid export format', format, validFormats: Array.from(VALID_FORMATS) }, { status: 400 })
+  }
+  if (!VALID_RANGES.has(range)) {
+    return NextResponse.json({ error: 'Invalid export range', range, validRanges: Array.from(VALID_RANGES) }, { status: 400 })
   }
 
   const origin = request.nextUrl.origin
@@ -293,7 +315,7 @@ export async function GET(request: NextRequest) {
           agent: session.key,
           model: 'session',
           enabled: true,
-          uptime_percentage: '',
+          uptime_percentage: null,
           description: session.age,
         })
       }

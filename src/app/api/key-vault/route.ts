@@ -10,28 +10,14 @@ export interface VaultKey {
   id: string
   name: string
   provider: string
-  keyPrefix: string  // First 8 chars only, for display
-  keyHash: string    // SHA256 hash for dedup detection
+  keyPrefix: string
+  keyHash: string
   addedAt: string
   lastUsed?: string
   isActive: boolean
   notes?: string
-  // The actual key is stored with basic obfuscation — real encryption via safeStorage in Electron
   _key: string
-}
-
-async function readVault(): Promise<VaultKey[]> {
-  try {
-    const text = await readFile(VAULT_FILE, 'utf-8')
-    return JSON.parse(text)
-  } catch {
-    return []
-  }
-}
-
-async function writeVault(keys: VaultKey[]) {
-  await mkdir(path.dirname(VAULT_FILE), { recursive: true })
-  await writeFile(VAULT_FILE, JSON.stringify(keys, null, 2))
+  legacyMaskedValue?: string
 }
 
 function hashKey(key: string): string {
@@ -48,21 +34,91 @@ function detectProvider(key: string): string {
   return 'Other'
 }
 
-/** GET — list all keys (masked) */
+function normalizeProvider(provider: string | undefined) {
+  if (!provider) return 'Other'
+  if (provider === 'Google') return 'Google AI'
+  return provider
+}
+
+function deriveKeyPrefix(entry: any) {
+  if (typeof entry.keyPrefix === 'string' && entry.keyPrefix) return entry.keyPrefix
+  if (typeof entry._key === 'string' && entry._key) return entry._key.slice(0, 8)
+  if (typeof entry.maskedValue === 'string' && entry.maskedValue) {
+    return entry.maskedValue.split('****')[0].replace(/\.+$/, '')
+  }
+  if (typeof entry.masked === 'string' && entry.masked) {
+    return entry.masked.split('...')[0]
+  }
+  return ''
+}
+
+function normalizeVaultEntry(entry: any, index: number): VaultKey {
+  const provider = normalizeProvider(entry.provider)
+  const keyPrefix = deriveKeyPrefix(entry)
+  const _key = typeof entry._key === 'string' ? entry._key : ''
+  const legacyMaskedValue =
+    typeof entry.maskedValue === 'string' && entry.maskedValue
+      ? entry.maskedValue
+      : typeof entry.masked === 'string' && entry.masked
+        ? entry.masked
+        : undefined
+
+  return {
+    id: entry.id || `key_${index}`,
+    name: entry.name || `${provider} Key`,
+    provider,
+    keyPrefix,
+    keyHash: entry.keyHash || hashKey(`${provider}:${entry.name || ''}:${legacyMaskedValue || keyPrefix}:${index}`),
+    addedAt: entry.addedAt || new Date(0).toISOString(),
+    lastUsed: entry.lastUsed,
+    isActive: typeof entry.isActive === 'boolean' ? entry.isActive : entry.status !== 'disabled',
+    notes: entry.notes,
+    _key,
+    legacyMaskedValue,
+  }
+}
+
+async function readVault(): Promise<VaultKey[]> {
+  try {
+    const text = await readFile(VAULT_FILE, 'utf-8')
+    const data = JSON.parse(text)
+    if (!Array.isArray(data)) return []
+    return data.map((entry: any, index: number) => normalizeVaultEntry(entry, index))
+  } catch {
+    return []
+  }
+}
+
+async function writeVault(keys: VaultKey[]) {
+  await mkdir(path.dirname(VAULT_FILE), { recursive: true })
+  await writeFile(
+    VAULT_FILE,
+    JSON.stringify(
+      keys.map(({ legacyMaskedValue, ...rest }) => rest),
+      null,
+      2,
+    ),
+  )
+}
+
+function buildMaskedValue(key: VaultKey) {
+  if (key.legacyMaskedValue) return key.legacyMaskedValue
+  if (key.keyPrefix) return `${key.keyPrefix}...${key._key ? key._key.slice(-4) : '****'}`
+  return 'Hidden'
+}
+
 export async function GET(request: NextRequest) {
   if (!isTrustedLocalhostRequest(request)) return localOnlyResponse()
   if (!isAuthorized(request)) return unauthorizedResponse()
 
   const keys = await readVault()
-  // Never return the actual key
   const masked = keys.map(({ _key, ...rest }) => ({
     ...rest,
-    masked: rest.keyPrefix + '...' + (_key ? _key.slice(-4) : '****'),
+    masked: buildMaskedValue({ ...rest, _key }),
   }))
   return NextResponse.json({ keys: masked })
 }
 
-/** POST — add a new key */
 export async function POST(request: NextRequest) {
   if (!isTrustedLocalhostRequest(request)) return localOnlyResponse()
   if (!isAuthorized(request)) return unauthorizedResponse()
@@ -77,13 +133,11 @@ export async function POST(request: NextRequest) {
     const keys = await readVault()
     const hash = hashKey(key)
 
-    // Check for duplicates
-    if (keys.some(k => k.keyHash === hash)) {
+    if (keys.some((existing) => existing.keyHash === hash)) {
       return NextResponse.json({ error: 'This key already exists in the vault' }, { status: 409 })
     }
 
     const provider = detectProvider(key)
-
     const vaultKey: VaultKey = {
       id: `key_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       name: name || `${provider} Key`,
@@ -108,7 +162,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/** PATCH — toggle active, update name/notes, or rotate key */
 export async function PATCH(request: NextRequest) {
   if (!isTrustedLocalhostRequest(request)) return localOnlyResponse()
   if (!isAuthorized(request)) return unauthorizedResponse()
@@ -116,7 +169,7 @@ export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json()
     const keys = await readVault()
-    const key = keys.find(k => k.id === body.id)
+    const key = keys.find((entry) => entry.id === body.id)
     if (!key) return NextResponse.json({ error: 'Key not found' }, { status: 404 })
 
     if (body.action === 'toggle') {
@@ -127,6 +180,7 @@ export async function PATCH(request: NextRequest) {
       key.keyPrefix = body.newKey.slice(0, 8)
       key.keyHash = hashKey(body.newKey)
       key.provider = detectProvider(body.newKey)
+      key.legacyMaskedValue = undefined
     } else {
       if (body.name) key.name = body.name
       if (body.notes !== undefined) key.notes = body.notes
@@ -139,7 +193,6 @@ export async function PATCH(request: NextRequest) {
   }
 }
 
-/** DELETE — remove a key */
 export async function DELETE(request: NextRequest) {
   if (!isTrustedLocalhostRequest(request)) return localOnlyResponse()
   if (!isAuthorized(request)) return unauthorizedResponse()
@@ -147,7 +200,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const { id } = await request.json()
     const keys = await readVault()
-    const filtered = keys.filter(k => k.id !== id)
+    const filtered = keys.filter((entry) => entry.id !== id)
     if (filtered.length === keys.length) {
       return NextResponse.json({ error: 'Key not found' }, { status: 404 })
     }
