@@ -3,6 +3,7 @@ export interface ParsedOpenClawPlugin {
   id: string
   version: string
   enabled: boolean
+  source: 'openclaw' | 'npm'
 }
 
 function normalizePluginKey(value: string): string {
@@ -101,6 +102,7 @@ export function parseOpenClawPlugins(raw: string): {
       name: pluginName,
       version: versionColumn,
       enabled: /loaded|enabled|true/i.test(enabledColumn),
+      source: /^stock:/i.test(sourceColumn) ? 'openclaw' : 'npm',
     })
   }
 
@@ -115,6 +117,7 @@ export function parseOpenClawPlugins(raw: string): {
         name: match[1],
         version: match[2] || 'unknown',
         enabled: match[3] !== 'disabled',
+        source: /^stock:/i.test(match[1]) ? 'openclaw' : 'npm',
       })
     }
     finalized = finalizeParsedPlugins(finalized)
@@ -142,6 +145,7 @@ export function parseOpenClawPlugins(raw: string): {
         name: nameToken,
         version: versionToken,
         enabled: !tokens.some(token => /disabled|false/i.test(token)),
+        source: /^stock:/i.test(nameToken) ? 'openclaw' : 'npm',
       })
     }
     finalized = finalizeParsedPlugins(finalized)

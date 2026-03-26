@@ -1,5 +1,5 @@
-import { PluginMarketplace } from '@/components/plugins/plugin-marketplace'
+import { redirect } from 'next/navigation'
 
-export default function PluginsPage() {
-  return <PluginMarketplace />
+export default function PluginsRedirectPage() {
+  redirect('/extensions')
 }
