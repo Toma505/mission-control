@@ -10,13 +10,16 @@ async function readLocalActivitiesAsLogs() {
     const text = await readFile(path.join(DATA_DIR, 'activities.json'), 'utf-8')
     const data = JSON.parse(text)
     if (!Array.isArray(data)) return []
-    return data.map((a: any) => ({
-      timestamp: a.timestamp || a.createdAt || '',
-      level: a.type === 'error' ? 'error' : a.type === 'alert' ? 'warn' : 'info',
-      message: [a.action, a.details, a.description, a.title, a.message].filter(Boolean).join(' — ') || '',
-      raw: `${a.timestamp || ''} [${(a.type || 'info').toUpperCase()}] ${a.action || ''} ${a.details || ''}`,
+
+    return data.map((activity: any) => ({
+      timestamp: activity.timestamp || activity.createdAt || '',
+      level: activity.type === 'error' ? 'error' : activity.type === 'alert' ? 'warn' : 'info',
+      message: [activity.action, activity.details, activity.description, activity.title, activity.message].filter(Boolean).join(' - ') || '',
+      raw: `${activity.timestamp || ''} [${(activity.type || 'info').toUpperCase()}] ${activity.action || ''} ${activity.details || ''}`,
     }))
-  } catch { return [] }
+  } catch {
+    return []
+  }
 }
 
 export async function GET() {
@@ -28,7 +31,6 @@ export async function GET() {
   try {
     const raw = await getOpenClawLogs(100)
 
-    // Parse log lines into structured entries
     const logs = raw
       .split('\n')
       .filter((line) => line.trim())
@@ -45,7 +47,7 @@ export async function GET() {
 
         return { timestamp, level, message, raw: line }
       })
-      .filter((l) => l.message)
+      .filter((entry) => entry.message)
 
     const finalLogs = logs.length > 0 ? logs : await readLocalActivitiesAsLogs()
     return NextResponse.json({ connected: true, logs: finalLogs })

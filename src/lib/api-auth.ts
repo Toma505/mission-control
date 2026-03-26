@@ -16,10 +16,26 @@ import { randomBytes } from 'crypto'
 const TRUSTED_LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]'])
 
 // ─── Session token ─────────────────────────────────────────
-// Priority: env var (set by Electron main process) > generated fallback
-// In dev mode a stable token is generated once per server start.
-const SESSION_TOKEN: string =
-  process.env.MC_SESSION_TOKEN || randomBytes(32).toString('hex')
+type AuthGlobals = typeof globalThis & {
+  __mcSessionToken?: string
+}
+
+function resolveSessionToken() {
+  if (process.env.MC_SESSION_TOKEN) return process.env.MC_SESSION_TOKEN
+
+  const globals = globalThis as AuthGlobals
+  if (globals.__mcSessionToken) return globals.__mcSessionToken
+
+  const generated = randomBytes(32).toString('hex')
+  globals.__mcSessionToken = generated
+  process.env.MC_SESSION_TOKEN = generated
+  return generated
+}
+
+// Priority: env var (set by Electron main process) > generated fallback.
+// In dev mode the generated fallback is stored on globalThis + process.env
+// so every route module sees the same token for the lifetime of the server.
+const SESSION_TOKEN: string = resolveSessionToken()
 
 /** Expose the token so Electron can read it at startup if needed. */
 export function getSessionToken(): string {

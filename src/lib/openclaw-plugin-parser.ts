@@ -62,22 +62,22 @@ function finalizeParsedPlugins(plugins: ParsedOpenClawPlugin[]): ParsedOpenClawP
 
 export function titleCaseFromPluginId(value: string): string {
   const normalized = value.trim().toLowerCase()
-  const displayOverrides: Record<string, string> = {
-    acpx: 'ACPX',
-    googlechat: 'Google Chat',
-    'diagnostics-otel': 'Diagnostics OTEL',
-    'google-gemini-cli-auth': 'Google Gemini CLI Auth',
-    imessage: 'iMessage',
-    'llm-task': 'LLM Task',
-    'memory-core': 'Memory Core',
-    msteams: 'MS Teams',
-    'nextcloud-talk': 'Nextcloud Talk',
-    whatsapp: 'WhatsApp',
-    zalouser: 'Zalo User',
-  }
+  const displayOverrides = new Map<string, string>([
+    ["acpx", "ACPX"],
+    ["googlechat", "Google Chat"],
+    ["diagnostics-otel", "Diagnostics OTEL"],
+    ["google-gemini-cli-auth", "Google Gemini CLI Auth"],
+    ["imessage", "iMessage"],
+    ["llm-task", "LLM Task"],
+    ["memory-core", "Memory Core"],
+    ["msteams", "MS Teams"],
+    ["nextcloud-talk", "Nextcloud Talk"],
+    ["whatsapp", "WhatsApp"],
+    ["zalouser", "Zalo User"],
+  ])
 
-  if (displayOverrides[normalized]) {
-    return displayOverrides[normalized]
+  if (displayOverrides.has(normalized)) {
+    return displayOverrides.get(normalized)!
   }
 
   return normalized

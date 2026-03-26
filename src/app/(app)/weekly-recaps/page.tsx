@@ -6,6 +6,7 @@ interface Recap {
   period: string
   summary: string
   stats: Record<string, string>
+  highlights?: string[]
 }
 
 async function getRecaps(): Promise<{ connected: boolean; recaps: Recap[] }> {
@@ -13,7 +14,22 @@ async function getRecaps(): Promise<{ connected: boolean; recaps: Recap[] }> {
   try {
     const res = await fetch(`${baseUrl}/api/weekly-recaps`, { cache: 'no-store' })
     if (!res.ok) return { connected: false, recaps: [] }
-    return await res.json()
+    const data = await res.json()
+    // Map API shape to page shape
+    const recaps = (data.recaps || []).map((r: any) => ({
+      period: r.period || r.week || 'Unknown',
+      summary: r.summary || (r.highlights && r.highlights.length > 0 ? r.highlights.join('. ') : 'No summary available'),
+      stats: r.stats || {
+        'Total Spend': r.totalSpend != null ? `$${r.totalSpend.toFixed(2)}` : '--',
+        'Total Tokens': r.totalTokens != null ? `${(r.totalTokens / 1000000).toFixed(1)}M` : '--',
+        'Top Model': r.topModel || '--',
+        'Top Agent': r.topAgent || '--',
+        'Alerts': r.alertsTriggered != null ? String(r.alertsTriggered) : '--',
+        'Pipelines': r.pipelinesRun != null ? String(r.pipelinesRun) : '--',
+      },
+      highlights: r.highlights || [],
+    }))
+    return { connected: data.connected ?? false, recaps }
   } catch {
     return { connected: false, recaps: [] }
   }
