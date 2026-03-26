@@ -52,7 +52,7 @@ export function KeyVault() {
 
   const loadKeys = useCallback(async () => {
     try {
-      const res = await fetch('/api/key-vault')
+      const res = await apiFetch('/api/key-vault')
       const data = await res.json()
       setKeys(data.keys || [])
     } catch {}

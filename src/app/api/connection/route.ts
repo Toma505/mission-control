@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sanitizeError } from '@/lib/sanitize-error'
-import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
+import { isAuthorized, isTrustedLocalhostRequest, localOnlyResponse, unauthorizedResponse } from '@/lib/api-auth'
 import { validateExternalUrl } from '@/lib/url-validator'
 import { readConnectionConfig, writeConnectionConfig } from '@/lib/connection-config'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!isTrustedLocalhostRequest(request)) {
+    return NextResponse.json({
+      configured: false,
+      source: 'public',
+      openclawUrl: null,
+    })
+  }
+
   const config = await readConnectionConfig()
 
   if (!config) {
@@ -27,6 +35,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isTrustedLocalhostRequest(request)) return localOnlyResponse()
   if (!isAuthorized(request)) return unauthorizedResponse()
 
   try {
