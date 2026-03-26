@@ -50,6 +50,11 @@ function formatTokens(n: number): string {
   return n.toString()
 }
 
+function displayModelName(model: string): string {
+  if (!model || model === 'N/A') return 'N/A'
+  return model.split('/').pop() || model
+}
+
 function detectAnomaly(daily: DailyUsage[]): { detected: boolean; message: string } {
   if (daily.length < 3) return { detected: false, message: '' }
 
@@ -154,6 +159,17 @@ export function UsageAnalytics() {
         }))
 
         const anomaly = detectAnomaly(dailyTrend)
+
+        const hasMeaningfulUsage =
+          totalTokens > 0 ||
+          totalCost > 0 ||
+          modelBreakdown.length > 0 ||
+          tokensByProvider.some(p => p.tokens > 0 || p.cost > 0)
+
+        if (!hasMeaningfulUsage) {
+          setData(null)
+          return
+        }
 
         setData({
           totalTokens,
@@ -370,21 +386,21 @@ export function UsageAnalytics() {
               <TrendingUp className="w-4 h-4 text-violet-400 shrink-0" />
               <div>
                 <p className="text-xs font-medium text-text-primary">Most Used Model</p>
-                <p className="text-[11px] text-text-muted">{data.topModel.split('/').pop()}</p>
+                <p className="text-[11px] text-text-muted">{displayModelName(data.topModel)}</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-xl bg-background-elevated">
               <DollarSign className="w-4 h-4 text-emerald-400 shrink-0" />
               <div>
                 <p className="text-xs font-medium text-text-primary">Most Cost-Efficient</p>
-                <p className="text-[11px] text-text-muted">{data.cheapestModel.split('/').pop()}</p>
+                <p className="text-[11px] text-text-muted">{displayModelName(data.cheapestModel)}</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-xl bg-background-elevated">
               <TrendingDown className="w-4 h-4 text-red-400 shrink-0" />
               <div>
                 <p className="text-xs font-medium text-text-primary">Most Expensive Per Token</p>
-                <p className="text-[11px] text-text-muted">{data.mostExpensiveModel.split('/').pop()}</p>
+                <p className="text-[11px] text-text-muted">{displayModelName(data.mostExpensiveModel)}</p>
               </div>
             </div>
           </div>
