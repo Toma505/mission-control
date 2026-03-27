@@ -27,6 +27,7 @@ import {
   Loader2,
   Package,
   Plug,
+  PlayCircle,
   Rocket,
   XCircle,
 } from 'lucide-react'
@@ -53,7 +54,7 @@ const PAGE_ITEMS: SearchItem[] = [
   { id: 'dashboard', title: 'Dashboard', subtitle: 'System overview', href: '/', icon: <LayoutDashboard className="w-4 h-4" />, category: 'page', keywords: ['home', 'overview', 'status'] },
   { id: 'operations', title: 'Operations', subtitle: 'Pipeline jobs and automation', href: '/operations', icon: <Clapperboard className="w-4 h-4" />, category: 'page', keywords: ['jobs', 'pipeline', 'real estate', 'video', 'automation'] },
   { id: 'agents', title: 'Agents', subtitle: 'Agent management', href: '/agents', icon: <Users className="w-4 h-4" />, category: 'page', keywords: ['bot', 'agent', 'sessions', 'model'] },
-  { id: 'replay', title: 'Session Replay', subtitle: 'Browse agent conversation history', href: '/replay', icon: <Clock className="w-4 h-4" />, category: 'page', keywords: ['replay', 'session', 'conversation', 'history', 'transcript', 'chat'] },
+  { id: 'replay', title: 'Agent Replay', subtitle: 'Replay completed runs step by step', href: '/replay', icon: <PlayCircle className="w-4 h-4" />, category: 'page', keywords: ['replay', 'session', 'conversation', 'history', 'transcript', 'chat', 'timeline', 'diff'] },
   { id: 'costs', title: 'Costs', subtitle: 'Infrastructure and spend', href: '/costs', icon: <DollarSign className="w-4 h-4" />, category: 'page', keywords: ['money', 'billing', 'railway', 'credits', 'spend'] },
   { id: 'analytics', title: 'Usage Analytics', subtitle: 'Token usage, model costs, anomaly detection', href: '/analytics', icon: <BarChart3 className="w-4 h-4" />, category: 'page', keywords: ['analytics', 'tokens', 'model', 'breakdown', 'anomaly', 'usage'] },
   { id: 'api-usage', title: 'API Usage', subtitle: 'Token consumption', href: '/api-usage', icon: <BarChart3 className="w-4 h-4" />, category: 'page', keywords: ['tokens', 'openrouter', 'anthropic', 'usage'] },
