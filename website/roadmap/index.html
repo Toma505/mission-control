@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roadmap — Mission Control by OrqPilot</title>
+  <meta name="description" content="See what's shipping next for Mission Control. Public roadmap with completed milestones, current work, and planned features.">
+  <meta name="author" content="OrqPilot">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://orqpilot.com/roadmap/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Roadmap — Mission Control by OrqPilot">
+  <meta property="og:description" content="See what's shipping next for Mission Control. Public roadmap with completed milestones, current work, and planned features.">
+  <meta property="og:url" content="https://orqpilot.com/roadmap/">
+  <meta property="og:image" content="https://orqpilot.com/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:alt" content="Mission Control by OrqPilot roadmap preview">
+  <meta property="og:site_name" content="OrqPilot">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Roadmap — Mission Control by OrqPilot">
+  <meta name="twitter:description" content="See what's shipping next for Mission Control. Public roadmap with completed milestones, current work, and planned features.">
+  <meta name="twitter:image" content="https://orqpilot.com/og-image.png">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://orqpilot.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Roadmap", "item": "https://orqpilot.com/roadmap/" }
+    ]
+  }
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta name="theme-color" content="#09090b">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+
+  <style>
+    .roadmap-section { margin-bottom: 3rem; }
+    .roadmap-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin-bottom: 1.25rem;
+    }
+    .label-shipped { background: rgba(34,197,94,0.1); color: #22c55e; border: 1px solid rgba(34,197,94,0.2); }
+    .label-current { background: rgba(59,130,246,0.1); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+    .label-next { background: rgba(168,85,247,0.1); color: #a855f7; border: 1px solid rgba(168,85,247,0.2); }
+    .label-planned { background: rgba(255,255,255,0.04); color: var(--text-secondary); border: 1px solid var(--border); }
+    .label-coming { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
+    .dot-coming { width: 6px; height: 6px; border-radius: 50%; background: #fbbf24; display: inline-block; }
+    .coming-badge {
+      display: inline-block;
+      padding: 0.1rem 0.45rem;
+      border-radius: 9999px;
+      font-size: 0.6rem;
+      font-weight: 600;
+      background: rgba(251,191,36,0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(251,191,36,0.25);
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+
+    .roadmap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .roadmap-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      transition: border-color 0.2s;
+    }
+    .roadmap-card:hover { border-color: var(--border-hover); }
+    .roadmap-card h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+    .roadmap-card p {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .roadmap-card .tag {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.65rem;
+      font-weight: 500;
+      background: rgba(255,255,255,0.04);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      margin-top: 0.6rem;
+    }
+    .dot-shipped { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; display: inline-block; }
+    .dot-current { width: 6px; height: 6px; border-radius: 50%; background: #60a5fa; display: inline-block; animation: pulse 2s infinite; }
+    .dot-next { width: 6px; height: 6px; border-radius: 50%; background: #a855f7; display: inline-block; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    .updated-note {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="container">
+      <a href="/" class="nav-brand">
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
+        Mission Control
+      </a>
+      <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="nav-links">
+        <a href="/features/">Features</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/roadmap/" class="active">Roadmap</a>
+        <a href="/faq/">FAQ</a>
+        <a href="/download/" class="nav-cta">Download</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Header -->
+  <section class="hero" style="padding: 140px 0 40px;">
+    <div class="container">
+      <h1 style="font-size:2.4rem;font-weight:700;margin-bottom:0.6rem;">Roadmap</h1>
+      <p style="font-size:1rem;color:var(--text-secondary);max-width:600px;">
+        What we've shipped, what we're building now, and where Mission Control is headed.
+      </p>
+      <p class="updated-note">Last updated: March 27, 2026</p>
+    </div>
+  </section>
+
+  <main class="container" style="padding-bottom: 4rem;">
+
+    <!-- SHIPPED IN v1.0 -->
+    <section class="roadmap-section">
+      <div class="roadmap-label label-shipped"><span class="dot-shipped"></span> Shipped in v1.0</div>
+      <div class="roadmap-grid">
+        <div class="roadmap-card">
+          <h3>Real-Time Dashboard</h3>
+          <p>Agent status, AI mode, active sessions, latency, and live activity feed in one view.</p>
+          <span class="tag">core</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Cost Monitoring</h3>
+          <p>Daily and monthly spend tracking with budget limits, auto-throttle, and alert thresholds.</p>
+          <span class="tag">costs</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Analytics &amp; Forecasting</h3>
+          <p>Token usage breakdown, model cost comparison, spend projections, and anomaly detection.</p>
+          <span class="tag">analytics</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Session Replay</h3>
+          <p>Browse and replay full agent conversation history with timestamps and token counts.</p>
+          <span class="tag">operations</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Extensions Marketplace</h3>
+          <p>Unified page for installed plugins and marketplace catalog. Install, update, enable/disable from one place.</p>
+          <span class="tag">extensions</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Prompt Library</h3>
+          <p>Save, organize, and reuse prompt templates with categories, variables, and usage tracking.</p>
+          <span class="tag">workspace</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Model Presets</h3>
+          <p>One-click model configurations for Fast, Cheap, Balanced, and Quality modes.</p>
+          <span class="tag">operations</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Multi-Instance Management</h3>
+          <p>Connect and monitor multiple OpenClaw instances with health probing and mode control.</p>
+          <span class="tag">infrastructure</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>API Key Vault</h3>
+          <p>Securely store and manage provider API keys with encryption at rest and rotation support.</p>
+          <span class="tag">security</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Workflow Builder</h3>
+          <p>Visual workflow canvas for building multi-step automation with triggers, conditions, and actions.</p>
+          <span class="tag">automation</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Alerts &amp; Webhooks</h3>
+          <p>Configurable alert rules with Slack, Discord, and HTTP webhook delivery.</p>
+          <span class="tag">monitoring</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Backup &amp; Restore</h3>
+          <p>One-click backup of all configuration, data, and state. Restore to any previous point.</p>
+          <span class="tag">reliability</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Security Hardening</h3>
+          <p>AES-256-GCM secret encryption, localhost auth lockdown, SSRF validation, CSP headers.</p>
+          <span class="tag">security</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- IN PROGRESS -->
+    <section class="roadmap-section">
+      <div class="roadmap-label label-current"><span class="dot-current"></span> In Progress</div>
+      <div class="roadmap-grid">
+        <div class="roadmap-card">
+          <h3>Windows Code Signing</h3>
+          <p>OV code signing certificate for the Windows installer so SmartScreen doesn't block installation.</p>
+          <span class="tag">distribution</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Dependency Updates</h3>
+          <p>Upgrading Next.js, runtime packages, and addressing npm audit advisories.</p>
+          <span class="tag">maintenance</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Website Refresh</h3>
+          <p>Updated screenshots, download page metadata, and deployment to Cloudflare Pages.</p>
+          <span class="tag">marketing</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- UP NEXT -->
+    <section class="roadmap-section">
+      <div class="roadmap-label label-next"><span class="dot-next"></span> Up Next</div>
+      <div class="roadmap-grid">
+        <div class="roadmap-card">
+          <h3>macOS Support</h3>
+          <p>Native macOS build with Apple Silicon support and macOS notarization.</p>
+          <span class="tag">platform</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Auto-Updater</h3>
+          <p>In-app update notifications with one-click download and install for new releases.</p>
+          <span class="tag">distribution</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Cost Tag Analytics</h3>
+          <p>Per-project and per-client cost attribution with tag-based filtering and reports.</p>
+          <span class="tag">analytics</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Scheduled Reports</h3>
+          <p>Automated weekly and monthly cost and usage reports delivered via email or webhook.</p>
+          <span class="tag">monitoring</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMING SOON -->
+    <section class="roadmap-section">
+      <div class="roadmap-label label-coming"><span class="dot-coming"></span> Coming Soon</div>
+      <div class="roadmap-grid">
+        <div class="roadmap-card" style="border-color: rgba(251,191,36,0.25); grid-column: 1 / -1;">
+          <h3 style="font-size: 1.05rem;">Universal Provider Support <span class="coming-badge">COMING SOON</span></h3>
+          <p style="font-size: 0.85rem;">Connect Mission Control to any AI agent framework or LLM API — not just OpenClaw. Auto-discovery probes endpoints, detects auth types, and maps capabilities automatically. Works with NemoClaw, PicoClaw, ZeroClaw, AutoGPT, CrewAI, LangGraph, and any OpenAI-compatible API (OpenAI, Anthropic, Google, Mistral, Ollama, and more).</p>
+          <span class="tag" style="background: rgba(251,191,36,0.1); color: #fbbf24; border-color: rgba(251,191,36,0.2);">universal</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Cost Dashboard</h3>
+          <p>Real-time token usage and cost tracking per agent, per instance, with budget alerts and daily/weekly/monthly views.</p>
+          <span class="tag">costs</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Scheduled Tasks</h3>
+          <p>Cron-based agent automation with run history, manual triggers, and visual next-run countdowns.</p>
+          <span class="tag">automation</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Agent Replay</h3>
+          <p>Step-by-step time travel through agent decisions. See what it saw, what it chose, and why — with a scrubber timeline.</p>
+          <span class="tag">operations</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Agent Templates</h3>
+          <p>Pre-built blueprints for common workflows. One-click deploy for code review, research, content writing, and more.</p>
+          <span class="tag">workspace</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Notification Center</h3>
+          <p>Desktop notifications with badge counts for agent completions, errors, budget alerts, and scheduled task results.</p>
+          <span class="tag">monitoring</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Export &amp; Reports</h3>
+          <p>Generate PDF and CSV reports for agent sessions, cost breakdowns, and instance health. Pick date ranges and preview before export.</p>
+          <span class="tag">analytics</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Local Knowledge Base</h3>
+          <p>Drag-and-drop files to build a private, local RAG index. Attach to agent sessions as context — nothing leaves your machine.</p>
+          <span class="tag">privacy</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Multi-Instance Orchestration</h3>
+          <p>Run tasks across multiple instances in parallel with aggregate results, fan-out patterns, and consensus voting.</p>
+          <span class="tag">infrastructure</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLANNED -->
+    <section class="roadmap-section">
+      <div class="roadmap-label label-planned">Planned</div>
+      <div class="roadmap-grid">
+        <div class="roadmap-card">
+          <h3>Linux Support</h3>
+          <p>AppImage and .deb packages for Linux desktop environments.</p>
+          <span class="tag">platform</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Team Collaboration</h3>
+          <p>Multi-user access with role-based permissions, shared dashboards, and activity audit trails.</p>
+          <span class="tag">collaboration</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Agent Performance Benchmarks</h3>
+          <p>Automated benchmarking of agent tasks across models with quality, speed, and cost scoring.</p>
+          <span class="tag">analytics</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Custom Dashboard Layouts</h3>
+          <p>Drag-and-drop dashboard builder with custom widgets, charts, and data sources.</p>
+          <span class="tag">customization</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Mobile Companion</h3>
+          <p>Lightweight mobile view for monitoring agent status, costs, and alerts on the go.</p>
+          <span class="tag">platform</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Plugin SDK</h3>
+          <p>Developer SDK for building custom extensions with hooks into the Mission Control event system.</p>
+          <span class="tag">developer</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feature request CTA -->
+    <section style="text-align:center;padding:3rem 0;">
+      <h2 style="font-size:1.4rem;font-weight:600;margin-bottom:0.6rem;">Have a feature request?</h2>
+      <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem;">
+        We prioritize based on what operators actually need. Tell us what would make Mission Control indispensable.
+      </p>
+      <a href="mailto:support@orqpilot.com?subject=Feature%20Request" style="display:inline-block;padding:0.75rem 2rem;background:var(--accent);color:white;border-radius:0.75rem;font-size:0.9rem;font-weight:600;text-decoration:none;">
+        Send Feature Request
+      </a>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          Mission Control
+        </div>
+        <div class="footer-links">
+          <a href="/">Home</a>
+          <a href="/features/">Features</a>
+          <a href="/pricing/">Pricing</a>
+          <a href="/roadmap/">Roadmap</a>
+          <a href="/faq/">FAQ</a>
+          <a href="/download/">Download</a>
+          <a href="/support/">Support</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/terms/">Terms</a>
+        </div>
+        <div class="footer-copy">&copy; 2026 OrqPilot</div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
