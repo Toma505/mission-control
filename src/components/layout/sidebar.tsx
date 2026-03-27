@@ -55,7 +55,7 @@ const mainNav = [
 ]
 
 const monitorNav = [
-  { name: 'Costs', href: '/costs', icon: DollarSign },
+  { name: 'Cost Dashboard', href: '/costs', icon: DollarSign },
   { name: 'Analytics', href: '/analytics', icon: PieChart },
   { name: 'Benchmarks', href: '/benchmarks', icon: Award },
   { name: 'Compare', href: '/cost-compare', icon: GitCompare },
