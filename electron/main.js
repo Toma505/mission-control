@@ -11,6 +11,7 @@ const fs = require('fs')
 const os = require('os')
 const AutoLaunch = require('auto-launch')
 const { createSessionToken, loadOrCreateConfigEncryptionKey } = require('./security-context')
+const { createScheduleRunner } = require('./schedule-runner')
 
 // ─── Cross-platform user data path ──────────────────────────
 function getUserDataPath() {
@@ -43,6 +44,7 @@ const DEFAULT_DESKTOP_SETTINGS = {
 }
 let sessionToken = ''
 let configEncryptionKey = ''
+let scheduleRunner = null
 
 function showMainWindow() {
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -428,6 +430,17 @@ app.on('ready', async () => {
     }
   }
 
+  scheduleRunner = createScheduleRunner({
+    getDataDir,
+    getPort: () => PORT,
+    getSessionToken: () => sessionToken,
+    onRunResult: ({ payload }) => {
+      if (!payload?.run || payload.run.status !== 'error') return
+      console.warn('[mc] Scheduled task failed:', payload.run.taskName || payload.run.taskId, payload.run.outputSummary)
+    },
+  })
+  scheduleRunner.start()
+
   createWindow()
 })
 
@@ -442,6 +455,8 @@ app.on('activate', () => {
 })
 
 app.on('before-quit', () => {
+  scheduleRunner?.stop()
+  scheduleRunner = null
   if (nextProcess) {
     if (process.platform === 'win32') {
       spawn('taskkill', ['/pid', String(nextProcess.pid), '/f', '/t'])

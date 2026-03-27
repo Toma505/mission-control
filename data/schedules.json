@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "tasks": [
+    {
+      "id": "sched-daily-brief",
+      "name": "Daily Briefing",
+      "cronExpression": "0 8 * * *",
+      "targetInstanceId": "inst-1",
+      "command": "openclaw.prompt.run",
+      "prompt": "Generate a daily briefing with top priorities, alerts, and new agent opportunities.",
+      "enabled": true,
+      "createdAt": "2026-03-26T08:00:00.000Z",
+      "updatedAt": "2026-03-26T08:00:00.000Z",
+      "lastRunAt": "2026-03-26T08:00:00.000Z",
+      "lastStatus": "success",
+      "lastDurationMs": 4100,
+      "lastOutputSummary": "Daily briefing generated with 5 priorities and 2 alerts.",
+      "nextRunAt": "2026-03-27T08:00:00.000Z"
+    },
+    {
+      "id": "sched-discord-followups",
+      "name": "Discord Follow-ups",
+      "cronExpression": "0 */4 * * *",
+      "targetInstanceId": "inst-1",
+      "command": "openclaw.prompt.run",
+      "prompt": "Review unresolved Discord conversations and draft follow-up responses for the support agent.",
+      "enabled": true,
+      "createdAt": "2026-03-25T16:00:00.000Z",
+      "updatedAt": "2026-03-26T04:00:00.000Z",
+      "lastRunAt": "2026-03-26T16:00:00.000Z",
+      "lastStatus": "success",
+      "lastDurationMs": 2800,
+      "lastOutputSummary": "Prepared 3 follow-up drafts for support review.",
+      "nextRunAt": "2026-03-26T20:00:00.000Z"
+    },
+    {
+      "id": "sched-weekly-script-pass",
+      "name": "Weekly Script Polish",
+      "cronExpression": "30 9 * * 1",
+      "targetInstanceId": "inst-2",
+      "command": "openclaw.prompt.run",
+      "prompt": "Take the highest-priority draft from the content queue and produce a polished outline with title hooks.",
+      "enabled": false,
+      "createdAt": "2026-03-24T12:30:00.000Z",
+      "updatedAt": "2026-03-24T12:30:00.000Z",
+      "lastRunAt": "2026-03-23T09:30:00.000Z",
+      "lastStatus": "success",
+      "lastDurationMs": 5300,
+      "lastOutputSummary": "Created an outline for the weekly launch strategy video.",
+      "nextRunAt": "2026-03-30T09:30:00.000Z"
+    }
+  ]
+}

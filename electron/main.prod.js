@@ -15,6 +15,7 @@ const os = require('os')
 const AutoLaunch = require('auto-launch')
 const { autoUpdater } = require('electron-updater')
 const { createSessionToken, loadOrCreateConfigEncryptionKey } = require('./security-context')
+const { createScheduleRunner } = require('./schedule-runner')
 
 // ─── Cross-platform user data path ──────────────────────────
 function getUserDataPath() {
@@ -48,6 +49,7 @@ const DEFAULT_DESKTOP_SETTINGS = {
 }
 let sessionToken = ''
 let configEncryptionKey = ''
+let scheduleRunner = null
 
 function showMainWindow() {
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -1012,6 +1014,21 @@ app.on('ready', async () => {
   // Start tray status polling now that server is ready
   startTrayStatusPolling()
 
+  scheduleRunner = createScheduleRunner({
+    getDataDir,
+    getPort: () => PORT,
+    getSessionToken: () => sessionToken,
+    onRunResult: ({ payload }) => {
+      if (!payload?.run || payload.run.status !== 'error') return
+      new Notification({
+        title: 'Scheduled task failed',
+        body: `${payload.run.taskName || 'Task'}: ${payload.run.outputSummary || 'Unknown error'}`,
+        icon: getIconPath(),
+      }).show()
+    },
+  })
+  scheduleRunner.start()
+
   // Auto-update: set up listeners and check for updates (packaged builds only)
   setupAutoUpdater()
   if (app.isPackaged) {
@@ -1031,6 +1048,8 @@ app.on('activate', () => {
 })
 
 app.on('before-quit', () => {
+  scheduleRunner?.stop()
+  scheduleRunner = null
   killServer()
 })
 

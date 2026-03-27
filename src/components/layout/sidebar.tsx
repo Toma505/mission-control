@@ -72,7 +72,7 @@ const workspaceNav = [
   { name: 'Intelligence', href: '/intelligence', icon: Brain },
   { name: 'Workshop', href: '/workshop', icon: Wrench },
   { name: 'Clients', href: '/clients', icon: Briefcase },
-  { name: 'Cron Jobs', href: '/cron-jobs', icon: Clock },
+  { name: 'Scheduled Tasks', href: '/schedules', icon: Clock },
   { name: 'Prompts', href: '/prompts', icon: BookMarked },
   { name: 'Cost Tags', href: '/cost-tags', icon: Tags },
   { name: 'Key Vault', href: '/vault', icon: KeyRound },
