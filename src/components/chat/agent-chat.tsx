@@ -63,6 +63,7 @@ export function AgentChat() {
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const pendingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
   const activeSessionRef = useRef<string>('')
+  const prefillAppliedRef = useRef(false)
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -71,6 +72,25 @@ export function AgentChat() {
   // Load sessions
   useEffect(() => {
     loadSessions()
+  }, [])
+
+  useEffect(() => {
+    if (prefillAppliedRef.current || typeof window === 'undefined') return
+    prefillAppliedRef.current = true
+
+    try {
+      const raw = window.sessionStorage.getItem('mission-control-chat-prefill')
+      if (!raw) return
+
+      const parsed = JSON.parse(raw) as { content?: string }
+      if (parsed.content?.trim()) {
+        setInput(parsed.content)
+        setTimeout(() => inputRef.current?.focus(), 50)
+      }
+      window.sessionStorage.removeItem('mission-control-chat-prefill')
+    } catch {
+      window.sessionStorage.removeItem('mission-control-chat-prefill')
+    }
   }, [])
 
   // Scroll on new messages

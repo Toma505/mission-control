@@ -1,0 +1,142 @@
+{
+  "prompts": [
+    {
+      "id": "prompt_launch_review",
+      "name": "Launch Readiness Review",
+      "description": "Evaluate whether a product is ready for a public launch and call out the top blockers.",
+      "category": "Analysis",
+      "content": "You are helping prepare {{product_name}} for launch. Review the current state, identify the top 3 blockers, and recommend the most pragmatic launch order. Optimize for speed, clarity, and low-regret decisions.",
+      "variables": [
+        "product_name"
+      ],
+      "tags": [
+        "launch",
+        "analysis",
+        "strategy"
+      ],
+      "usageCount": 4,
+      "createdAt": "2026-03-20T18:00:00.000Z",
+      "updatedAt": "2026-03-26T15:20:00.000Z",
+      "versions": [
+        {
+          "id": "version_launch_review_1",
+          "savedAt": "2026-03-20T18:00:00.000Z",
+          "name": "Launch Readiness Review",
+          "description": "Evaluate whether a product is ready for a public launch and call out the top blockers.",
+          "category": "Analysis",
+          "content": "You are helping prepare {{product_name}} for launch. Identify the biggest blockers and the fastest sequence to remove them.",
+          "variables": [
+            "product_name"
+          ],
+          "tags": [
+            "launch",
+            "analysis"
+          ]
+        },
+        {
+          "id": "version_launch_review_2",
+          "savedAt": "2026-03-26T15:20:00.000Z",
+          "name": "Launch Readiness Review",
+          "description": "Evaluate whether a product is ready for a public launch and call out the top blockers.",
+          "category": "Analysis",
+          "content": "You are helping prepare {{product_name}} for launch. Review the current state, identify the top 3 blockers, and recommend the most pragmatic launch order. Optimize for speed, clarity, and low-regret decisions.",
+          "variables": [
+            "product_name"
+          ],
+          "tags": [
+            "launch",
+            "analysis",
+            "strategy"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prompt_agent_brief",
+      "name": "Agent Brief Builder",
+      "description": "Turn a rough task into a concise brief for an execution agent.",
+      "category": "System Prompt",
+      "content": "You are briefing an execution agent. Convert the request into a compact brief with: objective, constraints, desired output, quality bar, and explicit definition of done. Task: {{task}}",
+      "variables": [
+        "task"
+      ],
+      "tags": [
+        "agent",
+        "briefing",
+        "system"
+      ],
+      "usageCount": 9,
+      "createdAt": "2026-03-18T10:10:00.000Z",
+      "updatedAt": "2026-03-18T10:10:00.000Z",
+      "versions": [
+        {
+          "id": "version_agent_brief_1",
+          "savedAt": "2026-03-18T10:10:00.000Z",
+          "name": "Agent Brief Builder",
+          "description": "Turn a rough task into a concise brief for an execution agent.",
+          "category": "System Prompt",
+          "content": "You are briefing an execution agent. Convert the request into a compact brief with: objective, constraints, desired output, quality bar, and explicit definition of done. Task: {{task}}",
+          "variables": [
+            "task"
+          ],
+          "tags": [
+            "agent",
+            "briefing",
+            "system"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prompt_video_outline",
+      "name": "Video Outline Sprint",
+      "description": "Generate a tight outline for a technical explainer video.",
+      "category": "Creative",
+      "content": "Create a YouTube outline about {{topic}}. Structure it with: hook, why it matters now, 3 sections, a contrarian angle, and a practical CTA. Keep the pacing tight and specific.",
+      "variables": [
+        "topic"
+      ],
+      "tags": [
+        "content",
+        "video",
+        "outline"
+      ],
+      "usageCount": 6,
+      "createdAt": "2026-03-22T08:40:00.000Z",
+      "updatedAt": "2026-03-24T09:05:00.000Z",
+      "versions": [
+        {
+          "id": "version_video_outline_1",
+          "savedAt": "2026-03-22T08:40:00.000Z",
+          "name": "Video Outline Sprint",
+          "description": "Generate a tight outline for a technical explainer video.",
+          "category": "Creative",
+          "content": "Create a YouTube outline about {{topic}}. Structure it with a hook, 3 sections, and a CTA.",
+          "variables": [
+            "topic"
+          ],
+          "tags": [
+            "content",
+            "video"
+          ]
+        },
+        {
+          "id": "version_video_outline_2",
+          "savedAt": "2026-03-24T09:05:00.000Z",
+          "name": "Video Outline Sprint",
+          "description": "Generate a tight outline for a technical explainer video.",
+          "category": "Creative",
+          "content": "Create a YouTube outline about {{topic}}. Structure it with: hook, why it matters now, 3 sections, a contrarian angle, and a practical CTA. Keep the pacing tight and specific.",
+          "variables": [
+            "topic"
+          ],
+          "tags": [
+            "content",
+            "video",
+            "outline"
+          ]
+        }
+      ]
+    }
+  ]
+}
