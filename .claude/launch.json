@@ -14,7 +14,7 @@
       "port": 5555
     },
     {
-      "name": "OrqPilot Website",
+      "name": "Website",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["serve", "website", "-l", "4201", "-s"],
       "port": 4201
