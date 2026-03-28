@@ -30,6 +30,7 @@ import {
   PlayCircle,
   Rocket,
   XCircle,
+  LayoutTemplate,
 } from 'lucide-react'
 import { OPEN_DIAGNOSTICS_EVENT, OPEN_PREFERENCES_EVENT } from './desktop-events'
 
@@ -59,6 +60,7 @@ const PAGE_ITEMS: SearchItem[] = [
   { id: 'analytics', title: 'Usage Analytics', subtitle: 'Token usage, model costs, anomaly detection', href: '/analytics', icon: <BarChart3 className="w-4 h-4" />, category: 'page', keywords: ['analytics', 'tokens', 'model', 'breakdown', 'anomaly', 'usage'] },
   { id: 'api-usage', title: 'API Usage', subtitle: 'Token consumption', href: '/api-usage', icon: <BarChart3 className="w-4 h-4" />, category: 'page', keywords: ['tokens', 'openrouter', 'anthropic', 'usage'] },
   { id: 'extensions', title: 'Extensions', subtitle: 'Installed tools, marketplace, and upload scanner', href: '/extensions', icon: <Package className="w-4 h-4" />, category: 'page', keywords: ['extensions', 'plugins', 'skills', 'install', 'scan', 'marketplace'] },
+  { id: 'templates', title: 'Agent Templates', subtitle: 'Deploy reusable agent setups and custom roles', href: '/templates', icon: <LayoutTemplate className="w-4 h-4" />, category: 'page', keywords: ['templates', 'agent templates', 'deploy', 'roles', 'system prompt', 'starter'] },
   { id: 'journal', title: 'Journal', subtitle: 'Activity logs', href: '/journal', icon: <BookOpen className="w-4 h-4" />, category: 'page', keywords: ['logs', 'activity', 'history'] },
   { id: 'documents', title: 'Documents', subtitle: 'Workspace files', href: '/documents', icon: <FileText className="w-4 h-4" />, category: 'page', keywords: ['files', 'workspace', 'memory'] },
   { id: 'intelligence', title: 'Intelligence', subtitle: 'Agent memory', href: '/intelligence', icon: <Brain className="w-4 h-4" />, category: 'page', keywords: ['memory', 'knowledge', 'context'] },
