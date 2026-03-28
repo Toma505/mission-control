@@ -41,6 +41,7 @@ import {
   ScrollText,
   GitCompare,
   TrendingUp,
+  LayoutTemplate,
 } from 'lucide-react'
 
 const mainNav = [
@@ -50,6 +51,7 @@ const mainNav = [
   { name: 'Chat', href: '/chat', icon: MessageSquare },
   { name: 'Replay', href: '/replay', icon: PlayCircle },
   { name: 'Extensions', href: '/extensions', icon: Package },
+  { name: 'Templates', href: '/templates', icon: LayoutTemplate },
   { name: 'Presets', href: '/presets', icon: Sparkles },
   { name: 'Workflows', href: '/workflows', icon: Workflow },
 ]
