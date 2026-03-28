@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validate as validateCronExpression } from 'node-cron'
 
 import { appendAudit } from '@/app/api/audit-log/route'
-import { pushNotification } from '@/app/api/notifications/route'
 import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
+import { pushNotification } from '@/lib/notifications-store'
 import { sanitizeError } from '@/lib/sanitize-error'
 import {
   computeNextRunAt,
@@ -200,11 +200,21 @@ export async function POST(request: NextRequest) {
 
       if (result.run.status === 'error') {
         await pushNotification({
-          type: 'system',
+          type: 'schedule_fired',
           title: 'Scheduled task failed',
           message: `${currentTask.name}: ${result.run.outputSummary}`,
           href: '/schedules',
-          icon: 'clock',
+          source: 'schedules',
+          outputSummary: result.run.outputSummary,
+        }).catch(() => null)
+      } else {
+        await pushNotification({
+          type: 'schedule_fired',
+          title: 'Scheduled task completed',
+          message: `${currentTask.name} finished in ${Math.max(1, Math.round(result.run.durationMs / 1000))}s`,
+          href: '/schedules',
+          source,
+          outputSummary: result.run.outputSummary,
         }).catch(() => null)
       }
 

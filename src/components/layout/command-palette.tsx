@@ -6,6 +6,7 @@ import { apiFetch } from '@/lib/api-client'
 import { formatUpdaterMessage } from '@/lib/updater-status'
 import {
   AlertTriangle,
+  Bell,
   Search,
   LayoutDashboard,
   BookOpen,
@@ -62,6 +63,7 @@ const PAGE_ITEMS: SearchItem[] = [
   { id: 'api-usage', title: 'API Usage', subtitle: 'Token consumption', href: '/api-usage', icon: <BarChart3 className="w-4 h-4" />, category: 'page', keywords: ['tokens', 'openrouter', 'anthropic', 'usage'] },
   { id: 'extensions', title: 'Extensions', subtitle: 'Installed tools, marketplace, and upload scanner', href: '/extensions', icon: <Package className="w-4 h-4" />, category: 'page', keywords: ['extensions', 'plugins', 'skills', 'install', 'scan', 'marketplace'] },
   { id: 'templates', title: 'Agent Templates', subtitle: 'Deploy reusable agent setups and custom roles', href: '/templates', icon: <LayoutTemplate className="w-4 h-4" />, category: 'page', keywords: ['templates', 'agent templates', 'deploy', 'roles', 'system prompt', 'starter'] },
+  { id: 'notifications', title: 'Notifications', subtitle: 'Desktop alerts and notification history', href: '/notifications', icon: <Bell className="w-4 h-4" />, category: 'page', keywords: ['notifications', 'alerts', 'bell', 'badge', 'desktop', 'tray'] },
   { id: 'journal', title: 'Journal', subtitle: 'Activity logs', href: '/journal', icon: <BookOpen className="w-4 h-4" />, category: 'page', keywords: ['logs', 'activity', 'history'] },
   { id: 'documents', title: 'Documents', subtitle: 'Workspace files', href: '/documents', icon: <FileText className="w-4 h-4" />, category: 'page', keywords: ['files', 'workspace', 'memory'] },
   { id: 'intelligence', title: 'Intelligence', subtitle: 'Agent memory', href: '/intelligence', icon: <Brain className="w-4 h-4" />, category: 'page', keywords: ['memory', 'knowledge', 'context'] },

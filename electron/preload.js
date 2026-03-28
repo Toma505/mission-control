@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Notifications
   showNotification: (opts) => ipcRenderer.invoke('show-notification', opts),
+  setNotificationBadge: (count) => ipcRenderer.invoke('set-notification-badge', count),
 
   // Backup & Restore
   createBackup: () => ipcRenderer.invoke('create-backup'),

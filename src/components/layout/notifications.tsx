@@ -1,41 +1,38 @@
 'use client'
 
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Bell, ExternalLink, RefreshCw, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import {
-  Bell,
-  AlertTriangle,
-  CheckCircle,
-  Info,
-  X,
-  DollarSign,
-  Zap,
-  Users,
-  Shield,
-  Download,
-  RefreshCw,
-  Rocket,
-} from 'lucide-react'
-import { formatUpdaterMessage, type UpdaterStatus } from '@/lib/updater-status'
-import { OPEN_DIAGNOSTICS_EVENT } from './desktop-events'
 
-interface Notification {
+import { apiFetch } from '@/lib/api-client'
+import type { NotificationType } from '@/lib/notifications-store'
+import {
+  EmptyNotificationsState,
+  formatNotificationTime,
+  getNotificationAppearance,
+} from '@/components/notifications/notification-appearance'
+
+type NotificationItem = {
   id: string
-  type: 'success' | 'warning' | 'info' | 'error'
+  type: NotificationType
   title: string
   message: string
-  timestamp: Date
+  timestamp: string
   read: boolean
-  icon?: ReactNode
-  actionLabel?: string
-  onAction?: () => void | Promise<void>
+  dismissed: boolean
+  href?: string
+  source?: string
+  outputSummary?: string
+}
+
+type NotificationsResponse = {
+  notifications: NotificationItem[]
+  unreadCount: number
 }
 
 type ElectronAPI = {
-  updaterStatus?: () => Promise<UpdaterStatus>
-  updaterDownload?: () => Promise<UpdaterStatus>
-  updaterInstall?: () => Promise<void>
-  onUpdateStatus?: (callback: (status: UpdaterStatus) => void) => (() => void) | void
+  showNotification?: (options: { title: string; body: string; urgency?: 'low' | 'normal' | 'critical' }) => Promise<void>
+  setNotificationBadge?: (count: number) => Promise<void>
 }
 
 function getElectronAPI() {
@@ -46,469 +43,238 @@ function getElectronAPI() {
 
 export function Notifications() {
   const [open, setOpen] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [readIds, setReadIds] = useState<string[]>([])
-  const [dismissedIds, setDismissedIds] = useState<string[]>([])
+  const [notifications, setNotifications] = useState<NotificationItem[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
-  const [busyActionId, setBusyActionId] = useState<string | null>(null)
+  const [busyAction, setBusyAction] = useState('')
+  const [error, setError] = useState('')
   const ref = useRef<HTMLDivElement>(null)
+  const notifiedIdsRef = useRef<Set<string>>(new Set())
   const router = useRouter()
 
-  const markRead = useCallback((id: string) => {
-    setReadIds(prev => (prev.includes(id) ? prev : [...prev, id]))
-  }, [])
-
-  const navigateTo = useCallback((href: string) => {
-    setOpen(false)
-    router.push(href)
-  }, [router])
-
-  const openDiagnostics = useCallback(() => {
-    setOpen(false)
-    window.dispatchEvent(new CustomEvent(OPEN_DIAGNOSTICS_EVENT))
-  }, [])
-
-  const fetchNotifications = useCallback(async () => {
-    const nextNotifications: Notification[] = []
-    const electronAPI = getElectronAPI()
-
-    setRefreshing(true)
-
+  const syncBadge = useCallback(async (count: number) => {
     try {
-      const costsRes = await fetch('/api/costs', { cache: 'no-store' })
-      if (costsRes.ok) {
-        const costs = await costsRes.json()
-
-        if (costs.openrouter) {
-          const pctUsed = costs.openrouter.totalCredits > 0
-            ? (costs.openrouter.totalUsage / costs.openrouter.totalCredits) * 100
-            : 0
-
-          if (pctUsed > 80) {
-            nextNotifications.push({
-              id: 'or-credits-low',
-              type: 'warning',
-              title: 'OpenRouter credits low',
-              message: `${(100 - pctUsed).toFixed(0)}% remaining ($${costs.openrouter.remaining.toFixed(2)} left)`,
-              timestamp: new Date(),
-              read: false,
-              icon: <DollarSign className="w-4 h-4 text-amber-400" />,
-              actionLabel: 'Open Costs',
-              onAction: () => navigateTo('/costs'),
-            })
-          }
-
-          if (costs.openrouter.usageDaily > 5) {
-            nextNotifications.push({
-              id: 'or-high-spend',
-              type: 'info',
-              title: 'High daily spend',
-              message: `$${costs.openrouter.usageDaily.toFixed(2)} spent today on OpenRouter`,
-              timestamp: new Date(),
-              read: false,
-              icon: <Zap className="w-4 h-4 text-violet-400" />,
-              actionLabel: 'Review Costs',
-              onAction: () => navigateTo('/costs'),
-            })
-          }
-        }
-
-        if (costs.railway && !costs.railway.error && costs.railway.estimated.total > costs.railway.credits) {
-          nextNotifications.push({
-            id: 'railway-overage',
-            type: 'warning',
-            title: 'Railway over budget',
-            message: `Estimated $${costs.railway.estimated.total.toFixed(2)}/mo exceeds $${costs.railway.credits}/mo credits`,
-            timestamp: new Date(),
-            read: false,
-            icon: <AlertTriangle className="w-4 h-4 text-amber-400" />,
-            actionLabel: 'Review Costs',
-            onAction: () => navigateTo('/costs'),
-          })
-        }
-      }
-
-      const modeRes = await fetch('/api/mode', { cache: 'no-store' })
-      if (modeRes.ok) {
-        const mode = await modeRes.json()
-        if (mode.connected) {
-          nextNotifications.push({
-            id: 'openclaw-connected',
-            type: 'success',
-            title: 'OpenClaw online',
-            message: `Running ${mode.currentModel?.split('/').pop() || 'unknown'} in ${mode.mode} mode`,
-            timestamp: new Date(),
-            read: true,
-            icon: <CheckCircle className="w-4 h-4 text-emerald-400" />,
-          })
-        } else {
-          nextNotifications.push({
-            id: 'openclaw-disconnected',
-            type: 'error',
-            title: 'OpenClaw disconnected',
-            message: 'Mission Control cannot reach your OpenClaw instance right now.',
-            timestamp: new Date(),
-            read: false,
-            icon: <AlertTriangle className="w-4 h-4 text-red-400" />,
-            actionLabel: 'Check Connection',
-            onAction: () => navigateTo('/setup?reconfigure=true'),
-          })
-        }
-      }
-
-      try {
-        const budgetRes = await fetch('/api/budget', { cache: 'no-store' })
-        if (budgetRes.ok) {
-          const budget = await budgetRes.json()
-          if (budget.alertLevel === 'exceeded') {
-            nextNotifications.push({
-              id: 'budget-exceeded',
-              type: 'error',
-              title: budget.throttled ? 'Budget exceeded and throttled' : 'Budget exceeded',
-              message: budget.throttled
-                ? `Switched to budget mode. Daily: $${budget.spend.daily.toFixed(2)}/$${budget.budget.dailyLimit}`
-                : `Daily spend $${budget.spend.daily.toFixed(2)} exceeds $${budget.budget.dailyLimit}`,
-              timestamp: new Date(),
-              read: false,
-              icon: <Shield className="w-4 h-4 text-red-400" />,
-              actionLabel: 'Review Budget',
-              onAction: () => navigateTo('/costs'),
-            })
-          } else if (budget.alertLevel === 'critical') {
-            nextNotifications.push({
-              id: 'budget-critical',
-              type: 'warning',
-              title: 'Near spending limit',
-              message: `Daily: $${budget.spend.daily.toFixed(2)}/$${budget.budget.dailyLimit} (${budget.dailyPct.toFixed(0)}%)`,
-              timestamp: new Date(),
-              read: false,
-              icon: <Shield className="w-4 h-4 text-orange-400" />,
-              actionLabel: 'Review Budget',
-              onAction: () => navigateTo('/costs'),
-            })
-          } else if (budget.alertLevel === 'warning') {
-            nextNotifications.push({
-              id: 'budget-warning',
-              type: 'info',
-              title: 'Approaching spending limit',
-              message: `Daily: $${budget.spend.daily.toFixed(2)}/$${budget.budget.dailyLimit} (${budget.dailyPct.toFixed(0)}%)`,
-              timestamp: new Date(),
-              read: false,
-              icon: <Shield className="w-4 h-4 text-amber-400" />,
-              actionLabel: 'Review Budget',
-              onAction: () => navigateTo('/costs'),
-            })
-          }
-        }
-      } catch {}
-
-      const activitiesRes = await fetch('/api/activities', { cache: 'no-store' })
-      if (activitiesRes.ok) {
-        const activities = await activitiesRes.json()
-        const recentSessions = (activities.sessions || []).slice(0, 3)
-        for (const session of recentSessions) {
-          if (session.status === 'FAILED') {
-            nextNotifications.push({
-              id: `session-fail-${session.key}`,
-              type: 'error',
-              title: 'Agent session failed',
-              message: session.key.replace('agent:main:', ''),
-              timestamp: new Date(),
-              read: false,
-              icon: <Users className="w-4 h-4 text-red-400" />,
-              actionLabel: 'Open Workshop',
-              onAction: () => navigateTo('/workshop'),
-            })
-          }
-        }
-      }
-
-      // Smart Alerts — check user-configured rules
-      try {
-        const alertsRes = await fetch('/api/alerts/check', { cache: 'no-store' })
-        if (alertsRes.ok) {
-          const alertsData = await alertsRes.json()
-          for (const alert of (alertsData.triggered || [])) {
-            nextNotifications.push({
-              id: `smart-alert-${alert.ruleId}`,
-              type: alert.action === 'notify_and_throttle' ? 'warning' : 'info',
-              title: alert.ruleName,
-              message: alert.message,
-              timestamp: new Date(),
-              read: false,
-              icon: <AlertTriangle className="w-4 h-4 text-accent-highlight" />,
-              actionLabel: 'View Alerts',
-              onAction: () => navigateTo('/alerts'),
-            })
-          }
-        }
-      } catch {}
-
-      // Persistent notifications from the notification store
-      try {
-        const persistRes = await fetch('/api/notifications', { cache: 'no-store' })
-        if (persistRes.ok) {
-          const persistData = await persistRes.json()
-          for (const pn of (persistData.notifications || []).slice(0, 10)) {
-            // Avoid duplicates with smart alerts
-            if (nextNotifications.some(n => n.title === pn.title && n.message === pn.message)) continue
-            nextNotifications.push({
-              id: `persist-${pn.id}`,
-              type: pn.type === 'budget' ? 'warning' : pn.type === 'alert' ? 'warning' : 'info',
-              title: pn.title,
-              message: pn.message,
-              timestamp: new Date(pn.timestamp),
-              read: pn.read,
-              icon: pn.type === 'budget'
-                ? <DollarSign className="w-4 h-4 text-red-400" />
-                : pn.type === 'alert'
-                ? <AlertTriangle className="w-4 h-4 text-amber-400" />
-                : pn.type === 'webhook'
-                ? <Zap className="w-4 h-4 text-violet-400" />
-                : <Info className="w-4 h-4 text-sky-400" />,
-              ...(pn.href ? { actionLabel: 'View', onAction: () => navigateTo(pn.href) } : {}),
-            })
-          }
-        }
-      } catch {}
-
-      try {
-        const updateStatus = await electronAPI?.updaterStatus?.()
-        const updateMessage = formatUpdaterMessage(updateStatus)
-        if (updateStatus?.status === 'available' && updateMessage) {
-          nextNotifications.push({
-            id: 'desktop-update-available',
-            type: 'info',
-            title: 'Desktop update available',
-            message: updateMessage,
-            timestamp: new Date(),
-            read: false,
-            icon: <Rocket className="w-4 h-4 text-sky-400" />,
-            actionLabel: 'Download Update',
-            onAction: async () => {
-              await electronAPI?.updaterDownload?.()
-            },
-          })
-        } else if (updateStatus?.status === 'downloading' && updateMessage) {
-          nextNotifications.push({
-            id: 'desktop-update-downloading',
-            type: 'info',
-            title: 'Downloading desktop update',
-            message: updateMessage,
-            timestamp: new Date(),
-            read: false,
-            icon: <Download className="w-4 h-4 text-sky-400" />,
-          })
-        } else if (updateStatus?.status === 'downloaded' && updateMessage) {
-          nextNotifications.push({
-            id: 'desktop-update-downloaded',
-            type: 'success',
-            title: 'Update ready to install',
-            message: updateMessage,
-            timestamp: new Date(),
-            read: false,
-            icon: <Download className="w-4 h-4 text-emerald-400" />,
-            actionLabel: 'Restart to Install',
-            onAction: async () => {
-              await electronAPI?.updaterInstall?.()
-            },
-          })
-        } else if (updateStatus?.status === 'error' && updateMessage) {
-          nextNotifications.push({
-            id: 'desktop-update-error',
-            type: 'warning',
-            title: updateMessage.includes('No public desktop release')
-              ? 'Desktop release not published yet'
-              : 'Update check failed',
-            message: updateMessage,
-            timestamp: new Date(),
-            read: false,
-            icon: <AlertTriangle className="w-4 h-4 text-amber-400" />,
-            actionLabel: 'Open Diagnostics',
-            onAction: openDiagnostics,
-          })
-        }
-      } catch {}
+      await getElectronAPI()?.setNotificationBadge?.(count)
     } catch {
-      nextNotifications.length = 0
-    } finally {
+      // Best-effort only.
+    }
+  }, [])
+
+  const maybeShowDesktopNotifications = useCallback(async (items: NotificationItem[]) => {
+    if (document.visibilityState === 'visible' && document.hasFocus()) return
+
+    const electronAPI = getElectronAPI()
+    if (!electronAPI?.showNotification) return
+
+    for (const item of items) {
+      if (item.read || item.dismissed || notifiedIdsRef.current.has(item.id)) continue
+
+      try {
+        await electronAPI.showNotification({
+          title: item.title,
+          body: item.message,
+          urgency: item.type === 'agent_error' || item.type === 'budget_alert' ? 'critical' : 'normal',
+        })
+        notifiedIdsRef.current.add(item.id)
+      } catch {
+        break
+      }
+    }
+  }, [])
+
+  const loadNotifications = useCallback(async () => {
+    setRefreshing(true)
+    setError('')
+    try {
+      const response = await fetch('/api/notifications?limit=8', { cache: 'no-store' })
+      const data = await response.json() as NotificationsResponse
+      const nextNotifications = data.notifications || []
       setNotifications(nextNotifications)
+      setUnreadCount(data.unreadCount || 0)
+      void syncBadge(data.unreadCount || 0)
+      void maybeShowDesktopNotifications(nextNotifications)
+    } catch {
+      setError('Could not load notifications.')
+    } finally {
       setRefreshing(false)
     }
-  }, [navigateTo, openDiagnostics])
+  }, [maybeShowDesktopNotifications, syncBadge])
 
   useEffect(() => {
-    void fetchNotifications()
-    const interval = setInterval(() => {
-      void fetchNotifications()
-    }, 60_000)
-    return () => clearInterval(interval)
-  }, [fetchNotifications])
-
-  useEffect(() => {
-    const electronAPI = getElectronAPI()
-    const updateListener = electronAPI?.onUpdateStatus?.(() => {
-      void fetchNotifications()
-    })
+    void loadNotifications()
+    const interval = window.setInterval(() => {
+      void loadNotifications()
+    }, 30_000)
 
     return () => {
-      if (typeof updateListener === 'function') updateListener()
+      window.clearInterval(interval)
     }
-  }, [fetchNotifications])
+  }, [loadNotifications])
 
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
         setOpen(false)
       }
     }
-    if (open) document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [open])
 
-  const visibleNotifications = useMemo(() => (
-    notifications
-      .filter(notification => !dismissedIds.includes(notification.id))
-      .map(notification => ({
-        ...notification,
-        read: notification.read || readIds.includes(notification.id),
-      }))
-  ), [dismissedIds, notifications, readIds])
+  const visibleNotifications = useMemo(
+    () => notifications.filter((notification) => !notification.dismissed),
+    [notifications],
+  )
 
-  const unreadCount = visibleNotifications.filter(notification => !notification.read).length
-
-  function markAllRead() {
-    setReadIds(prev => {
-      const next = new Set(prev)
-      for (const notification of visibleNotifications) next.add(notification.id)
-      return Array.from(next)
-    })
-  }
-
-  function dismiss(id: string) {
-    setDismissedIds(prev => (prev.includes(id) ? prev : [...prev, id]))
-  }
-
-  async function runAction(notification: Notification) {
-    if (!notification.onAction) return
-
-    markRead(notification.id)
-    setBusyActionId(notification.id)
-
+  async function mutate(action: 'markRead' | 'markAllRead' | 'dismiss', ids?: string[]) {
+    setBusyAction(action)
     try {
-      await notification.onAction()
+      await apiFetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(action === 'markAllRead' ? { action } : { action, ids }),
+      })
+      await loadNotifications()
     } finally {
-      setBusyActionId(null)
+      setBusyAction('')
     }
   }
 
-  const iconForType = (type: string) => {
-    switch (type) {
-      case 'success': return <CheckCircle className="w-4 h-4 text-emerald-400" />
-      case 'warning': return <AlertTriangle className="w-4 h-4 text-amber-400" />
-      case 'error': return <AlertTriangle className="w-4 h-4 text-red-400" />
-      default: return <Info className="w-4 h-4 text-sky-400" />
+  function openHistory() {
+    setOpen(false)
+    router.push('/notifications')
+  }
+
+  async function openNotification(notification: NotificationItem) {
+    if (!notification.read) {
+      await mutate('markRead', [notification.id])
     }
+
+    setOpen(false)
+    router.push(notification.href || '/notifications')
   }
 
   return (
     <div className="relative" ref={ref}>
       <button
-        onClick={() => setOpen(!open)}
-        className="w-7 h-7 rounded-[8px] flex items-center justify-center hover:bg-[var(--glass-bg)] transition-all duration-200 relative"
+        onClick={() => setOpen((current) => !current)}
+        className="relative flex h-7 w-7 items-center justify-center rounded-[8px] transition-all duration-200 hover:bg-[var(--glass-bg)]"
         title="Notifications"
       >
-        <Bell className="w-[15px] h-[15px] text-text-muted" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-red-500 text-white text-[8px] font-bold flex items-center justify-center">
+        <Bell className="h-[15px] w-[15px] text-text-muted" />
+        {unreadCount > 0 ? (
+          <span className="absolute -right-0.5 -top-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-red-500 px-1 text-[8px] font-bold text-white">
             {Math.min(unreadCount, 9)}
           </span>
-        )}
+        ) : null}
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-full mt-2 w-[360px] rounded-xl border border-[var(--glass-border)] bg-[var(--background-card)] backdrop-blur-xl shadow-2xl shadow-black/40 overflow-hidden z-50">
-          <div className="px-4 py-3 border-b border-[var(--glass-border)] flex items-center justify-between gap-3">
+      {open ? (
+        <div className="absolute right-0 top-full z-50 mt-2 w-[380px] overflow-hidden rounded-2xl border border-[var(--glass-border)] bg-[var(--background-card)]/95 shadow-2xl shadow-black/40 backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-3 border-b border-[var(--glass-border)] px-4 py-3">
             <div>
-              <h3 className="text-sm font-medium text-text-primary">Notifications</h3>
-              <p className="text-[11px] text-text-muted">Alerts that help you recover quickly, not just observe.</p>
+              <h3 className="text-sm font-medium text-text-primary">Notification Center</h3>
+              <p className="text-[11px] text-text-muted">Recent activity from agents, budgets, and scheduled tasks.</p>
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => void fetchNotifications()}
-                className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-text-muted hover:bg-[var(--glass-bg)] hover:text-text-primary"
+                onClick={() => void loadNotifications()}
+                className="rounded-lg px-2 py-1 text-[11px] text-text-muted transition-colors hover:bg-[var(--glass-bg)] hover:text-text-primary"
                 title="Refresh notifications"
               >
-                <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
-                Refresh
+                <RefreshCw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} />
               </button>
-              {unreadCount > 0 && (
-                <button onClick={markAllRead} className="text-[11px] text-accent-highlight hover:text-accent-highlight/80">
+              {unreadCount > 0 ? (
+                <button
+                  onClick={() => void mutate('markAllRead')}
+                  className="text-[11px] text-accent-highlight hover:text-accent-highlight/80"
+                >
                   Mark all read
                 </button>
-              )}
+              ) : null}
             </div>
           </div>
 
-          <div className="max-h-[420px] overflow-y-auto">
-            {visibleNotifications.length === 0 ? (
-              <div className="px-4 py-8 text-center">
-                <Bell className="w-6 h-6 text-text-muted/30 mx-auto mb-2" />
-                <p className="text-xs text-text-muted">No notifications</p>
+          <div className="max-h-[420px] overflow-y-auto p-3">
+            {error ? (
+              <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-xs text-red-100">
+                {error}
               </div>
+            ) : visibleNotifications.length === 0 ? (
+              <EmptyNotificationsState message="You’re all caught up." />
             ) : (
-              visibleNotifications.map(notification => (
-                <div
-                  key={notification.id}
-                  className={`px-4 py-3 border-b border-[var(--glass-border)] transition-colors ${
-                    notification.read ? 'hover:bg-[var(--glass-bg)]' : 'bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-hover)]'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5 shrink-0">
-                      {notification.icon || iconForType(notification.type)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-xs font-medium ${notification.read ? 'text-text-secondary' : 'text-text-primary'}`}>
-                        {notification.title}
-                      </p>
-                      <p className="text-[11px] text-text-muted mt-0.5">{notification.message}</p>
-
-                      {notification.actionLabel ? (
-                        <div className="mt-3 flex items-center gap-2">
-                          <button
-                            onClick={() => void runAction(notification)}
-                            disabled={busyActionId !== null}
-                            className="inline-flex items-center gap-1 rounded-lg border border-[var(--glass-border)] bg-[var(--glass-bg)] px-2.5 py-1 text-[11px] text-text-primary hover:bg-[var(--glass-bg-hover)] disabled:opacity-60"
-                          >
-                            {busyActionId === notification.id ? <RefreshCw className="w-3 h-3 animate-spin" /> : null}
-                            {notification.actionLabel}
-                          </button>
-                          {!notification.read ? (
-                            <button
-                              onClick={() => markRead(notification.id)}
-                              className="text-[11px] text-text-muted hover:text-text-primary"
-                            >
-                              Mark read
-                            </button>
-                          ) : null}
-                        </div>
-                      ) : null}
-                    </div>
-                    <button
-                      onClick={() => dismiss(notification.id)}
-                      className="shrink-0 mt-0.5 text-text-muted/30 hover:text-text-muted"
-                      aria-label={`Dismiss ${notification.title}`}
+              <div className="space-y-2">
+                {visibleNotifications.map((notification) => {
+                  const appearance = getNotificationAppearance(notification.type)
+                  return (
+                    <div
+                      key={notification.id}
+                      className={`rounded-2xl border px-4 py-4 transition-colors ${
+                        notification.read
+                          ? 'border-white/[0.06] bg-white/[0.03]'
+                          : 'border-accent-primary/20 bg-accent-primary/10'
+                      }`}
                     >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              ))
+                      <div className="flex items-start gap-3">
+                        <div className="rounded-xl bg-white/[0.04] p-2">{appearance.icon}</div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-sm font-medium text-text-primary">{notification.title}</p>
+                            <span className={`rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.14em] ${appearance.badgeClassName}`}>
+                              {appearance.badgeLabel}
+                            </span>
+                            <span className="text-[11px] text-text-muted">{formatNotificationTime(notification.timestamp)}</span>
+                          </div>
+                          <p className="mt-2 text-xs leading-5 text-text-secondary">{notification.message}</p>
+                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <button
+                              onClick={() => void openNotification(notification)}
+                              className="rounded-xl bg-accent-primary px-3 py-2 text-xs font-medium text-white hover:bg-accent-primary/90"
+                            >
+                              <ExternalLink className="mr-1 inline h-3.5 w-3.5" />
+                              {notification.href ? 'Open' : 'Details'}
+                            </button>
+                            {!notification.read ? (
+                              <button
+                                onClick={() => void mutate('markRead', [notification.id])}
+                                className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-medium text-text-primary hover:bg-white/[0.07]"
+                              >
+                                Mark read
+                              </button>
+                            ) : null}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => void mutate('dismiss', [notification.id])}
+                          disabled={busyAction === 'dismiss'}
+                          className="text-text-muted/40 transition-colors hover:text-text-muted"
+                          aria-label={`Dismiss ${notification.title}`}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             )}
           </div>
+
+          <div className="border-t border-[var(--glass-border)] px-4 py-3">
+            <button
+              onClick={openHistory}
+              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-medium text-text-primary hover:bg-white/[0.07]"
+            >
+              View full history
+            </button>
+          </div>
         </div>
-      )}
+      ) : null}
     </div>
   )
 }
+

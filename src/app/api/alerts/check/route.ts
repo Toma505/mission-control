@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { fireWebhooks } from '@/app/api/webhooks/route'
-import { pushNotification } from '@/app/api/notifications/route'
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { DATA_DIR, getEffectiveConfig } from '@/lib/connection-config'
+import { pushNotification } from '@/lib/notifications-store'
 import type { AlertRule } from '../route'
 
 const ALERTS_FILE = path.join(DATA_DIR, 'alerts.json')
@@ -172,10 +172,11 @@ export async function GET() {
         const event = alert.ruleId.includes('budget') ? 'budget.exceeded' : 'alert.triggered'
         fireWebhooks(event, `${alert.ruleName}: ${alert.message}`).catch(() => {})
         pushNotification({
-          type: alert.ruleId.includes('budget') ? 'budget' : 'alert',
+          type: alert.ruleId.includes('budget') ? 'budget_alert' : 'agent_error',
           title: alert.ruleName,
           message: alert.message,
           href: '/alerts',
+          source: 'alerts',
         }).catch(() => {})
       }
     }

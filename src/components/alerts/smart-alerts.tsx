@@ -79,21 +79,13 @@ export function SmartAlerts() {
   useEffect(() => {
     fetchAlerts()
 
-    // Poll alert checks every 60 seconds and fire OS notifications
+    // Poll alert checks every 60 seconds; desktop notifications are handled centrally
+    // by the Notification Center once alerts are persisted to notifications.json.
     const interval = setInterval(async () => {
       try {
         const res = await fetch('/api/alerts/check')
         const data = await res.json()
         if (data.triggered?.length > 0) {
-          for (const alert of data.triggered) {
-            if (alert.action !== 'throttle') {
-              ;(window as Window & { electronAPI?: { showNotification?: (opts: { title: string; body: string; urgency: string }) => Promise<void> } }).electronAPI?.showNotification?.({
-                title: `Alert: ${alert.ruleName}`,
-                body: alert.message,
-                urgency: 'normal',
-              })
-            }
-          }
           // Refresh rules to get updated lastTriggered timestamps
           fetchAlerts()
         }
