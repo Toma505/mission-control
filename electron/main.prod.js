@@ -50,6 +50,7 @@ const DEFAULT_DESKTOP_SETTINGS = {
 let sessionToken = ''
 let configEncryptionKey = ''
 let scheduleRunner = null
+let notificationBadgeCount = 0
 
 function showMainWindow() {
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -108,6 +109,22 @@ function getIconPath() {
   const pngPath = path.join(__dirname, 'icon.png')
   if (fs.existsSync(pngPath)) return pngPath
   return path.join(__dirname, 'icon.ico')
+}
+
+function createOverlayBadge(count) {
+  if (!count) return null
+
+  const label = count > 99 ? '99+' : String(count)
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+      <circle cx="16" cy="16" r="15" fill="#ef4444" />
+      <text x="16" y="21" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="${label.length > 2 ? 11 : 14}" font-weight="700" fill="#ffffff">
+        ${label}
+      </text>
+    </svg>
+  `
+
+  return nativeImage.createFromDataURL(`data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`)
 }
 
 function isTrustedAppUrl(target) {
@@ -193,6 +210,10 @@ const LICENSE_FILE = path.join(userDataPath, 'license.json')
 
 ipcMain.handle('get-platform', () => process.platform)
 ipcMain.handle('get-session-token', () => sessionToken)
+ipcMain.handle('set-notification-badge', (_, count) => {
+  updateNotificationBadge(count)
+  return { ok: true, unreadCount: notificationBadgeCount }
+})
 
 async function getDesktopDiagnostics() {
   let autoLaunchEnabled = false
@@ -626,6 +647,41 @@ async function createTray() {
   await refreshTrayMenu()
 }
 
+function updateNotificationBadge(count) {
+  notificationBadgeCount = Math.max(0, Number(count) || 0)
+
+  try {
+    if (typeof app.setBadgeCount === 'function') {
+      app.setBadgeCount(notificationBadgeCount)
+    }
+  } catch {}
+
+  if (mainWindow && !mainWindow.isDestroyed() && typeof mainWindow.setOverlayIcon === 'function') {
+    const overlayIcon = process.platform === 'win32' && notificationBadgeCount > 0
+      ? createOverlayBadge(notificationBadgeCount)
+      : null
+    mainWindow.setOverlayIcon(overlayIcon, notificationBadgeCount > 0 ? `${notificationBadgeCount} unread notifications` : '')
+  }
+
+  if (tray) {
+    const parts = ['Mission Control']
+    if (trayStatus.connected) {
+      parts.push(`Mode: ${trayStatus.mode}`)
+      if (trayStatus.dailySpend !== null) {
+        parts.push(`Today: $${Number(trayStatus.dailySpend).toFixed(2)}`)
+      }
+    } else {
+      parts.push('Disconnected')
+    }
+    if (notificationBadgeCount > 0) {
+      parts.push(`${notificationBadgeCount} unread`)
+    }
+    tray.setToolTip(parts.join(' · '))
+  }
+
+  void refreshTrayMenu()
+}
+
 // Live tray status data (refreshed periodically)
 let trayStatus = { mode: 'unknown', dailySpend: null, connected: false }
 
@@ -657,6 +713,8 @@ async function fetchTrayStatus() {
       dailySpend: budget?.spend?.daily ?? null,
       connected: mode?.connected || false,
     }
+
+    updateNotificationBadge(notificationBadgeCount)
 
     // Update tooltip with live info
     if (tray) {
@@ -697,6 +755,7 @@ async function refreshTrayMenu() {
     { label: 'Open Mission Control', click: () => showMainWindow() },
     { type: 'separator' },
     { label: statusLabel, enabled: false },
+    { label: notificationBadgeCount > 0 ? `Notifications: ${notificationBadgeCount} unread` : 'Notifications: all read', enabled: false },
     { type: 'separator' },
     {
       label: 'Quick: Switch to Budget Mode',

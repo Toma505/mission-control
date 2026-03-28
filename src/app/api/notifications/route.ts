@@ -1,115 +1,114 @@
-import { NextResponse } from 'next/server'
-import { readFile, writeFile, mkdir } from 'fs/promises'
-import path from 'path'
-import { DATA_DIR } from '@/lib/connection-config'
+import { NextRequest, NextResponse } from 'next/server'
 
-const NOTIF_FILE = path.join(DATA_DIR, 'notifications.json')
-const MAX_NOTIFICATIONS = 200
+import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
+import {
+  dismissNotifications,
+  listNotifications,
+  markNotificationsRead,
+  type NotificationType,
+  pushNotification,
+  restoreNotifications,
+  serializeNotification,
+} from '@/lib/notifications-store'
 
-export interface AppNotification {
-  id: string
-  type: 'alert' | 'budget' | 'system' | 'webhook' | 'info'
-  title: string
-  message: string
-  timestamp: string
-  read: boolean
-  href?: string
-  icon?: string
+const NOTIFICATION_TYPES: NotificationType[] = [
+  'agent_complete',
+  'agent_error',
+  'agent_needs_input',
+  'budget_alert',
+  'schedule_fired',
+]
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const includeDismissed = searchParams.get('includeDismissed') === '1'
+  const unreadOnly = searchParams.get('unread') === '1'
+  const limitParam = Number(searchParams.get('limit') || '')
+  const limit = Number.isFinite(limitParam) && limitParam > 0 ? limitParam : undefined
+
+  const [notifications, allActive] = await Promise.all([
+    listNotifications({ includeDismissed, limit }),
+    listNotifications({ includeDismissed: false }),
+  ])
+  const serialized = notifications
+    .map(serializeNotification)
+    .filter((entry) => !unreadOnly || !entry.read)
+
+  const unreadCount = allActive.filter((entry) => !entry.readAt).length
+
+  return NextResponse.json({
+    notifications: serialized,
+    unreadCount,
+    totalCount: serialized.length,
+  })
 }
 
-async function readNotifications(): Promise<AppNotification[]> {
+export async function POST(request: NextRequest) {
+  if (!isAuthorized(request)) return unauthorizedResponse()
+
   try {
-    const text = await readFile(NOTIF_FILE, 'utf-8')
-    return JSON.parse(text)
-  } catch {
-    return []
-  }
-}
+    const body = await request.json()
+    const type = String(body.type || '').trim()
+    const title = String(body.title || '').trim()
+    const message = String(body.message || '').trim()
 
-async function writeNotifications(notifs: AppNotification[]) {
-  await mkdir(path.dirname(NOTIF_FILE), { recursive: true })
-  await writeFile(NOTIF_FILE, JSON.stringify(notifs.slice(-MAX_NOTIFICATIONS), null, 2))
-}
-
-/** GET — list all notifications (newest first) */
-export async function GET() {
-  const notifs = await readNotifications()
-  const unreadCount = notifs.filter(n => !n.read).length
-  return NextResponse.json({ notifications: notifs.reverse(), unreadCount })
-}
-
-/** POST — push a new notification */
-export async function POST(req: Request) {
-  try {
-    const body = await req.json()
-    const { type = 'info', title, message, href, icon } = body
-
-    if (!title || !message) {
-      return NextResponse.json({ error: 'title and message required' }, { status: 400 })
+    if (!type || !title || !message) {
+      return NextResponse.json({ error: 'type, title, and message are required' }, { status: 400 })
     }
 
-    const notif: AppNotification = {
-      id: `notif_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      type,
+    if (!NOTIFICATION_TYPES.includes(type as NotificationType)) {
+      return NextResponse.json({ error: 'Invalid notification type' }, { status: 400 })
+    }
+
+    const notification = await pushNotification({
+      type: type as NotificationType,
       title,
       message,
-      timestamp: new Date().toISOString(),
-      read: false,
-      href,
-      icon,
-    }
+      href: typeof body.href === 'string' ? body.href : undefined,
+      source: typeof body.source === 'string' ? body.source : undefined,
+      outputSummary: typeof body.outputSummary === 'string' ? body.outputSummary : undefined,
+    })
 
-    const notifs = await readNotifications()
-    notifs.push(notif)
-    await writeNotifications(notifs)
-
-    return NextResponse.json({ ok: true, notification: notif })
+    return NextResponse.json({ ok: true, notification: serializeNotification(notification) })
   } catch {
     return NextResponse.json({ error: 'Failed to create notification' }, { status: 500 })
   }
 }
 
-/** PATCH — mark notifications as read */
-export async function PATCH(req: Request) {
+export async function PATCH(request: NextRequest) {
+  if (!isAuthorized(request)) return unauthorizedResponse()
+
   try {
-    const body = await req.json()
-    const { ids, markAllRead } = body
+    const body = await request.json() as { action?: string; ids?: unknown[] }
+    const action = String(body.action || '').trim()
+    const ids = Array.isArray(body.ids) ? body.ids.map((value: unknown) => String(value)) : []
 
-    const notifs = await readNotifications()
-
-    if (markAllRead) {
-      notifs.forEach(n => { n.read = true })
-    } else if (Array.isArray(ids)) {
-      const idSet = new Set(ids)
-      notifs.forEach(n => { if (idSet.has(n.id)) n.read = true })
+    if (action === 'markAllRead') {
+      await markNotificationsRead()
+      return NextResponse.json({ ok: true })
     }
 
-    await writeNotifications(notifs)
-    return NextResponse.json({ ok: true })
+    if (ids.length === 0) {
+      return NextResponse.json({ error: 'Notification ids are required' }, { status: 400 })
+    }
+
+    if (action === 'markRead') {
+      await markNotificationsRead(ids)
+      return NextResponse.json({ ok: true })
+    }
+
+    if (action === 'dismiss') {
+      await dismissNotifications(ids)
+      return NextResponse.json({ ok: true })
+    }
+
+    if (action === 'restore') {
+      await restoreNotifications(ids)
+      return NextResponse.json({ ok: true })
+    }
+
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   } catch {
     return NextResponse.json({ error: 'Failed to update notifications' }, { status: 500 })
   }
-}
-
-/** DELETE — clear all notifications */
-export async function DELETE() {
-  await writeNotifications([])
-  return NextResponse.json({ ok: true })
-}
-
-/**
- * Helper to push a notification from server-side code.
- * Used by alert check, webhook fire, etc.
- */
-export async function pushNotification(notif: Omit<AppNotification, 'id' | 'timestamp' | 'read'>) {
-  const full: AppNotification = {
-    ...notif,
-    id: `notif_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    timestamp: new Date().toISOString(),
-    read: false,
-  }
-  const notifs = await readNotifications()
-  notifs.push(full)
-  await writeNotifications(notifs)
-  return full
 }

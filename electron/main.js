@@ -3,7 +3,7 @@
  * Cross-platform: Windows, macOS, Linux.
  */
 
-const { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain, dialog, clipboard } = require('electron')
+const { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain, dialog, clipboard, Notification } = require('electron')
 const { spawn } = require('child_process')
 const path = require('path')
 const net = require('net')
@@ -45,6 +45,7 @@ const DEFAULT_DESKTOP_SETTINGS = {
 let sessionToken = ''
 let configEncryptionKey = ''
 let scheduleRunner = null
+let notificationBadgeCount = 0
 
 function showMainWindow() {
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -82,6 +83,46 @@ function getIconPath() {
   const pngPath = path.join(__dirname, 'icon.png')
   if (fs.existsSync(pngPath)) return pngPath
   return path.join(__dirname, 'icon.ico')
+}
+
+function createOverlayBadge(count) {
+  if (!count) return null
+
+  const label = count > 99 ? '99+' : String(count)
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+      <circle cx="16" cy="16" r="15" fill="#ef4444" />
+      <text x="16" y="21" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="${label.length > 2 ? 11 : 14}" font-weight="700" fill="#ffffff">
+        ${label}
+      </text>
+    </svg>
+  `
+
+  return nativeImage.createFromDataURL(`data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`)
+}
+
+function updateNotificationBadge(count) {
+  notificationBadgeCount = Math.max(0, Number(count) || 0)
+
+  try {
+    if (typeof app.setBadgeCount === 'function') {
+      app.setBadgeCount(notificationBadgeCount)
+    }
+  } catch {}
+
+  if (mainWindow && !mainWindow.isDestroyed() && typeof mainWindow.setOverlayIcon === 'function') {
+    const overlayIcon = process.platform === 'win32' && notificationBadgeCount > 0
+      ? createOverlayBadge(notificationBadgeCount)
+      : null
+    mainWindow.setOverlayIcon(overlayIcon, notificationBadgeCount > 0 ? `${notificationBadgeCount} unread notifications` : '')
+  }
+
+  if (tray) {
+    const suffix = notificationBadgeCount > 0 ? ` · ${notificationBadgeCount} unread` : ''
+    tray.setToolTip(`Mission Control${suffix}`)
+  }
+
+  void refreshTrayMenu()
 }
 
 function getDataDir() {
@@ -215,6 +256,8 @@ async function refreshTrayMenu() {
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Open Mission Control', click: () => showMainWindow() },
     { type: 'separator' },
+    { label: notificationBadgeCount > 0 ? `Notifications: ${notificationBadgeCount} unread` : 'Notifications: all read', enabled: false },
+    { type: 'separator' },
     {
       label: 'Start on Login',
       type: 'checkbox',
@@ -328,6 +371,10 @@ ipcMain.on('window-maximize', () => {
 ipcMain.on('window-close', () => mainWindow?.close())
 ipcMain.handle('get-platform', () => process.platform)
 ipcMain.handle('get-session-token', () => sessionToken)
+ipcMain.handle('set-notification-badge', (_, count) => {
+  updateNotificationBadge(count)
+  return { ok: true, unreadCount: notificationBadgeCount }
+})
 ipcMain.handle('get-desktop-diagnostics', async () => {
   let autoLaunchEnabled = false
   try { autoLaunchEnabled = await autoLauncher.isEnabled() } catch {}
@@ -408,6 +455,20 @@ ipcMain.handle('updater-check', () => ({ status: 'dev', info: null, error: 'Upda
 ipcMain.handle('updater-download', () => ({ status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null }))
 ipcMain.handle('updater-install', () => ({ status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null }))
 ipcMain.handle('updater-status', () => ({ status: 'dev', info: null, error: 'Updates disabled in dev mode', progress: null }))
+ipcMain.handle('show-notification', (_, { title, body, urgency }) => {
+  if (!Notification.isSupported()) return { ok: false, error: 'Notifications not supported' }
+
+  const notification = new Notification({
+    title: title || 'Mission Control',
+    body: body || '',
+    icon: getIconPath(),
+    urgency: urgency || 'normal',
+  })
+
+  notification.on('click', () => showMainWindow())
+  notification.show()
+  return { ok: true }
+})
 
 app.on('ready', async () => {
   sessionToken = createSessionToken()
