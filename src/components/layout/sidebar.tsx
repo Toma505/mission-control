@@ -42,6 +42,7 @@ import {
   GitCompare,
   TrendingUp,
   LayoutTemplate,
+  Database,
 } from 'lucide-react'
 
 const mainNav = [
@@ -73,6 +74,7 @@ const monitorNav = [
 const workspaceNav = [
   { name: 'Documents', href: '/documents', icon: FileText },
   { name: 'Intelligence', href: '/intelligence', icon: Brain },
+  { name: 'Knowledge Base', href: '/knowledge', icon: Database },
   { name: 'Workshop', href: '/workshop', icon: Wrench },
   { name: 'Clients', href: '/clients', icon: Briefcase },
   { name: 'Scheduled Tasks', href: '/schedules', icon: Clock },
