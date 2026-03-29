@@ -205,7 +205,7 @@ export async function getAgentUptimeTimeline(range: string | null | undefined) {
 
   const snapshotAgents = await buildAgentSnapshot()
   const agentNames = new Set<string>([
-    ...events.map((event) => event.agentName),
+    ...events.map((event: { agentName: string }) => event.agentName),
     ...snapshotAgents.map((agent) => agent.name),
     ...latestStatusBeforeStart.keys(),
   ])
@@ -218,7 +218,7 @@ export async function getAgentUptimeTimeline(range: string | null | undefined) {
   const agents = Array.from(agentNames)
     .sort((a, b) => a.localeCompare(b))
     .map((name) => {
-      const agentEvents = events.filter((event) => event.agentName === name)
+      const agentEvents = events.filter((event: { agentName: string; bucketStart: Date; status: string; model: string | null }) => event.agentName === name)
       const snapshot = snapshotAgents.find((agent) => agent.name === name)
       const grouped = new Map<number, AgentUptimeStatus[]>()
 

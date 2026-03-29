@@ -33,6 +33,7 @@ import {
   XCircle,
   LayoutTemplate,
   FileBarChart,
+  Database,
 } from 'lucide-react'
 import { OPEN_DIAGNOSTICS_EVENT, OPEN_PREFERENCES_EVENT } from './desktop-events'
 
@@ -67,6 +68,7 @@ const PAGE_ITEMS: SearchItem[] = [
   { id: 'journal', title: 'Journal', subtitle: 'Activity logs', href: '/journal', icon: <BookOpen className="w-4 h-4" />, category: 'page', keywords: ['logs', 'activity', 'history'] },
   { id: 'documents', title: 'Documents', subtitle: 'Workspace files', href: '/documents', icon: <FileText className="w-4 h-4" />, category: 'page', keywords: ['files', 'workspace', 'memory'] },
   { id: 'intelligence', title: 'Intelligence', subtitle: 'Agent memory', href: '/intelligence', icon: <Brain className="w-4 h-4" />, category: 'page', keywords: ['memory', 'knowledge', 'context'] },
+  { id: 'knowledge', title: 'Knowledge Base', subtitle: 'Local file indexing, search, and agent context attachments', href: '/knowledge', icon: <Database className="w-4 h-4" />, category: 'page', keywords: ['knowledge', 'knowledge base', 'tf-idf', 'index', 'pdf', 'search', 'context'] },
   { id: 'workshop', title: 'Workshop', subtitle: 'Active sessions', href: '/workshop', icon: <Wrench className="w-4 h-4" />, category: 'page', keywords: ['sessions', 'tasks', 'work'] },
   { id: 'clients', title: 'Clients', subtitle: 'Integrations', href: '/clients', icon: <Briefcase className="w-4 h-4" />, category: 'page', keywords: ['discord', 'channels', 'integrations'] },
   { id: 'schedules', title: 'Scheduled Tasks', subtitle: 'Recurring prompts and command runs', href: '/schedules', icon: <Clock className="w-4 h-4" />, category: 'page', keywords: ['schedule', 'scheduled tasks', 'cron', 'timer', 'automated', 'run now'] },
