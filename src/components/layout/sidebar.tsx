@@ -42,6 +42,7 @@ import {
   GitCompare,
   TrendingUp,
   LayoutTemplate,
+  GitBranch,
 } from 'lucide-react'
 
 const mainNav = [
@@ -54,6 +55,7 @@ const mainNav = [
   { name: 'Templates', href: '/templates', icon: LayoutTemplate },
   { name: 'Presets', href: '/presets', icon: Sparkles },
   { name: 'Workflows', href: '/workflows', icon: Workflow },
+  { name: 'Orchestrate', href: '/orchestrate', icon: GitBranch },
 ]
 
 const monitorNav = [
