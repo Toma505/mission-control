@@ -1,0 +1,17 @@
+{
+  "theme": "dark",
+  "accentColor": "blue",
+  "sidebarPosition": "left",
+  "sidebarCollapsed": false,
+  "fontSize": "medium",
+  "refreshInterval": 30,
+  "animationsEnabled": true,
+  "compactMode": false,
+  "themeSchedule": {
+    "enabled": false,
+    "lightTheme": "light",
+    "darkTheme": "dark",
+    "lightStart": "07:00",
+    "darkStart": "19:00"
+  }
+}

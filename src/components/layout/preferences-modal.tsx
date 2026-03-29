@@ -10,7 +10,7 @@ interface Props {
 }
 
 const THEMES: { value: Theme; label: string; icon: React.ReactNode; preview: string }[] = [
-  { value: 'dark', label: 'Dark', icon: <Moon className="w-4 h-4" />, preview: '#09090b' },
+  { value: 'dark', label: 'Dark Glass', icon: <Moon className="w-4 h-4" />, preview: '#09090b' },
   { value: 'midnight', label: 'Midnight', icon: <Monitor className="w-4 h-4" />, preview: '#020617' },
   { value: 'light', label: 'Light', icon: <Sun className="w-4 h-4" />, preview: '#f8fafc' },
 ]
@@ -144,6 +144,14 @@ export function PreferencesModal({ open, onClose }: Props) {
                       </div>
                     </button>
                   ))}
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <a
+                    href="/settings/themes"
+                    className="text-[11px] font-medium text-[var(--accent-primary,#3b82f6)] hover:underline"
+                  >
+                    Open full theme engine
+                  </a>
                 </div>
               </div>
 
@@ -328,6 +336,16 @@ export function PreferencesModal({ open, onClose }: Props) {
                 checked={settings.sidebarCollapsed}
                 onChange={v => updateSetting('sidebarCollapsed', v)}
               />
+
+              <div className="rounded-xl border border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-3">
+                <p className="text-sm text-[var(--text-primary)]">Keyboard shortcuts live in settings now.</p>
+                <a
+                  href="/settings/shortcuts"
+                  className="mt-2 inline-flex text-[11px] font-medium text-[var(--accent-primary,#3b82f6)] hover:underline"
+                >
+                  Open shortcuts page
+                </a>
+              </div>
             </>
           )}
 

@@ -7,6 +7,7 @@ import {
   User,
   Loader2,
   RefreshCw,
+  Download,
   MessageSquare,
   AlertCircle,
   ChevronDown,
@@ -58,6 +59,7 @@ export function AgentChat() {
   const [suggestions, setSuggestions] = useState<Command[]>([])
   const [selectedSuggestion, setSelectedSuggestion] = useState(0)
   const [showCommandPalette, setShowCommandPalette] = useState(false)
+  const [exportingFormat, setExportingFormat] = useState<'json' | 'html' | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -336,6 +338,42 @@ export function AgentChat() {
     }
   }
 
+  async function exportSession(format: 'json' | 'html') {
+    if (!activeSession) return
+
+    setExportingFormat(format)
+    setError('')
+
+    try {
+      const activeSessionInfo = sessions.find((session) => session.key === activeSession)
+      const response = await apiFetch(
+        `/api/session-share?source=chat&session=${encodeURIComponent(activeSession)}&format=${format}&agent=${encodeURIComponent(activeSessionInfo?.agent || '')}`,
+      )
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: 'Export failed.' }))
+        throw new Error(data.error || 'Export failed.')
+      }
+
+      const blob = await response.blob()
+      const downloadUrl = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      const disposition = response.headers.get('content-disposition') || ''
+      const fileNameMatch = disposition.match(/filename="(.+?)"/i)
+
+      anchor.href = downloadUrl
+      anchor.download = fileNameMatch?.[1] || `mission-control-session.${format}`
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      URL.revokeObjectURL(downloadUrl)
+    } catch (exportError) {
+      setError(exportError instanceof Error ? exportError.message : 'Export failed.')
+    } finally {
+      setExportingFormat(null)
+    }
+  }
+
   function applySuggestion(cmd: Command) {
     setInput(cmd.aliases[0] + ' ')
     setSuggestions([])
@@ -580,6 +618,24 @@ export function AgentChat() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => void exportSession('json')}
+            disabled={!activeSession || exportingFormat !== null}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 py-2 text-xs text-text-secondary transition-colors hover:bg-white/[0.08] disabled:opacity-50"
+            title="Export session as JSON"
+          >
+            {exportingFormat === 'json' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+            JSON
+          </button>
+          <button
+            onClick={() => void exportSession('html')}
+            disabled={!activeSession || exportingFormat !== null}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 py-2 text-xs text-text-secondary transition-colors hover:bg-white/[0.08] disabled:opacity-50"
+            title="Export session as shareable HTML"
+          >
+            {exportingFormat === 'html' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+            HTML
+          </button>
           <button
             onClick={() => setShowCommandPalette(!showCommandPalette)}
             className={`p-2 rounded-lg transition-colors ${
