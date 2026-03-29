@@ -24,6 +24,7 @@ import {
   Wrench,
 } from 'lucide-react'
 import { apiFetch } from '@/lib/api-client'
+import { ExtensionsDevMode } from '@/components/extensions/extensions-dev-mode'
 
 interface Extension {
   id: string
@@ -320,6 +321,8 @@ export function ExtensionsManager() {
           </div>
         </div>
       </div>
+
+      <ExtensionsDevMode />
 
       {actionMessage && (
         <div className={`rounded-xl border px-4 py-3 text-sm ${actionMessage.ok ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400' : 'border-red-500/20 bg-red-500/10 text-red-400'}`}>
