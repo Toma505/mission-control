@@ -1,4 +1,5 @@
-import { readFile } from 'fs/promises'
+import { mkdir, readFile, writeFile } from 'fs/promises'
+import { randomUUID } from 'crypto'
 import path from 'path'
 import { DATA_DIR } from '@/lib/connection-config'
 
@@ -69,6 +70,11 @@ export async function readReplayStore(): Promise<ReplayStore> {
   }
 }
 
+async function writeReplayStore(store: ReplayStore) {
+  await mkdir(path.dirname(REPLAYS_FILE), { recursive: true })
+  await writeFile(REPLAYS_FILE, JSON.stringify(store, null, 2))
+}
+
 export async function listReplaySessions() {
   const store = await readReplayStore()
   return [...store.sessions]
@@ -91,4 +97,43 @@ export async function listReplaySessions() {
 export async function getReplaySession(sessionId: string) {
   const store = await readReplayStore()
   return store.sessions.find((session) => session.id === sessionId) || null
+}
+
+function normalizeReplaySession(session: ReplaySession): ReplaySession {
+  const now = new Date().toISOString()
+  return {
+    ...session,
+    id: session.id || `replay-${randomUUID().slice(0, 8)}`,
+    sessionKey: session.sessionKey || `shared:${randomUUID().slice(0, 8)}`,
+    agentId: session.agentId || 'shared-agent',
+    instanceId: session.instanceId || 'shared',
+    model: session.model || 'shared-session',
+    taskDescription: session.taskDescription || 'Imported shared session',
+    startedAt: session.startedAt || now,
+    completedAt: session.completedAt || now,
+    durationMs: Number.isFinite(session.durationMs) ? session.durationMs : 0,
+    status: session.status || 'completed',
+    steps: Array.isArray(session.steps) ? session.steps : [],
+  }
+}
+
+export async function importReplaySession(session: ReplaySession) {
+  const store = await readReplayStore()
+  const normalized = normalizeReplaySession(session)
+
+  let nextId = normalized.id
+  let counter = 2
+  while (store.sessions.some((existing) => existing.id === nextId)) {
+    nextId = `${normalized.id}-${counter}`
+    counter += 1
+  }
+
+  const imported = {
+    ...normalized,
+    id: nextId,
+  }
+
+  store.sessions = [imported, ...store.sessions]
+  await writeReplayStore(store)
+  return imported
 }

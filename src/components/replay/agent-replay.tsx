@@ -1,17 +1,19 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Bot,
   ChevronRight,
   Clock3,
+  Download,
   FileCode2,
   Loader2,
   PlayCircle,
   ScanSearch,
   Sparkles,
   TerminalSquare,
+  Upload,
   Wrench,
 } from 'lucide-react'
 import { apiFetch } from '@/lib/api-client'
@@ -189,42 +191,35 @@ export function AgentReplay() {
   const [selectedStepIndex, setSelectedStepIndex] = useState(0)
   const [loadingList, setLoadingList] = useState(true)
   const [loadingSession, setLoadingSession] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [exportingFormat, setExportingFormat] = useState<'json' | 'html' | null>(null)
   const [error, setError] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadSessions() {
+  const loadSessions = useCallback(async () => {
+    try {
       setLoadingList(true)
       setError('')
-      try {
-        const response = await apiFetch('/api/replay')
-        if (!response.ok) {
-          throw new Error('Replay sessions could not be loaded.')
-        }
-        const data = await response.json() as ReplayListResponse
-        if (cancelled) return
-        setSessions(data.sessions || [])
-        if ((data.sessions || []).length > 0) {
-          setSelectedSessionId((current) => current || data.sessions[0].id)
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          const message = loadError instanceof Error ? loadError.message : 'Replay sessions could not be loaded.'
-          setError(message)
-        }
-      } finally {
-        if (!cancelled) {
-          setLoadingList(false)
-        }
+      const response = await apiFetch('/api/replay')
+      if (!response.ok) {
+        throw new Error('Replay sessions could not be loaded.')
       }
-    }
-
-    void loadSessions()
-    return () => {
-      cancelled = true
+      const data = await response.json() as ReplayListResponse
+      setSessions(data.sessions || [])
+      if ((data.sessions || []).length > 0) {
+        setSelectedSessionId((current) => current || data.sessions[0].id)
+      }
+    } catch (loadError) {
+      const message = loadError instanceof Error ? loadError.message : 'Replay sessions could not be loaded.'
+      setError(message)
+    } finally {
+      setLoadingList(false)
     }
   }, [])
+
+  useEffect(() => {
+    void loadSessions()
+  }, [loadSessions])
 
   useEffect(() => {
     if (!selectedSessionId || sessionDetails[selectedSessionId]) return
@@ -264,6 +259,72 @@ export function AgentReplay() {
 
   const activeSession = selectedSessionId ? sessionDetails[selectedSessionId] : null
   const activeStep = activeSession?.steps[selectedStepIndex] ?? null
+
+  async function exportSession(format: 'json' | 'html') {
+    if (!activeSession) return
+    setExportingFormat(format)
+    setError('')
+
+    try {
+      const response = await apiFetch(
+        `/api/session-share?source=replay&session=${encodeURIComponent(activeSession.id)}&format=${format}`,
+      )
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: 'Export failed.' }))
+        throw new Error(data.error || 'Export failed.')
+      }
+
+      const blob = await response.blob()
+      const downloadUrl = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      const disposition = response.headers.get('content-disposition') || ''
+      const fileNameMatch = disposition.match(/filename="(.+?)"/i)
+      anchor.href = downloadUrl
+      anchor.download = fileNameMatch?.[1] || `mission-control-replay.${format}`
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      URL.revokeObjectURL(downloadUrl)
+    } catch (exportError) {
+      setError(exportError instanceof Error ? exportError.message : 'Export failed.')
+    } finally {
+      setExportingFormat(null)
+    }
+  }
+
+  async function handleImportFile(file: File) {
+    setImporting(true)
+    setError('')
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await apiFetch('/api/session-share', {
+        method: 'POST',
+        body: formData,
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Import failed.')
+      }
+
+      setSelectedSessionId(data.session.id)
+      await loadSessions()
+      const detailResponse = await apiFetch(`/api/replay?session=${encodeURIComponent(data.session.id)}`)
+      if (detailResponse.ok) {
+        const detailData = await detailResponse.json() as ReplayDetailResponse
+        setSessionDetails((current) => ({ ...current, [data.session.id]: detailData.session }))
+      }
+    } catch (importError) {
+      setError(importError instanceof Error ? importError.message : 'Import failed.')
+    } finally {
+      setImporting(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
 
   return (
     <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
@@ -337,6 +398,42 @@ export function AgentReplay() {
               <p className="mt-1 text-sm text-text-muted">
                 Replay completed sessions step by step, inspect tool calls, and review file changes like a timeline.
               </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json,.html"
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0]
+                  if (file) void handleImportFile(file)
+                }}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={importing}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-text-primary disabled:opacity-60"
+              >
+                {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                Import shared session
+              </button>
+              <button
+                onClick={() => void exportSession('json')}
+                disabled={!activeSession || exportingFormat !== null}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-text-primary disabled:opacity-60"
+              >
+                {exportingFormat === 'json' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                Export JSON
+              </button>
+              <button
+                onClick={() => void exportSession('html')}
+                disabled={!activeSession || exportingFormat !== null}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-text-primary disabled:opacity-60"
+              >
+                {exportingFormat === 'html' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                Export HTML
+              </button>
             </div>
             {activeSession ? (
               <div className="grid grid-cols-2 gap-2 text-xs text-text-muted sm:grid-cols-4">

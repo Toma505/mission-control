@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { useEffect, useState } from 'react'
 import {
   LayoutDashboard,
+  Bot,
   BookOpen,
   FileText,
   Users,
@@ -51,6 +52,7 @@ const mainNav = [
   { name: 'Operations', href: '/operations', icon: Clapperboard },
   { name: 'Agents', href: '/agents', icon: Users },
   { name: 'Chat', href: '/chat', icon: MessageSquare },
+  { name: 'Agent Chat', href: '/agent-chat', icon: Bot },
   { name: 'Replay', href: '/replay', icon: PlayCircle },
   { name: 'Extensions', href: '/extensions', icon: Package },
   { name: 'Templates', href: '/templates', icon: LayoutTemplate },
@@ -87,7 +89,7 @@ const workspaceNav = [
   { name: 'Webhooks', href: '/webhooks', icon: Workflow },
   { name: 'Snapshots', href: '/snapshots', icon: Camera },
   { name: 'Backup', href: '/backup', icon: Archive },
-  { name: 'Shortcuts', href: '/shortcuts', icon: Keyboard },
+  { name: 'Shortcuts', href: '/settings/shortcuts', icon: Keyboard },
   { name: 'Audit Log', href: '/audit', icon: ScrollText },
 ]
 
