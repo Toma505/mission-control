@@ -71,6 +71,7 @@ const monitorNav = [
   { name: 'Instances', href: '/instances', icon: Globe },
   { name: 'Notifications', href: '/notifications', icon: Bell },
   { name: 'Alerts', href: '/alerts', icon: BellRing },
+  { name: 'Team Usage', href: '/team-dashboard', icon: UsersRound },
   { name: 'Team', href: '/team', icon: UsersRound },
   { name: 'Journal', href: '/journal', icon: BookOpen },
 ]
