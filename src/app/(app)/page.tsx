@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { StatusCard } from '@/components/dashboard/status-card'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
 import { QuickLinks } from '@/components/dashboard/quick-links'
@@ -6,6 +7,7 @@ import { CostWidget } from '@/components/dashboard/bandwidth-widget'
 import { RefreshControl } from '@/components/dashboard/refresh-control'
 import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
 import { getAppBaseUrl } from '@/lib/app-url'
+import { readSettings } from '@/lib/settings-store'
 
 async function getDashboardData() {
   const baseUrl = getAppBaseUrl()
@@ -59,6 +61,11 @@ const modeLabels: Record<string, { label: string; color: string; dot: string }> 
 }
 
 export default async function Home() {
+  const settings = await readSettings()
+  if (!settings.onboardingComplete) {
+    redirect('/onboarding')
+  }
+
   const { connected, status, sessions, channels, agent, activities, mode } =
     await getDashboardData()
 

@@ -21,6 +21,7 @@ export interface Settings {
   refreshInterval: RefreshInterval
   animationsEnabled: boolean
   compactMode: boolean
+  onboardingComplete: boolean
   themeSchedule: ThemeSchedule
 }
 
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: Settings = {
   refreshInterval: 30,
   animationsEnabled: true,
   compactMode: false,
+  onboardingComplete: false,
   themeSchedule: {
     enabled: false,
     lightTheme: 'light',
@@ -137,6 +139,7 @@ export function normalizeSettings(input: unknown): Settings {
         : DEFAULT_SETTINGS.refreshInterval,
     animationsEnabled: value.animationsEnabled !== false,
     compactMode: value.compactMode === true,
+    onboardingComplete: value.onboardingComplete === true,
     themeSchedule: {
       enabled: schedule.enabled === true,
       lightTheme:

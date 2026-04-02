@@ -58,6 +58,7 @@ interface SearchItem {
 
 const PAGE_ITEMS: SearchItem[] = [
   { id: 'dashboard', title: 'Dashboard', subtitle: 'System overview', href: '/', icon: <LayoutDashboard className="w-4 h-4" />, category: 'page', keywords: ['home', 'overview', 'status'] },
+  { id: 'onboarding', title: 'Onboarding Wizard', subtitle: 'First-run setup and guided connection flow', href: '/onboarding', icon: <Rocket className="w-4 h-4" />, category: 'page', keywords: ['onboarding', 'wizard', 'setup', 'first run', 'getting started'] },
   { id: 'operations', title: 'Operations', subtitle: 'Pipeline jobs and automation', href: '/operations', icon: <Clapperboard className="w-4 h-4" />, category: 'page', keywords: ['jobs', 'pipeline', 'real estate', 'video', 'automation'] },
   { id: 'agents', title: 'Agents', subtitle: 'Agent management', href: '/agents', icon: <Users className="w-4 h-4" />, category: 'page', keywords: ['bot', 'agent', 'sessions', 'model'] },
   { id: 'agent-chat', title: 'Agent-to-Agent Chat', subtitle: 'Let two agents collaborate on a shared goal', href: '/agent-chat', icon: <Bot className="w-4 h-4" />, category: 'page', keywords: ['agent chat', 'agent to agent', 'collaboration', 'conversation', 'multi-agent'] },

@@ -1,37 +1,8 @@
-import { mkdir, readFile, writeFile } from 'fs/promises'
-import path from 'path'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
-import { DEFAULT_SETTINGS, normalizeSettings } from '@/lib/app-settings'
-import { DATA_DIR } from '@/lib/connection-config'
 import { sanitizeError } from '@/lib/sanitize-error'
-
-const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json')
-const DEFAULT_SETTINGS_FILE = path.join(process.cwd(), 'data', 'settings.json')
-
-async function readSeedSettings() {
-  try {
-    const raw = await readFile(DEFAULT_SETTINGS_FILE, 'utf-8')
-    return normalizeSettings(JSON.parse(raw))
-  } catch {
-    return DEFAULT_SETTINGS
-  }
-}
-
-async function readSettings() {
-  try {
-    const raw = await readFile(SETTINGS_FILE, 'utf-8')
-    return normalizeSettings(JSON.parse(raw))
-  } catch {
-    return readSeedSettings()
-  }
-}
-
-async function writeSettings(settings: unknown) {
-  await mkdir(path.dirname(SETTINGS_FILE), { recursive: true })
-  await writeFile(SETTINGS_FILE, JSON.stringify(normalizeSettings(settings), null, 2))
-}
+import { readSettings, writeSettings } from '@/lib/settings-store'
 
 export async function GET() {
   try {
