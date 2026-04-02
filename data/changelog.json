@@ -1,0 +1,90 @@
+[
+  {
+    "version": "v1.3",
+    "date": "2026-04-02",
+    "title": "Mission Control expands into a full operator workspace",
+    "summary": "This release rounded out the product with orchestration, a local knowledge base, report generation, and richer extension workflows.",
+    "changes": {
+      "added": [
+        "Knowledge Base with local file indexing, chunk search, and agent context attachments",
+        "Orchestrate page for fan-out research, parallel reviews, and consensus workflows",
+        "Reports builder with PDF, CSV, and JSON exports",
+        "Extension developer mode with scaffold generation, manifest validation, and live logs"
+      ],
+      "improved": [
+        "Extensions and skills were unified into a cleaner Extensions experience",
+        "Notification Center now supports in-app history, desktop notifications, and unread badges",
+        "Prompt Library gained version history, import/export, and agent handoff support"
+      ],
+      "fixed": [
+        "Security hardening for local auth bootstrap, instance URL validation, and vault storage",
+        "Dashboard and analytics fallbacks now render useful data in disconnected/demo mode"
+      ]
+    }
+  },
+  {
+    "version": "v1.2",
+    "date": "2026-03-28",
+    "title": "Mission Control becomes configurable and collaborative",
+    "summary": "This release focused on reusable workflows, shared sessions, and more polished operator controls.",
+    "changes": {
+      "added": [
+        "Theme Engine with Dark Glass, Midnight, and Light presets",
+        "Agent-to-Agent Chat for collaborative goal-driven conversations",
+        "Session sharing as JSON or standalone HTML for handoffs and replay import",
+        "Agent Templates for deploying common roles like Code Review and Research Assistant"
+      ],
+      "improved": [
+        "Keyboard shortcuts now live in dedicated settings pages with better discoverability",
+        "Replay tooling became richer and more useful for post-run analysis"
+      ],
+      "fixed": [
+        "Authentication and key-vault handling were tightened for desktop-only workflows",
+        "Command palette routing was cleaned up for the growing app surface"
+      ]
+    }
+  },
+  {
+    "version": "v1.1",
+    "date": "2026-03-26",
+    "title": "Mission Control grows beyond the dashboard",
+    "summary": "This release introduced the larger monitoring and automation surface that turned Mission Control into a true ops console.",
+    "changes": {
+      "added": [
+        "Cost Dashboard with session-level token tracking and budget alerts",
+        "Scheduled Tasks with cron expressions, run history, and background execution",
+        "Extensions marketplace, replay tooling, and notifications history",
+        "Analytics, benchmarks, audit log, and persistent prompt management"
+      ],
+      "improved": [
+        "Command palette and sidebar expanded to cover the full workspace",
+        "Offline/demo states now make more pages useful before OpenClaw is connected"
+      ],
+      "fixed": [
+        "Settings and data fallbacks were normalized across API routes",
+        "Plugin parsing now reflects real OpenClaw output instead of mangled placeholders"
+      ]
+    }
+  },
+  {
+    "version": "v1.0",
+    "date": "2026-03-24",
+    "title": "Mission Control launches",
+    "summary": "The first public release shipped the desktop dashboard, live status views, mode switching, and the baseline connection flow.",
+    "changes": {
+      "added": [
+        "Desktop Mission Control shell for OpenClaw operators",
+        "Dashboard with status cards, activity feed, and quick links",
+        "Connection setup flow for OpenClaw URL, password, and OpenRouter key",
+        "Mode switching and baseline cost controls"
+      ],
+      "improved": [
+        "License activation and updater flows became reliable across Windows installs"
+      ],
+      "fixed": [
+        "Windows updater naming and installer feed issues",
+        "Legacy license recovery and activation edge cases"
+      ]
+    }
+  }
+]

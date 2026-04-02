@@ -21,6 +21,7 @@ export interface Settings {
   refreshInterval: RefreshInterval
   animationsEnabled: boolean
   compactMode: boolean
+  lastSeenVersion: string | null
   themeSchedule: ThemeSchedule
 }
 
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: Settings = {
   refreshInterval: 30,
   animationsEnabled: true,
   compactMode: false,
+  lastSeenVersion: null,
   themeSchedule: {
     enabled: false,
     lightTheme: 'light',
@@ -137,6 +139,7 @@ export function normalizeSettings(input: unknown): Settings {
         : DEFAULT_SETTINGS.refreshInterval,
     animationsEnabled: value.animationsEnabled !== false,
     compactMode: value.compactMode === true,
+    lastSeenVersion: typeof value.lastSeenVersion === 'string' && value.lastSeenVersion ? value.lastSeenVersion : null,
     themeSchedule: {
       enabled: schedule.enabled === true,
       lightTheme:
