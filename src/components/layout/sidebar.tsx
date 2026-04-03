@@ -14,6 +14,7 @@ import {
   Bot,
   Brain,
   Briefcase,
+  Calendar,
   Camera,
   Clapperboard,
   Clock,
