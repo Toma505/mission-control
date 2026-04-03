@@ -3,6 +3,18 @@ export type AccentColor = 'blue' | 'purple' | 'cyan' | 'green' | 'orange' | 'ros
 export type SidebarPosition = 'left' | 'right'
 export type FontSize = 'small' | 'medium' | 'large'
 export type RefreshInterval = 15 | 30 | 60 | 120
+export type DashboardWidgetId =
+  | 'status-overview'
+  | 'active-sessions'
+  | 'cost-summary'
+  | 'quick-actions'
+  | 'recent-activity'
+  | 'instance-health'
+
+export interface DashboardLayout {
+  order?: DashboardWidgetId[]
+  hidden?: DashboardWidgetId[]
+}
 
 export interface NotificationPreferences {
   desktop: boolean
@@ -38,6 +50,7 @@ export interface Settings {
   onboardingComplete?: boolean
   lastSeenVersion?: string
   notificationPreferences?: NotificationPreferences
+  dashboardLayout?: DashboardLayout
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -58,6 +71,17 @@ export const DEFAULT_SETTINGS: Settings = {
     darkTheme: 'dark',
     lightStart: '07:00',
     darkStart: '19:00',
+  },
+  dashboardLayout: {
+    order: [
+      'status-overview',
+      'active-sessions',
+      'cost-summary',
+      'quick-actions',
+      'recent-activity',
+      'instance-health',
+    ],
+    hidden: [],
   },
 }
 
@@ -136,6 +160,15 @@ export const FONT_SIZES: Record<FontSize, string> = {
   large: '18px',
 }
 
+const DASHBOARD_WIDGET_IDS: DashboardWidgetId[] = [
+  'status-overview',
+  'active-sessions',
+  'cost-summary',
+  'quick-actions',
+  'recent-activity',
+  'instance-health',
+]
+
 export function normalizeSettings(input: unknown): Settings {
   const value = (input && typeof input === 'object' ? input : {}) as Partial<Settings>
   const schedule: Partial<ThemeSchedule> =
@@ -155,6 +188,16 @@ export function normalizeSettings(input: unknown): Settings {
   const onboardingComplete = typeof value.onboardingComplete === 'boolean'
     ? value.onboardingComplete
     : undefined
+  const layout =
+    value.dashboardLayout && typeof value.dashboardLayout === 'object'
+      ? (value.dashboardLayout as DashboardLayout)
+      : undefined
+  const normalizeWidgetList = (items: unknown) =>
+    Array.isArray(items)
+      ? [...new Set(items.filter((item): item is DashboardWidgetId =>
+          DASHBOARD_WIDGET_IDS.includes(item as DashboardWidgetId)
+        ))]
+      : undefined
 
   return {
     theme: value.theme === 'midnight' || value.theme === 'light' ? value.theme : DEFAULT_SETTINGS.theme,
@@ -211,5 +254,9 @@ export function normalizeSettings(input: unknown): Settings {
           },
         }
       : {}),
+    dashboardLayout: {
+      order: normalizeWidgetList(layout?.order) ?? DEFAULT_SETTINGS.dashboardLayout?.order ?? [],
+      hidden: normalizeWidgetList(layout?.hidden) ?? DEFAULT_SETTINGS.dashboardLayout?.hidden ?? [],
+    },
   }
 }

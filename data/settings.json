@@ -16,5 +16,16 @@
     "darkTheme": "dark",
     "lightStart": "07:00",
     "darkStart": "19:00"
+  },
+  "dashboardLayout": {
+    "order": [
+      "status-overview",
+      "active-sessions",
+      "cost-summary",
+      "quick-actions",
+      "recent-activity",
+      "instance-health"
+    ],
+    "hidden": []
   }
 }
