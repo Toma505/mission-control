@@ -152,7 +152,7 @@
       <p style="font-size:1rem;color:var(--text-secondary);max-width:600px;">
         What we've shipped, what we're building now, and where Mission Control is headed.
       </p>
-      <p class="updated-note">Last updated: March 27, 2026</p>
+      <p class="updated-note">Last updated: April 2, 2026</p>
     </div>
   </section>
 
@@ -164,12 +164,12 @@
       <div class="roadmap-grid">
         <div class="roadmap-card">
           <h3>Real-Time Dashboard</h3>
-          <p>Agent status, AI mode, active sessions, latency, and live activity feed in one view.</p>
+          <p>Agent status, AI mode, active sessions, latency, and live activity feed with customizable widget grid.</p>
           <span class="tag">core</span>
         </div>
         <div class="roadmap-card">
-          <h3>Cost Monitoring</h3>
-          <p>Daily and monthly spend tracking with budget limits, auto-throttle, and alert thresholds.</p>
+          <h3>Cost Dashboard</h3>
+          <p>Real-time token spend per agent and instance, budget alerts, daily/weekly/monthly views with recharts visualizations.</p>
           <span class="tag">costs</span>
         </div>
         <div class="roadmap-card">
@@ -178,24 +178,84 @@
           <span class="tag">analytics</span>
         </div>
         <div class="roadmap-card">
-          <h3>Session Replay</h3>
-          <p>Browse and replay full agent conversation history with timestamps and token counts.</p>
+          <h3>Agent Replay</h3>
+          <p>Step-by-step timeline scrubber through agent decisions with expandable details, tool calls, and file diffs.</p>
           <span class="tag">operations</span>
         </div>
         <div class="roadmap-card">
-          <h3>Extensions Marketplace</h3>
-          <p>Unified page for installed plugins and marketplace catalog. Install, update, enable/disable from one place.</p>
+          <h3>Extensions &amp; Dev Mode</h3>
+          <p>Unified marketplace with installed plugins, catalog, scaffold generator, manifest validator, and file watcher for developers.</p>
           <span class="tag">extensions</span>
         </div>
         <div class="roadmap-card">
           <h3>Prompt Library</h3>
-          <p>Save, organize, and reuse prompt templates with categories, variables, and usage tracking.</p>
+          <p>Save, version, and diff prompt templates with categories, variables, and chat integration.</p>
           <span class="tag">workspace</span>
         </div>
         <div class="roadmap-card">
-          <h3>Model Presets</h3>
-          <p>One-click model configurations for Fast, Cheap, Balanced, and Quality modes.</p>
-          <span class="tag">operations</span>
+          <h3>Scheduled Tasks</h3>
+          <p>Cron-based agent automation with run history, manual triggers, and scheduled reports.</p>
+          <span class="tag">automation</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Orchestration</h3>
+          <p>Multi-agent pipeline builder with fan-out, consensus, and sequential workflow patterns.</p>
+          <span class="tag">infrastructure</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Knowledge Base</h3>
+          <p>Local RAG indexing for PDFs, markdown, and code. TF-IDF search with agent context attachments. Nothing leaves your machine.</p>
+          <span class="tag">privacy</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Notification Center</h3>
+          <p>Desktop alerts with tray badge, 60s polling, OS-level notifications, and full notification history page.</p>
+          <span class="tag">monitoring</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Agent Templates</h3>
+          <p>Pre-built blueprints for common workflows. One-click deploy for code review, research, content writing, and more.</p>
+          <span class="tag">workspace</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Export &amp; Reports</h3>
+          <p>Generate PDF, CSV, and JSON reports for agent sessions and cost breakdowns. Preview before export.</p>
+          <span class="tag">analytics</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Team Usage Dashboard</h3>
+          <p>Per-user and per-agent token leaderboard, waste detector for high-token/low-completion sessions, time range filtering.</p>
+          <span class="tag">collaboration</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Activity Heatmap</h3>
+          <p>GitHub-style 12-month calendar showing daily session counts, streak tracking, and per-agent filtering.</p>
+          <span class="tag">analytics</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Onboarding Wizard</h3>
+          <p>5-step first-run flow: connect instance, set budget, pick model preset, import API keys. Guided setup for new users.</p>
+          <span class="tag">onboarding</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Pinned Pages &amp; Quick Actions</h3>
+          <p>Star favorites to the sidebar top, one-click dashboard shortcuts for health checks, backups, and reports.</p>
+          <span class="tag">productivity</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Portable Bundles</h3>
+          <p>Export all settings, prompts, templates, and workflows as a single .mcbundle.json. Import with conflict resolution.</p>
+          <span class="tag">reliability</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>Theme Engine</h3>
+          <p>Three built-in themes (Dark Glass, Midnight, Light) with live preview. Agent-to-agent chat and session sharing.</p>
+          <span class="tag">customization</span>
+        </div>
+        <div class="roadmap-card">
+          <h3>In-App Changelog</h3>
+          <p>Version history with grouped changes. What's New modal auto-shows after updates.</p>
+          <span class="tag">product</span>
         </div>
         <div class="roadmap-card">
           <h3>Multi-Instance Management</h3>
@@ -204,7 +264,7 @@
         </div>
         <div class="roadmap-card">
           <h3>API Key Vault</h3>
-          <p>Securely store and manage provider API keys with encryption at rest and rotation support.</p>
+          <p>AES-256-GCM encrypted storage for provider API keys with rotation support and OS-backed key protection.</p>
           <span class="tag">security</span>
         </div>
         <div class="roadmap-card">
@@ -240,14 +300,21 @@
           <span class="tag">distribution</span>
         </div>
         <div class="roadmap-card">
-          <h3>Dependency Updates</h3>
-          <p>Upgrading Next.js, runtime packages, and addressing npm audit advisories.</p>
-          <span class="tag">maintenance</span>
+          <h3>Global Search</h3>
+          <p>Search across all data sources from the command palette — prompts, templates, sessions, knowledge base, and more.</p>
+          <span class="tag">productivity</span>
         </div>
-        <div class="roadmap-card">
-          <h3>Website Refresh</h3>
-          <p>Updated screenshots, download page metadata, and deployment to Cloudflare Pages.</p>
-          <span class="tag">marketing</span>
+      </div>
+    </section>
+
+    <!-- COMING SOON -->
+    <section class="roadmap-section">
+      <div class="roadmap-label label-coming"><span class="dot-coming"></span> Coming Soon</div>
+      <div class="roadmap-grid">
+        <div class="roadmap-card" style="border-color: rgba(251,191,36,0.25); grid-column: 1 / -1;">
+          <h3 style="font-size: 1.05rem;">Universal Provider Support <span class="coming-badge">COMING SOON</span></h3>
+          <p style="font-size: 0.85rem;">Connect Mission Control to any AI agent framework or LLM API — not just OpenClaw. Auto-discovery probes endpoints, detects auth types, and maps capabilities automatically. Works with NemoClaw, PicoClaw, ZeroClaw, AutoGPT, CrewAI, LangGraph, and any OpenAI-compatible API (OpenAI, Anthropic, Google, Mistral, Ollama, and more).</p>
+          <span class="tag" style="background: rgba(251,191,36,0.1); color: #fbbf24; border-color: rgba(251,191,36,0.2);">universal</span>
         </div>
       </div>
     </section>
@@ -266,68 +333,6 @@
           <p>In-app update notifications with one-click download and install for new releases.</p>
           <span class="tag">distribution</span>
         </div>
-        <div class="roadmap-card">
-          <h3>Cost Tag Analytics</h3>
-          <p>Per-project and per-client cost attribution with tag-based filtering and reports.</p>
-          <span class="tag">analytics</span>
-        </div>
-        <div class="roadmap-card">
-          <h3>Scheduled Reports</h3>
-          <p>Automated weekly and monthly cost and usage reports delivered via email or webhook.</p>
-          <span class="tag">monitoring</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- COMING SOON -->
-    <section class="roadmap-section">
-      <div class="roadmap-label label-coming"><span class="dot-coming"></span> Coming Soon</div>
-      <div class="roadmap-grid">
-        <div class="roadmap-card" style="border-color: rgba(251,191,36,0.25); grid-column: 1 / -1;">
-          <h3 style="font-size: 1.05rem;">Universal Provider Support <span class="coming-badge">COMING SOON</span></h3>
-          <p style="font-size: 0.85rem;">Connect Mission Control to any AI agent framework or LLM API — not just OpenClaw. Auto-discovery probes endpoints, detects auth types, and maps capabilities automatically. Works with NemoClaw, PicoClaw, ZeroClaw, AutoGPT, CrewAI, LangGraph, and any OpenAI-compatible API (OpenAI, Anthropic, Google, Mistral, Ollama, and more).</p>
-          <span class="tag" style="background: rgba(251,191,36,0.1); color: #fbbf24; border-color: rgba(251,191,36,0.2);">universal</span>
-        </div>
-        <div class="roadmap-card">
-          <h3>Cost Dashboard</h3>
-          <p>Real-time token usage and cost tracking per agent, per instance, with budget alerts and daily/weekly/monthly views.</p>
-          <span class="tag">costs</span>
-        </div>
-        <div class="roadmap-card">
-          <h3>Scheduled Tasks</h3>
-          <p>Cron-based agent automation with run history, manual triggers, and visual next-run countdowns.</p>
-          <span class="tag">automation</span>
-        </div>
-        <div class="roadmap-card">
-          <h3>Agent Replay</h3>
-          <p>Step-by-step time travel through agent decisions. See what it saw, what it chose, and why — with a scrubber timeline.</p>
-          <span class="tag">operations</span>
-        </div>
-        <div class="roadmap-card">
-          <h3>Agent Templates</h3>
-          <p>Pre-built blueprints for common workflows. One-click deploy for code review, research, content writing, and more.</p>
-          <span class="tag">workspace</span>
-        </div>
-        <div class="roadmap-card">
-          <h3>Notification Center</h3>
-          <p>Desktop notifications with badge counts for agent completions, errors, budget alerts, and scheduled task results.</p>
-          <span class="tag">monitoring</span>
-        </div>
-        <div class="roadmap-card">
-          <h3>Export &amp; Reports</h3>
-          <p>Generate PDF and CSV reports for agent sessions, cost breakdowns, and instance health. Pick date ranges and preview before export.</p>
-          <span class="tag">analytics</span>
-        </div>
-        <div class="roadmap-card">
-          <h3>Local Knowledge Base</h3>
-          <p>Drag-and-drop files to build a private, local RAG index. Attach to agent sessions as context — nothing leaves your machine.</p>
-          <span class="tag">privacy</span>
-        </div>
-        <div class="roadmap-card">
-          <h3>Multi-Instance Orchestration</h3>
-          <p>Run tasks across multiple instances in parallel with aggregate results, fan-out patterns, and consensus voting.</p>
-          <span class="tag">infrastructure</span>
-        </div>
       </div>
     </section>
 
@@ -339,21 +344,6 @@
           <h3>Linux Support</h3>
           <p>AppImage and .deb packages for Linux desktop environments.</p>
           <span class="tag">platform</span>
-        </div>
-        <div class="roadmap-card">
-          <h3>Team Collaboration</h3>
-          <p>Multi-user access with role-based permissions, shared dashboards, and activity audit trails.</p>
-          <span class="tag">collaboration</span>
-        </div>
-        <div class="roadmap-card">
-          <h3>Agent Performance Benchmarks</h3>
-          <p>Automated benchmarking of agent tasks across models with quality, speed, and cost scoring.</p>
-          <span class="tag">analytics</span>
-        </div>
-        <div class="roadmap-card">
-          <h3>Custom Dashboard Layouts</h3>
-          <p>Drag-and-drop dashboard builder with custom widgets, charts, and data sources.</p>
-          <span class="tag">customization</span>
         </div>
         <div class="roadmap-card">
           <h3>Mobile Companion</h3>
