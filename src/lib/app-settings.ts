@@ -22,6 +22,7 @@ export interface Settings {
   animationsEnabled: boolean
   compactMode: boolean
   onboardingComplete: boolean
+  lastSeenVersion: string | null
   themeSchedule: ThemeSchedule
 }
 
@@ -35,6 +36,7 @@ export const DEFAULT_SETTINGS: Settings = {
   animationsEnabled: true,
   compactMode: false,
   onboardingComplete: false,
+  lastSeenVersion: null,
   themeSchedule: {
     enabled: false,
     lightTheme: 'light',
@@ -139,7 +141,9 @@ export function normalizeSettings(input: unknown): Settings {
         : DEFAULT_SETTINGS.refreshInterval,
     animationsEnabled: value.animationsEnabled !== false,
     compactMode: value.compactMode === true,
+<<<<<<< HEAD
     onboardingComplete: value.onboardingComplete === true,
+    lastSeenVersion: typeof value.lastSeenVersion === 'string' && value.lastSeenVersion ? value.lastSeenVersion : null,
     themeSchedule: {
       enabled: schedule.enabled === true,
       lightTheme:

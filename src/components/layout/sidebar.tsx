@@ -78,6 +78,7 @@ const monitorNav = [
 const workspaceNav = [
   { name: 'Documents', href: '/documents', icon: FileText },
   { name: 'Intelligence', href: '/intelligence', icon: Brain },
+  { name: 'Changelog', href: '/changelog', icon: Sparkles },
   { name: 'Knowledge Base', href: '/knowledge', icon: Database },
   { name: 'Workshop', href: '/workshop', icon: Wrench },
   { name: 'Clients', href: '/clients', icon: Briefcase },

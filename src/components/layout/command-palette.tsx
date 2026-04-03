@@ -36,6 +36,7 @@ import {
   LayoutTemplate,
   FileBarChart,
   Database,
+  Sparkles,
 } from 'lucide-react'
 import { OPEN_DIAGNOSTICS_EVENT, OPEN_PREFERENCES_EVENT } from './desktop-events'
 
@@ -70,6 +71,7 @@ const PAGE_ITEMS: SearchItem[] = [
   { id: 'orchestrate', title: 'Orchestrate', subtitle: 'Multi-agent orchestration workflows', href: '/orchestrate', icon: <GitBranch className="w-4 h-4" />, category: 'page', keywords: ['orchestrate', 'orchestration', 'multi-agent', 'pipeline', 'workflow', 'fan-out', 'consensus'] },
   { id: 'templates', title: 'Agent Templates', subtitle: 'Deploy reusable agent setups and custom roles', href: '/templates', icon: <LayoutTemplate className="w-4 h-4" />, category: 'page', keywords: ['templates', 'agent templates', 'deploy', 'roles', 'system prompt', 'starter'] },
   { id: 'notifications', title: 'Notifications', subtitle: 'Desktop alerts and notification history', href: '/notifications', icon: <Bell className="w-4 h-4" />, category: 'page', keywords: ['notifications', 'alerts', 'bell', 'badge', 'desktop', 'tray'] },
+  { id: 'changelog', title: 'Changelog', subtitle: 'Release notes and what changed in each version', href: '/changelog', icon: <Sparkles className="w-4 h-4" />, category: 'page', keywords: ['changelog', 'release', 'update', 'whats new', 'version'] },
   { id: 'journal', title: 'Journal', subtitle: 'Activity logs', href: '/journal', icon: <BookOpen className="w-4 h-4" />, category: 'page', keywords: ['logs', 'activity', 'history'] },
   { id: 'documents', title: 'Documents', subtitle: 'Workspace files', href: '/documents', icon: <FileText className="w-4 h-4" />, category: 'page', keywords: ['files', 'workspace', 'memory'] },
   { id: 'intelligence', title: 'Intelligence', subtitle: 'Agent memory', href: '/intelligence', icon: <Brain className="w-4 h-4" />, category: 'page', keywords: ['memory', 'knowledge', 'context'] },
