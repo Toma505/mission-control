@@ -98,6 +98,7 @@ const workspaceNav: NavItem[] = [
   { name: 'Webhooks', href: '/webhooks', icon: Workflow },
   { name: 'Snapshots', href: '/snapshots', icon: Camera },
   { name: 'Backup', href: '/backup', icon: Archive },
+  { name: 'Portable', href: '/portable', icon: Archive },
   { name: 'Shortcuts', href: '/settings/shortcuts', icon: Keyboard },
   { name: 'Audit Log', href: '/audit', icon: ScrollText },
 ]
