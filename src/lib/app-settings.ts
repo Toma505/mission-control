@@ -3,6 +3,13 @@ export type AccentColor = 'blue' | 'purple' | 'cyan' | 'green' | 'orange' | 'ros
 export type SidebarPosition = 'left' | 'right'
 export type FontSize = 'small' | 'medium' | 'large'
 export type RefreshInterval = 15 | 30 | 60 | 120
+export type SidebarSectionKey = 'main' | 'monitor' | 'workspace'
+
+export interface SidebarOrder {
+  main?: string[]
+  monitor?: string[]
+  workspace?: string[]
+}
 
 export interface ThemeSchedule {
   enabled: boolean
@@ -22,6 +29,7 @@ export interface Settings {
   animationsEnabled: boolean
   compactMode: boolean
   themeSchedule: ThemeSchedule
+  sidebarOrder?: SidebarOrder
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -114,6 +122,15 @@ export function normalizeSettings(input: unknown): Settings {
     value.themeSchedule && typeof value.themeSchedule === 'object'
       ? value.themeSchedule
       : {}
+  const sidebarOrder =
+    value.sidebarOrder && typeof value.sidebarOrder === 'object'
+      ? (value.sidebarOrder as SidebarOrder)
+      : undefined
+
+  const normalizeSidebarSection = (entries: unknown) =>
+    Array.isArray(entries)
+      ? [...new Set(entries.map((entry) => String(entry).trim()).filter(Boolean))]
+      : undefined
 
   return {
     theme: value.theme === 'midnight' || value.theme === 'light' ? value.theme : DEFAULT_SETTINGS.theme,
@@ -150,5 +167,14 @@ export function normalizeSettings(input: unknown): Settings {
       lightStart: typeof schedule.lightStart === 'string' && schedule.lightStart ? schedule.lightStart : DEFAULT_SETTINGS.themeSchedule.lightStart,
       darkStart: typeof schedule.darkStart === 'string' && schedule.darkStart ? schedule.darkStart : DEFAULT_SETTINGS.themeSchedule.darkStart,
     },
+    ...(sidebarOrder
+      ? {
+          sidebarOrder: {
+            ...(normalizeSidebarSection(sidebarOrder.main) ? { main: normalizeSidebarSection(sidebarOrder.main) } : {}),
+            ...(normalizeSidebarSection(sidebarOrder.monitor) ? { monitor: normalizeSidebarSection(sidebarOrder.monitor) } : {}),
+            ...(normalizeSidebarSection(sidebarOrder.workspace) ? { workspace: normalizeSidebarSection(sidebarOrder.workspace) } : {}),
+          },
+        }
+      : {}),
   }
 }
