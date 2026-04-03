@@ -1,0 +1,63 @@
+{
+  "entries": [
+    {
+      "version": "v1.3.0",
+      "date": "2026-04-01",
+      "added": [
+        "Agent-to-agent chat with human intervention controls.",
+        "Portable config bundles for moving Mission Control between machines."
+      ],
+      "improved": [
+        "Dashboard widgets can now be rearranged and hidden per workspace.",
+        "Command palette coverage expanded across more operational surfaces."
+      ],
+      "fixed": [
+        "Settings persistence is more resilient when bootstrapping from seed data."
+      ]
+    },
+    {
+      "version": "v1.2.0",
+      "date": "2026-03-29",
+      "added": [
+        "Knowledge Base for local file indexing and private semantic search.",
+        "Extensions page with marketplace, upload scanner, and developer mode."
+      ],
+      "improved": [
+        "Replay sessions now include richer timeline context and file diffs.",
+        "Prompt Library gained versions, import/export, and agent handoff flows."
+      ],
+      "fixed": [
+        "Plugin parsing is more consistent across OpenClaw outputs."
+      ]
+    },
+    {
+      "version": "v1.1.0",
+      "date": "2026-03-27",
+      "added": [
+        "Cost Dashboard with budgets, charts, and per-session tracking.",
+        "Scheduled Tasks with cron helpers, run history, and manual execution."
+      ],
+      "improved": [
+        "Notifications now surface schedule runs and budget alerts more clearly.",
+        "Team dashboards and reports gained stronger seeded demo coverage."
+      ],
+      "fixed": [
+        "Analytics fallbacks now populate correctly when provider breakdowns are sparse."
+      ]
+    },
+    {
+      "version": "v1.0.0",
+      "date": "2026-03-24",
+      "added": [
+        "Mission Control desktop dashboard for OpenClaw operations.",
+        "Live activities, agent sessions, cost visibility, and connection management."
+      ],
+      "improved": [
+        "Core dark glass UI and workspace navigation baseline."
+      ],
+      "fixed": [
+        "Initial release stabilization for local configuration and demo states."
+      ]
+    }
+  ]
+}
