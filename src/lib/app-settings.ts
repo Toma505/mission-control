@@ -21,6 +21,7 @@ export interface Settings {
   refreshInterval: RefreshInterval
   animationsEnabled: boolean
   compactMode: boolean
+  pinnedPages: string[]
   themeSchedule: ThemeSchedule
 }
 
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: Settings = {
   refreshInterval: 30,
   animationsEnabled: true,
   compactMode: false,
+  pinnedPages: [],
   themeSchedule: {
     enabled: false,
     lightTheme: 'light',
@@ -137,6 +139,9 @@ export function normalizeSettings(input: unknown): Settings {
         : DEFAULT_SETTINGS.refreshInterval,
     animationsEnabled: value.animationsEnabled !== false,
     compactMode: value.compactMode === true,
+    pinnedPages: Array.isArray(value.pinnedPages)
+      ? value.pinnedPages.filter((item): item is string => typeof item === 'string' && item.trim().length > 0).slice(0, 8)
+      : DEFAULT_SETTINGS.pinnedPages,
     themeSchedule: {
       enabled: schedule.enabled === true,
       lightTheme:
