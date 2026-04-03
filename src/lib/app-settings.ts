@@ -4,6 +4,15 @@ export type SidebarPosition = 'left' | 'right'
 export type FontSize = 'small' | 'medium' | 'large'
 export type RefreshInterval = 15 | 30 | 60 | 120
 
+export interface NotificationPreferences {
+  desktop: boolean
+  agentComplete: boolean
+  agentErrors: boolean
+  agentNeedsInput: boolean
+  budgetAlerts: boolean
+  scheduleFired: boolean
+}
+
 export interface ThemeSchedule {
   enabled: boolean
   lightTheme: Theme
@@ -22,6 +31,10 @@ export interface Settings {
   animationsEnabled: boolean
   compactMode: boolean
   themeSchedule: ThemeSchedule
+  pinnedPages?: string[]
+  onboardingComplete?: boolean
+  lastSeenVersion?: string
+  notificationPreferences?: NotificationPreferences
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -40,6 +53,15 @@ export const DEFAULT_SETTINGS: Settings = {
     lightStart: '07:00',
     darkStart: '19:00',
   },
+}
+
+export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  desktop: true,
+  agentComplete: true,
+  agentErrors: true,
+  agentNeedsInput: true,
+  budgetAlerts: true,
+  scheduleFired: true,
 }
 
 export const ACCENT_COLORS: Record<AccentColor, { primary: string; secondary: string; highlight: string }> = {
@@ -114,6 +136,19 @@ export function normalizeSettings(input: unknown): Settings {
     value.themeSchedule && typeof value.themeSchedule === 'object'
       ? value.themeSchedule
       : {}
+  const notificationPreferences =
+    value.notificationPreferences && typeof value.notificationPreferences === 'object'
+      ? (value.notificationPreferences as Partial<NotificationPreferences>)
+      : null
+  const pinnedPages = Array.isArray(value.pinnedPages)
+    ? [...new Set(value.pinnedPages.map((page) => String(page).trim()).filter(Boolean))].slice(0, 8)
+    : undefined
+  const lastSeenVersion = typeof value.lastSeenVersion === 'string' && value.lastSeenVersion.trim()
+    ? value.lastSeenVersion.trim()
+    : undefined
+  const onboardingComplete = typeof value.onboardingComplete === 'boolean'
+    ? value.onboardingComplete
+    : undefined
 
   return {
     theme: value.theme === 'midnight' || value.theme === 'light' ? value.theme : DEFAULT_SETTINGS.theme,
@@ -150,5 +185,20 @@ export function normalizeSettings(input: unknown): Settings {
       lightStart: typeof schedule.lightStart === 'string' && schedule.lightStart ? schedule.lightStart : DEFAULT_SETTINGS.themeSchedule.lightStart,
       darkStart: typeof schedule.darkStart === 'string' && schedule.darkStart ? schedule.darkStart : DEFAULT_SETTINGS.themeSchedule.darkStart,
     },
+    ...(pinnedPages ? { pinnedPages } : {}),
+    ...(typeof onboardingComplete === 'boolean' ? { onboardingComplete } : {}),
+    ...(lastSeenVersion ? { lastSeenVersion } : {}),
+    ...(notificationPreferences
+      ? {
+          notificationPreferences: {
+            desktop: notificationPreferences.desktop !== false,
+            agentComplete: notificationPreferences.agentComplete !== false,
+            agentErrors: notificationPreferences.agentErrors !== false,
+            agentNeedsInput: notificationPreferences.agentNeedsInput !== false,
+            budgetAlerts: notificationPreferences.budgetAlerts !== false,
+            scheduleFired: notificationPreferences.scheduleFired !== false,
+          },
+        }
+      : {}),
   }
 }
