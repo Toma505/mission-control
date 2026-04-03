@@ -23,6 +23,7 @@ export interface Settings {
   compactMode: boolean
   onboardingComplete: boolean
   lastSeenVersion: string | null
+  pinnedPages: string[]
   themeSchedule: ThemeSchedule
 }
 
@@ -37,6 +38,7 @@ export const DEFAULT_SETTINGS: Settings = {
   compactMode: false,
   onboardingComplete: false,
   lastSeenVersion: null,
+  pinnedPages: [],
   themeSchedule: {
     enabled: false,
     lightTheme: 'light',
@@ -141,9 +143,11 @@ export function normalizeSettings(input: unknown): Settings {
         : DEFAULT_SETTINGS.refreshInterval,
     animationsEnabled: value.animationsEnabled !== false,
     compactMode: value.compactMode === true,
-<<<<<<< HEAD
     onboardingComplete: value.onboardingComplete === true,
     lastSeenVersion: typeof value.lastSeenVersion === 'string' && value.lastSeenVersion ? value.lastSeenVersion : null,
+    pinnedPages: Array.isArray(value.pinnedPages)
+      ? value.pinnedPages.filter((item): item is string => typeof item === 'string' && item.trim().length > 0).slice(0, 8)
+      : DEFAULT_SETTINGS.pinnedPages,
     themeSchedule: {
       enabled: schedule.enabled === true,
       lightTheme:

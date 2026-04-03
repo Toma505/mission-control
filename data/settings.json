@@ -9,6 +9,7 @@
   "compactMode": false,
   "onboardingComplete": false,
   "lastSeenVersion": null,
+  "pinnedPages": [],
   "themeSchedule": {
     "enabled": false,
     "lightTheme": "light",
