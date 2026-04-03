@@ -6,6 +6,7 @@ import { QuickLinks } from '@/components/dashboard/quick-links'
 import { CostWidget } from '@/components/dashboard/bandwidth-widget'
 import { RefreshControl } from '@/components/dashboard/refresh-control'
 import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
+import { QuickActions } from '@/components/dashboard/quick-actions'
 import { getAppBaseUrl } from '@/lib/app-url'
 import { readSettings } from '@/lib/settings-store'
 
@@ -204,6 +205,7 @@ export default async function Home() {
             </div>
           )}
 
+          <QuickActions />
           <CostWidget />
           <QuickLinks />
         </div>
