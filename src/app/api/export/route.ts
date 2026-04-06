@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sanitizeError } from '@/lib/sanitize-error'
+import { getLocalApiOrigin } from '@/lib/local-api-origin'
 
 type ExportType = 'costs' | 'usage' | 'operations' | 'all'
 type ExportFormat = 'csv' | 'pdf'
@@ -224,7 +225,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid export range', range, validRanges: Array.from(VALID_RANGES) }, { status: 400 })
   }
 
-  const origin = request.nextUrl.origin
+  const origin = getLocalApiOrigin(request)
   const rangeDays = getDaysForRange(range)
   const sections: { title: string; rows: ExportRow[] }[] = []
 

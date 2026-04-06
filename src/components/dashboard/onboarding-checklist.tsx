@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Check, ChevronRight, X } from 'lucide-react'
+import { apiFetch } from '@/lib/api-client'
 
 interface CheckItem {
   id: string
@@ -22,7 +23,7 @@ const checklistItems: CheckItem[] = [
     href: '/setup?reconfigure=true',
     check: async () => {
       try {
-        const res = await fetch('/api/connection')
+        const res = await apiFetch('/api/connection')
         const data = await res.json()
         return data.connected === true
       } catch { return false }

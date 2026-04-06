@@ -8,6 +8,15 @@ const PUBLIC_API_ALLOWLIST = new Set([
   '/api/license-control/validate',
 ])
 
+function getLocalApiOrigin(request: NextRequest) {
+  const port =
+    request.nextUrl.port ||
+    process.env.PORT ||
+    (process.env.NODE_ENV === 'production' ? '3847' : '3000')
+
+  return `http://127.0.0.1:${port}`
+}
+
 function buildContentSecurityPolicy() {
   const isDev = process.env.NODE_ENV !== 'production'
   const connectSrc = ["'self'"]
@@ -88,8 +97,13 @@ export async function middleware(request: NextRequest) {
     !pathname.includes('.')
   ) {
     try {
-      const baseUrl = request.nextUrl.origin
-      const res = await fetch(`${baseUrl}/api/connection`, { cache: 'no-store' })
+      const baseUrl = getLocalApiOrigin(request)
+      const res = await fetch(`${baseUrl}/api/connection`, {
+        cache: 'no-store',
+        headers: {
+          'x-mc-token': process.env.MC_SESSION_TOKEN || '',
+        },
+      })
       const data = await res.json()
 
       if (!data.configured) {
@@ -101,7 +115,7 @@ export async function middleware(request: NextRequest) {
       }
     } catch {
       try {
-        const baseUrl = request.nextUrl.origin
+        const baseUrl = getLocalApiOrigin(request)
         const destination = await getUnconfiguredDestination(baseUrl)
         return addSecurityHeaders(
           NextResponse.redirect(new URL(destination, request.url)),

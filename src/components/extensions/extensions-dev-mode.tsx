@@ -104,7 +104,7 @@ export function ExtensionsDevMode() {
 
   const loadDevMode = useCallback(async () => {
     try {
-      const response = await fetch('/api/extensions/dev', { cache: 'no-store' })
+      const response = await apiFetch('/api/extensions/dev', { cache: 'no-store' })
       if (!response.ok) throw new Error('Could not load plugin developer mode')
       const nextPayload = (await response.json()) as ExtensionDevPayload
       setPayload(nextPayload)

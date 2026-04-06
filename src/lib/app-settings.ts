@@ -46,9 +46,6 @@ export interface Settings {
   lastSeenVersion: string | null
   pinnedPages: string[]
   themeSchedule: ThemeSchedule
-  pinnedPages?: string[]
-  onboardingComplete?: boolean
-  lastSeenVersion?: string
   notificationPreferences?: NotificationPreferences
   dashboardLayout?: DashboardLayout
 }

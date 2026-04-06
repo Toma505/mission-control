@@ -9,7 +9,9 @@ import {
   type DevTemplateId,
 } from '@/lib/extensions-dev'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!isAuthorized(request)) return unauthorizedResponse()
+
   try {
     const payload = await getExtensionDevPayload()
     return NextResponse.json(payload)

@@ -3,7 +3,8 @@ import { readFile, writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import crypto from 'crypto'
 import { DATA_DIR } from '@/lib/connection-config'
-import { isAuthorized } from '@/lib/api-auth'
+import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
+import { validateWebhookDestinationUrl } from '@/lib/url-validator'
 
 const WEBHOOKS_FILE = path.join(DATA_DIR, 'webhooks.json')
 
@@ -40,6 +41,25 @@ async function readWebhooks(): Promise<WebhookConfig[]> {
 async function writeWebhooks(webhooks: WebhookConfig[]) {
   await mkdir(path.dirname(WEBHOOKS_FILE), { recursive: true })
   await writeFile(WEBHOOKS_FILE, JSON.stringify(webhooks, null, 2))
+}
+
+function maskWebhookUrl(value: string) {
+  try {
+    const parsed = new URL(value)
+    const suffix = value.slice(-4)
+    return `${parsed.protocol}//${parsed.host}/…${suffix}`
+  } catch {
+    return 'invalid-url'
+  }
+}
+
+function toClientWebhook(webhook: WebhookConfig) {
+  const maskedUrl = maskWebhookUrl(webhook.url)
+  return {
+    ...webhook,
+    url: maskedUrl,
+    maskedUrl,
+  }
 }
 
 function formatSlackPayload(event: string, message: string) {
@@ -87,6 +107,13 @@ export async function fireWebhooks(event: string, message: string) {
   const matching = webhooks.filter(w => w.enabled && w.events.includes(event))
 
   for (const webhook of matching) {
+    const validationError = validateWebhookDestinationUrl(webhook.url)
+    if (validationError) {
+      webhook.lastFired = new Date().toISOString()
+      webhook.lastStatus = 0
+      continue
+    }
+
     let payload: unknown
     switch (webhook.type) {
       case 'slack':
@@ -119,9 +146,13 @@ export async function fireWebhooks(event: string, message: string) {
 }
 
 /** GET /api/webhooks — list all webhook configs */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!isAuthorized(request)) return unauthorizedResponse()
   const webhooks = await readWebhooks()
-  return NextResponse.json({ webhooks, events: VALID_EVENTS })
+  return NextResponse.json({
+    webhooks: webhooks.map(toClientWebhook),
+    events: VALID_EVENTS,
+  })
 }
 
 /** POST /api/webhooks — create, update, delete, toggle, or test a webhook */
@@ -138,6 +169,10 @@ export async function POST(req: NextRequest) {
     if (!url || !name) {
       return NextResponse.json({ error: 'Name and URL are required' }, { status: 400 })
     }
+    const validationError = validateWebhookDestinationUrl(String(url))
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 })
+    }
 
     const webhooks = await readWebhooks()
     const webhook: WebhookConfig = {
@@ -151,7 +186,7 @@ export async function POST(req: NextRequest) {
     }
     webhooks.push(webhook)
     await writeWebhooks(webhooks)
-    return NextResponse.json({ ok: true, webhook })
+    return NextResponse.json({ ok: true, webhook: toClientWebhook(webhook) })
   }
 
   if (action === 'toggle') {
@@ -160,7 +195,7 @@ export async function POST(req: NextRequest) {
     if (!webhook) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     webhook.enabled = !webhook.enabled
     await writeWebhooks(webhooks)
-    return NextResponse.json({ ok: true, webhook })
+    return NextResponse.json({ ok: true, webhook: toClientWebhook(webhook) })
   }
 
   if (action === 'delete') {
@@ -174,6 +209,11 @@ export async function POST(req: NextRequest) {
     const webhooks = await readWebhooks()
     const webhook = webhooks.find(w => w.id === body.webhookId)
     if (!webhook) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+    const validationError = validateWebhookDestinationUrl(webhook.url)
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 })
+    }
 
     let payload: unknown
     switch (webhook.type) {

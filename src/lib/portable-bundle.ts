@@ -45,6 +45,20 @@ export const PORTABLE_CATEGORIES = [
 export type PortableCategory = (typeof PORTABLE_CATEGORIES)[number]
 export type PortableConflictResolution = 'keep' | 'overwrite'
 
+export const MAX_PORTABLE_BUNDLE_BYTES = 100 * 1024 * 1024
+const MAX_PORTABLE_TOTAL_ITEMS = 5000
+const PORTABLE_CATEGORY_ITEM_LIMITS: Record<PortableCategory, number> = {
+  settings: 1,
+  prompts: 1000,
+  templates: 500,
+  workflows: 500,
+  schedules: 1000,
+  costTags: 1000,
+  snapshots: 1000,
+  keyVault: 1000,
+  notifications: 5000,
+}
+
 export type PortableSettingsPayload = Record<string, unknown>
 
 export interface CostTag {
@@ -358,6 +372,36 @@ function buildManifest(data: PortableBundleData, appVersion: string): PortableBu
   }
 }
 
+function countPortableItems(data: PortableBundleData): Record<PortableCategory, number> {
+  return {
+    settings: Object.keys(data.settings).length > 0 ? 1 : 0,
+    prompts: data.prompts.prompts.length,
+    templates: data.templates.templates.length,
+    workflows: data.workflows.workflows.length,
+    schedules: data.schedules.tasks.length,
+    costTags: data.costTags.tags.length,
+    snapshots: data.snapshots.snapshots.length,
+    keyVault: data.keyVault.keys.length,
+    notifications: data.notifications.notifications.length,
+  }
+}
+
+function assertPortableBundleItemLimits(data: PortableBundleData) {
+  const counts = countPortableItems(data)
+  const totalItems = Object.values(counts).reduce((sum, count) => sum + count, 0)
+  if (totalItems > MAX_PORTABLE_TOTAL_ITEMS) {
+    throw new Error(`Portable bundles may include at most ${MAX_PORTABLE_TOTAL_ITEMS} total items.`)
+  }
+
+  for (const category of PORTABLE_CATEGORIES) {
+    if (counts[category] > PORTABLE_CATEGORY_ITEM_LIMITS[category]) {
+      throw new Error(
+        `Portable bundle category "${category}" exceeds the ${PORTABLE_CATEGORY_ITEM_LIMITS[category]} item limit.`,
+      )
+    }
+  }
+}
+
 function normalizeBundleData(input: unknown): PortableBundleData {
   const data = sanitizePlainObject(input)
 
@@ -409,6 +453,7 @@ function normalizeBundleData(input: unknown): PortableBundleData {
 export function normalizePortableBundle(input: unknown): PortableBundle {
   const source = sanitizePlainObject(input)
   const data = normalizeBundleData(source.data)
+  assertPortableBundleItemLimits(data)
   const manifestInput = sanitizePlainObject(source.manifest)
 
   return {

@@ -49,6 +49,10 @@ export interface KnowledgeSearchResult {
   chunkOrder: number
 }
 
+export const MAX_KNOWLEDGE_UPLOAD_FILES = 20
+export const MAX_KNOWLEDGE_FILE_SIZE_BYTES = 10 * 1024 * 1024
+export const MAX_KNOWLEDGE_TOTAL_UPLOAD_BYTES = 50 * 1024 * 1024
+
 const KNOWLEDGE_DIR = path.join(DATA_DIR, 'knowledge')
 const KNOWLEDGE_INDEX_FILE = path.join(DATA_DIR, 'knowledge-index.json')
 const KNOWLEDGE_SEED_DIR = path.join(process.cwd(), 'data', 'knowledge')
@@ -216,6 +220,15 @@ export async function listKnowledgeBase() {
 }
 
 export async function addKnowledgeFiles(files: Array<{ name: string; mimeType: string; buffer: Buffer }>) {
+  if (files.length > MAX_KNOWLEDGE_UPLOAD_FILES) {
+    throw new Error(`Upload at most ${MAX_KNOWLEDGE_UPLOAD_FILES} files at a time.`)
+  }
+
+  const totalBytes = files.reduce((sum, file) => sum + file.buffer.byteLength, 0)
+  if (totalBytes > MAX_KNOWLEDGE_TOTAL_UPLOAD_BYTES) {
+    throw new Error(`Uploads must stay below ${Math.round(MAX_KNOWLEDGE_TOTAL_UPLOAD_BYTES / (1024 * 1024))} MB total.`)
+  }
+
   const index = await readIndex()
   await mkdir(KNOWLEDGE_DIR, { recursive: true })
   await mkdir(KNOWLEDGE_SEED_DIR, { recursive: true })
@@ -223,6 +236,10 @@ export async function addKnowledgeFiles(files: Array<{ name: string; mimeType: s
   const added: KnowledgeFileRecord[] = []
 
   for (const file of files) {
+    if (file.buffer.byteLength > MAX_KNOWLEDGE_FILE_SIZE_BYTES) {
+      throw new Error(`"${file.name}" exceeds the 10 MB per-file limit.`)
+    }
+
     const text = await extractText(file.name, file.mimeType, file.buffer)
     const tokens = tokenize(text)
     const id = randomUUID()

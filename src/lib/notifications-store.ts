@@ -157,7 +157,7 @@ export async function pushNotification(input: NotificationInput) {
     timestamp: new Date().toISOString(),
     readAt: null,
     dismissedAt: null,
-    href: input.href,
+    href: input.href && /^\/[^/\\]/.test(input.href) ? input.href : undefined,
     source: input.source,
     outputSummary: input.outputSummary,
   }

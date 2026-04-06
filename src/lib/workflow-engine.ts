@@ -3,6 +3,7 @@ import path from 'path'
 
 import { DATA_DIR, getEffectiveConfig } from '@/lib/connection-config'
 import { runCommand } from '@/lib/openclaw'
+import { validateWebhookDestinationUrl } from '@/lib/url-validator'
 
 export type WorkflowNodeType = 'trigger' | 'agent' | 'condition' | 'action' | 'transform' | 'output'
 
@@ -471,6 +472,11 @@ async function setBudget(node: WorkflowNode, nodeInputs: Record<string, unknown>
 async function sendWebhook(urlValue: unknown, payload: unknown, methodValue: unknown) {
   if (typeof urlValue !== 'string' || !urlValue) {
     throw new Error('Webhook URL is required')
+  }
+
+  const validationError = validateWebhookDestinationUrl(urlValue)
+  if (validationError) {
+    throw new Error(validationError)
   }
 
   const target = new URL(urlValue)

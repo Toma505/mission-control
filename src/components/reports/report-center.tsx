@@ -161,7 +161,7 @@ export function ReportCenter() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch('/api/reports', { cache: 'no-store' })
+      const response = await apiFetch('/api/reports', { cache: 'no-store' })
       const data = (await response.json()) as ReportsPayload
       setReports(Array.isArray(data.reports) ? data.reports : [])
       setFilters(data.filters || { instances: [], agents: [] })
@@ -176,6 +176,34 @@ export function ReportCenter() {
       setError(loadError instanceof Error ? loadError.message : 'Failed to load reports')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function downloadReport(reportId: string) {
+    setError(null)
+    try {
+      const response = await apiFetch(`/api/reports?download=${encodeURIComponent(reportId)}`)
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(
+          typeof data?.error === 'string' ? data.error : 'Failed to download report',
+        )
+      }
+
+      const disposition = response.headers.get('content-disposition') || ''
+      const match = disposition.match(/filename="?([^"]+)"?/)
+      const filename = match?.[1] || `report-${reportId}`
+      const blob = await response.blob()
+      const downloadUrl = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(downloadUrl)
+    } catch (downloadError) {
+      setError(downloadError instanceof Error ? downloadError.message : 'Failed to download report')
     }
   }
 
@@ -243,7 +271,7 @@ export function ReportCenter() {
       setPreview(data.preview)
       setPreviewKey(serializeForm(form))
       await load()
-      window.location.href = `/api/reports?download=${data.metadata.id}`
+      await downloadReport(data.metadata.id)
     } catch (exportError) {
       setError(exportError instanceof Error ? exportError.message : 'Failed to export report')
     } finally {
@@ -521,13 +549,13 @@ export function ReportCenter() {
                       </div>
 
                       <div className="flex flex-wrap gap-2">
-                        <a
-                          href={`/api/reports?download=${report.id}`}
+                        <button
+                          onClick={() => void downloadReport(report.id)}
                           className="inline-flex items-center gap-2 rounded-xl border border-[var(--glass-border)] bg-white/[0.05] px-3 py-2 text-xs font-medium text-text-primary transition hover:bg-white/[0.1]"
                         >
                           <Download className="h-3.5 w-3.5" />
                           Download
-                        </a>
+                        </button>
                         <button
                           onClick={() => void removeReport(report.id)}
                           disabled={deletingId === report.id}

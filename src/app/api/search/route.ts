@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { readChangelogStore } from '@/lib/changelog-store'
+import { readChangelogEntries } from '@/lib/changelog-store'
 import { listKnowledgeBase } from '@/lib/knowledge-store'
 import { filterPrompts, readPromptStore } from '@/lib/prompt-library-store'
 import { listReplaySessions } from '@/lib/replay-store'
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
       readTemplateStore(),
       listReplaySessions(),
       listKnowledgeBase(),
-      readChangelogStore(),
+      readChangelogEntries().then((entries) => ({ entries })),
       readSchedules(),
     ])
 
@@ -163,9 +163,9 @@ export async function GET(request: NextRequest) {
       score: scoreFields(
         [
           { value: entry.version, weight: 5 },
-          { value: entry.added.join(' '), weight: 2 },
-          { value: entry.improved.join(' '), weight: 2 },
-          { value: entry.fixed.join(' '), weight: 2 },
+          { value: entry.changes.added.join(' '), weight: 2 },
+          { value: entry.changes.improved.join(' '), weight: 2 },
+          { value: entry.changes.fixed.join(' '), weight: 2 },
         ],
         terms,
       ),

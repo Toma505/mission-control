@@ -169,7 +169,7 @@ export function OnboardingWizard() {
     async function loadInitialData() {
       try {
         const [connectionRes, budgetRes, modeRes, vaultRes] = await Promise.all([
-          fetch('/api/connection', { cache: 'no-store' }),
+          apiFetch('/api/connection', { cache: 'no-store' }),
           fetch('/api/budget', { cache: 'no-store' }),
           fetch('/api/mode', { cache: 'no-store' }),
           apiFetch('/api/key-vault').catch(() => null),

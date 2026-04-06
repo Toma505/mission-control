@@ -65,7 +65,7 @@ export function WebhookManager() {
   async function fetchWebhooks() {
     setLoading(true)
     try {
-      const res = await fetch('/api/webhooks')
+      const res = await apiFetch('/api/webhooks')
       const data = await res.json()
       setWebhooks(data.webhooks || [])
       setEvents(data.events || [])

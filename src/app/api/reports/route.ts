@@ -12,6 +12,8 @@ import {
 } from '@/lib/reports-store'
 
 export async function GET(request: NextRequest) {
+  if (!isAuthorized(request)) return unauthorizedResponse()
+
   try {
     const downloadId = request.nextUrl.searchParams.get('download')
     if (downloadId) {

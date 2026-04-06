@@ -9,16 +9,10 @@ import {
 } from '@/lib/connection-config'
 
 export async function GET(request: NextRequest) {
-  const encryptionAvailable = isConnectionConfigEncryptionAvailable()
+  if (!isTrustedLocalhostRequest(request)) return localOnlyResponse()
+  if (!isAuthorized(request)) return unauthorizedResponse()
 
-  if (!isTrustedLocalhostRequest(request)) {
-    return NextResponse.json({
-      configured: false,
-      source: 'public',
-      openclawUrl: null,
-      encryptionAvailable,
-    })
-  }
+  const encryptionAvailable = isConnectionConfigEncryptionAvailable()
 
   const config = await readConnectionConfig()
 

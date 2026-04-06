@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "openclawUrl": "https://your-openclaw-instance.example.com",
+  "configuredAt": "2026-04-02T00:00:00.000Z",
+  "setupPassword": "REDACTED_USE_LOCAL_FILE",
+  "openrouterApiKey": "REDACTED_USE_LOCAL_FILE",
+  "openrouterMgmtKey": ""
+}

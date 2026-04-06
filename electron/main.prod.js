@@ -16,6 +16,7 @@ const AutoLaunch = require('auto-launch')
 const { autoUpdater } = require('electron-updater')
 const { createSessionToken, loadOrCreateConfigEncryptionKey } = require('./security-context')
 const { createScheduleRunner } = require('./schedule-runner')
+const { handleApiRequest } = require('./api-request')
 
 // ─── Cross-platform user data path ──────────────────────────
 function getUserDataPath() {
@@ -186,6 +187,10 @@ function getLogsPath() {
   return app.getPath('logs')
 }
 
+function redactPath(value) {
+  return path.basename(String(value || ''))
+}
+
 function ensureDataDir() {
   const dataDir = getDataDir()
   try { fs.mkdirSync(dataDir, { recursive: true }) } catch {}
@@ -209,7 +214,13 @@ function ensureDataDir() {
 const LICENSE_FILE = path.join(userDataPath, 'license.json')
 
 ipcMain.handle('get-platform', () => process.platform)
-ipcMain.handle('get-session-token', () => sessionToken)
+ipcMain.handle('api-request', (_event, request) =>
+  handleApiRequest({
+    getPort: () => PORT,
+    getSessionToken: () => sessionToken,
+    request,
+  }),
+)
 ipcMain.handle('set-notification-badge', (_, count) => {
   updateNotificationBadge(count)
   return { ok: true, unreadCount: notificationBadgeCount }
@@ -230,13 +241,13 @@ async function getDesktopDiagnostics() {
     isPackaged: app.isPackaged,
     port: PORT,
     paths: {
-      appPath: app.getAppPath(),
-      execPath: process.execPath,
-      userData: userDataPath,
-      data: getDataDir(),
-      logs: getLogsPath(),
-      settingsFile: DESKTOP_SETTINGS_FILE,
-      licenseFile: LICENSE_FILE,
+      appPath: redactPath(app.getAppPath()),
+      execPath: redactPath(process.execPath),
+      userData: redactPath(userDataPath),
+      data: redactPath(getDataDir()),
+      logs: redactPath(getLogsPath()),
+      settingsFile: redactPath(DESKTOP_SETTINGS_FILE),
+      licenseFile: redactPath(LICENSE_FILE),
     },
     features: {
       autoLaunchEnabled,
@@ -938,9 +949,17 @@ ipcMain.handle('show-notification', (_, { title, body, urgency }) => {
 
 // ─── Backup & Restore ───────────────────────────────────────
 
+function normalizeBackupEntryName(name) {
+  if (typeof name !== 'string' || !name) return null
+  if (name !== path.basename(name)) return null
+  if (name.includes('..') || /[\\/]/.test(name)) return null
+  return name
+}
+
 ipcMain.handle('create-backup', async () => {
   const dataDir = getDataDir()
   const archiver = require('archiver') // not available — use manual zip approach
+  const excludedSensitiveFiles = ['_desktop-settings.json', '_license.json']
 
   // Collect all data files
   const files = {}
@@ -955,10 +974,6 @@ ipcMain.handle('create-backup', async () => {
     }
   } catch {}
 
-  // Include desktop settings and license
-  try { files['_desktop-settings.json'] = fs.readFileSync(DESKTOP_SETTINGS_FILE, 'utf-8') } catch {}
-  try { files['_license.json'] = fs.readFileSync(LICENSE_FILE, 'utf-8') } catch {}
-
   const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
     title: 'Save Mission Control Backup',
     defaultPath: path.join(app.getPath('downloads'), `mission-control-backup-${new Date().toISOString().slice(0, 10)}.json`),
@@ -972,11 +987,20 @@ ipcMain.handle('create-backup', async () => {
     appVersion: app.getVersion(),
     createdAt: new Date().toISOString(),
     platform: process.platform,
+    warnings: [
+      'Sensitive desktop settings and license state are excluded from backup exports.',
+    ],
+    excludedFiles: excludedSensitiveFiles,
     files,
   }
 
   fs.writeFileSync(filePath, JSON.stringify(backup, null, 2))
-  return { ok: true, path: filePath, fileCount: Object.keys(files).length }
+  return {
+    ok: true,
+    path: filePath,
+    fileCount: Object.keys(files).length,
+    excludedFiles: excludedSensitiveFiles,
+  }
 })
 
 ipcMain.handle('restore-backup', async () => {
@@ -1004,7 +1028,12 @@ ipcMain.handle('restore-backup', async () => {
       } else if (name === '_license.json') {
         fs.writeFileSync(LICENSE_FILE, content)
       } else {
-        fs.writeFileSync(path.join(dataDir, name), content)
+        const safeName = normalizeBackupEntryName(name)
+        if (!safeName) {
+          return { ok: false, error: `Invalid backup entry: ${String(name)}` }
+        }
+
+        fs.writeFileSync(path.join(dataDir, path.basename(safeName)), content)
       }
       restored++
     }

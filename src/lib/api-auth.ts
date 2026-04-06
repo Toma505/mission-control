@@ -11,7 +11,7 @@
  */
 
 import { NextRequest } from 'next/server'
-import { randomBytes } from 'crypto'
+import { randomBytes, timingSafeEqual } from 'crypto'
 
 const TRUSTED_LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]'])
 
@@ -59,7 +59,13 @@ export function isAuthorized(request: NextRequest): boolean {
     request.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
 
   if (!headerToken) return false
-  return headerToken === SESSION_TOKEN
+
+  const expected = Buffer.from(SESSION_TOKEN)
+  const actual = Buffer.from(headerToken)
+
+  if (expected.length !== actual.length) return false
+
+  return timingSafeEqual(expected, actual)
 }
 
 export function unauthorizedResponse() {

@@ -4,6 +4,7 @@ import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
 import { isConfigured, runCommand, getOpenClawHealth, getOpenClawSystemStatus, getOpenClawLogs, getOpenClawPlugins } from '@/lib/openclaw'
 import { matchCommand } from '@/lib/commands'
 import { getEffectiveConfig } from '@/lib/connection-config'
+import { getLocalApiOrigin } from '@/lib/local-api-origin'
 
 /**
  * Command execution API.
@@ -252,7 +253,7 @@ async function executeSetBudgetCommand(
 
   try {
     // Call our budget API
-    const baseUrl = request.nextUrl.origin
+    const baseUrl = getLocalApiOrigin(request)
     const token = request.headers.get('x-mc-token') || ''
     const res = await fetch(`${baseUrl}/api/budget`, {
       method: 'PUT',

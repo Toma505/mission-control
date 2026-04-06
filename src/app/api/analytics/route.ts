@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
 import path from 'path'
 import { DATA_DIR } from '@/lib/connection-config'
+import { getLocalApiOrigin } from '@/lib/local-api-origin'
 
 export const dynamic = 'force-dynamic'
 
@@ -138,7 +139,7 @@ function buildAnthropicUsage(costs: any, tokens: any) {
 }
 
 export async function GET(request: NextRequest) {
-  const origin = request.nextUrl.origin
+  const origin = getLocalApiOrigin(request)
 
   try {
     const [

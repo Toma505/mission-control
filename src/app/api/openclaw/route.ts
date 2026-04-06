@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
 import {
   isConfigured,
   getOpenClawStatus,
@@ -9,7 +10,9 @@ import {
   parseHealthOutput,
 } from '@/lib/openclaw'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!isAuthorized(request)) return unauthorizedResponse()
+
   if (!(await isConfigured())) {
     return NextResponse.json(
       { connected: false, error: 'OpenClaw is not configured yet. Complete setup in Mission Control to continue.' },

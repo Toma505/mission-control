@@ -14,6 +14,7 @@ import {
   Rocket,
   ShieldCheck,
 } from 'lucide-react'
+import { apiFetch } from '@/lib/api-client'
 import { formatUpdaterMessage } from '@/lib/updater-status'
 import { AboutDiagnosticsModal } from './about-diagnostics-modal'
 import { OPEN_DIAGNOSTICS_EVENT } from './desktop-events'
@@ -65,8 +66,10 @@ function formatModelName(model?: string) {
   return parts[parts.length - 1]
 }
 
-async function readJson<T>(url: string): Promise<T> {
-  const response = await fetch(url, { cache: 'no-store' })
+async function readJson<T>(url: string, authenticated = false): Promise<T> {
+  const response = authenticated
+    ? await apiFetch(url, { cache: 'no-store' })
+    : await fetch(url, { cache: 'no-store' })
   if (!response.ok) throw new Error(`Request failed: ${response.status}`)
   return response.json()
 }
@@ -127,7 +130,7 @@ export function ProfileMenu() {
     async function loadMenuState() {
       const [modeResult, connectionResult, licenseResult, autoLaunchResult, closeToTrayResult] = await Promise.allSettled([
         readJson<ModeInfo>('/api/mode'),
-        readJson<ConnectionInfo>('/api/connection'),
+        readJson<ConnectionInfo>('/api/connection', true),
         readJson<LicenseStatus>('/api/license'),
         electronAPI?.getAutoLaunch?.() ?? Promise.resolve(false),
         electronAPI?.getCloseToTray?.() ?? Promise.resolve(true),

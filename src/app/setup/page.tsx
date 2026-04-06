@@ -72,7 +72,7 @@ export default function SetupPage() {
   }, [router]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function checkConfiguration(reconfiguring: boolean) {
-    fetch('/api/connection')
+    apiFetch('/api/connection')
       .then(r => r.json())
       .then(data => {
         if (data.configured && !reconfiguring) {

@@ -1,0 +1,29 @@
+{
+  "orders": [
+    {
+      "id": "order_example_001",
+      "provider": "stripe",
+      "status": "fulfilled",
+      "planId": "personal",
+      "planName": "Personal",
+      "email": "customer@example.com",
+      "licenseKey": "MC-EXAMPLE-ONLY-DO-NOT-USE",
+      "stripeSessionId": "cs_test_example_session",
+      "stripePaymentIntentId": "pi_example_payment_intent",
+      "stripeCustomerId": "cus_example_customer",
+      "amountTotal": 1899,
+      "currency": "usd",
+      "customerName": "Example Customer",
+      "downloadUrl": "https://github.com/Toma505/mission-control/releases/latest",
+      "emailDeliveryStatus": "sent",
+      "emailDeliverySentAt": "2026-04-02T00:00:00.000Z",
+      "emailDeliveryError": null,
+      "createdAt": "2026-04-02T00:00:00.000Z",
+      "updatedAt": "2026-04-02T00:00:00.000Z",
+      "fulfilledAt": "2026-04-02T00:00:00.000Z",
+      "refundedAt": null,
+      "refundReason": null,
+      "refundNotes": null
+    }
+  ]
+}

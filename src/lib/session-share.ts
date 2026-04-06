@@ -59,7 +59,7 @@ export function normalizeSharedReplaySession(input: unknown): ReplaySession {
     completedAt: typeof candidate.completedAt === 'string' && candidate.completedAt ? candidate.completedAt : now,
     durationMs: typeof candidate.durationMs === 'number' && Number.isFinite(candidate.durationMs) ? candidate.durationMs : 0,
     status: candidate.status === 'failed' || candidate.status === 'running' ? candidate.status : 'completed',
-    steps: Array.isArray(candidate.steps) ? candidate.steps.map(normalizeStep) : [],
+    steps: Array.isArray(candidate.steps) ? candidate.steps.slice(0, MAX_IMPORT_STEPS).map(normalizeStep) : [],
   }
 }
 
@@ -158,7 +158,14 @@ export function buildSharedSessionPayload(source: 'chat' | 'replay', session: Re
   }
 }
 
+const MAX_IMPORT_SIZE = 10 * 1024 * 1024 // 10 MB
+const MAX_IMPORT_STEPS = 500
+
 export function parseSharedSessionContent(raw: string) {
+  if (raw.length > MAX_IMPORT_SIZE) {
+    throw new Error(`Shared session too large (${(raw.length / 1024 / 1024).toFixed(1)} MB, max 10 MB).`)
+  }
+
   try {
     const parsed = JSON.parse(raw) as Partial<SharedSessionPayload> | ReplaySession
     if ('session' in parsed && parsed.session) {

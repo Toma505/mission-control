@@ -12,6 +12,7 @@ const os = require('os')
 const AutoLaunch = require('auto-launch')
 const { createSessionToken, loadOrCreateConfigEncryptionKey } = require('./security-context')
 const { createScheduleRunner } = require('./schedule-runner')
+const { handleApiRequest } = require('./api-request')
 
 // ─── Cross-platform user data path ──────────────────────────
 function getUserDataPath() {
@@ -131,6 +132,10 @@ function getDataDir() {
 
 function getLogsPath() {
   return app.getPath('logs')
+}
+
+function redactPath(value) {
+  return path.basename(String(value || ''))
 }
 
 function isTrustedAppUrl(target) {
@@ -370,7 +375,13 @@ ipcMain.on('window-maximize', () => {
 })
 ipcMain.on('window-close', () => mainWindow?.close())
 ipcMain.handle('get-platform', () => process.platform)
-ipcMain.handle('get-session-token', () => sessionToken)
+ipcMain.handle('api-request', (_event, request) =>
+  handleApiRequest({
+    getPort: () => PORT,
+    getSessionToken: () => sessionToken,
+    request,
+  }),
+)
 ipcMain.handle('set-notification-badge', (_, count) => {
   updateNotificationBadge(count)
   return { ok: true, unreadCount: notificationBadgeCount }
@@ -390,13 +401,13 @@ ipcMain.handle('get-desktop-diagnostics', async () => {
     isPackaged: app.isPackaged,
     port: PORT,
     paths: {
-      appPath: app.getAppPath(),
-      execPath: process.execPath,
-      userData: userDataPath,
-      data: getDataDir(),
-      logs: getLogsPath(),
-      settingsFile: DESKTOP_SETTINGS_FILE,
-      licenseFile: path.join(userDataPath, 'license.json'),
+      appPath: redactPath(app.getAppPath()),
+      execPath: redactPath(process.execPath),
+      userData: redactPath(userDataPath),
+      data: redactPath(getDataDir()),
+      logs: redactPath(getLogsPath()),
+      settingsFile: redactPath(DESKTOP_SETTINGS_FILE),
+      licenseFile: redactPath(path.join(userDataPath, 'license.json')),
     },
     features: {
       autoLaunchEnabled,

@@ -9,7 +9,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Platform info
   getPlatform: () => ipcRenderer.invoke('get-platform'),
-  getSessionToken: () => ipcRenderer.invoke('get-session-token'),
+  apiRequest: (request) => ipcRenderer.invoke('api-request', request),
   getDesktopDiagnostics: () => ipcRenderer.invoke('get-desktop-diagnostics'),
   openDataDirectory: () => ipcRenderer.invoke('open-data-directory'),
   openLogsDirectory: () => ipcRenderer.invoke('open-logs-directory'),

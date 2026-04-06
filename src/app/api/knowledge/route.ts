@@ -8,12 +8,17 @@ import {
   detachKnowledgeAttachment,
   getKnowledgeDownload,
   listKnowledgeBase,
+  MAX_KNOWLEDGE_FILE_SIZE_BYTES,
+  MAX_KNOWLEDGE_TOTAL_UPLOAD_BYTES,
+  MAX_KNOWLEDGE_UPLOAD_FILES,
   searchKnowledge,
 } from '@/lib/knowledge-store'
 
 export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
+  if (!isAuthorized(request)) return unauthorizedResponse()
+
   try {
     const downloadId = request.nextUrl.searchParams.get('download')
     if (downloadId) {
@@ -64,6 +69,29 @@ export async function POST(request: NextRequest) {
 
       if (uploads.length === 0) {
         return NextResponse.json({ error: 'Choose at least one file to upload' }, { status: 400 })
+      }
+
+      if (uploads.length > MAX_KNOWLEDGE_UPLOAD_FILES) {
+        return NextResponse.json(
+          { error: `Upload at most ${MAX_KNOWLEDGE_UPLOAD_FILES} files at a time.` },
+          { status: 400 },
+        )
+      }
+
+      const totalBytes = uploads.reduce((sum, file) => sum + file.size, 0)
+      if (totalBytes > MAX_KNOWLEDGE_TOTAL_UPLOAD_BYTES) {
+        return NextResponse.json(
+          { error: 'Uploads must stay below 50 MB total.' },
+          { status: 400 },
+        )
+      }
+
+      const oversized = uploads.find((file) => file.size > MAX_KNOWLEDGE_FILE_SIZE_BYTES)
+      if (oversized) {
+        return NextResponse.json(
+          { error: `"${oversized.name}" exceeds the 10 MB per-file limit.` },
+          { status: 400 },
+        )
       }
 
       const files = await Promise.all(

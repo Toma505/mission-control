@@ -155,7 +155,8 @@ export function Notifications() {
     }
 
     setOpen(false)
-    router.push(notification.href || '/notifications')
+    const href = notification.href && /^\/[^/\\]/.test(notification.href) ? notification.href : '/notifications'
+    router.push(href)
   }
 
   return (

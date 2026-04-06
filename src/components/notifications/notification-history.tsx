@@ -83,7 +83,7 @@ export function NotificationHistory() {
   }
 
   function openNotification(notification: NotificationItem) {
-    if (!notification.href) return
+    if (!notification.href || !/^\/[^/\\]/.test(notification.href)) return
     void runPatch('markRead', [notification.id])
     router.push(notification.href)
   }

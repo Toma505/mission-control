@@ -3,7 +3,10 @@ node_modules
 .env
 .env.local
 .env*.local
-data/
+data/*
+!data/*.example.json
+data/connection.json
+data/license-orders.json
 *.db
 *.db-journal
 electron/icon.ico

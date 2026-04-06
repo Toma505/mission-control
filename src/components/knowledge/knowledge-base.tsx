@@ -74,7 +74,7 @@ export function KnowledgeBase() {
     setError(null)
     try {
       const search = queryOverride ? `?q=${encodeURIComponent(queryOverride)}` : ''
-      const response = await fetch(`/api/knowledge${search}`, { cache: 'no-store' })
+      const response = await apiFetch(`/api/knowledge${search}`, { cache: 'no-store' })
       const data = (await response.json()) as KnowledgePayload
       setFiles(Array.isArray(data.files) ? data.files : [])
       setAttachments(Array.isArray(data.attachments) ? data.attachments : [])
@@ -232,6 +232,34 @@ export function KnowledgeBase() {
       setAttachments((current) => current.filter((attachment) => attachment.id !== attachmentId))
     } catch (detachError) {
       setError(detachError instanceof Error ? detachError.message : 'Failed to detach knowledge')
+    }
+  }
+
+  async function downloadFile(fileId: string) {
+    setError(null)
+    try {
+      const response = await apiFetch(`/api/knowledge?download=${encodeURIComponent(fileId)}`)
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(
+          typeof data?.error === 'string' ? data.error : 'Failed to download file',
+        )
+      }
+
+      const disposition = response.headers.get('content-disposition') || ''
+      const match = disposition.match(/filename="?([^"]+)"?/)
+      const filename = match?.[1] || `knowledge-${fileId}`
+      const blob = await response.blob()
+      const downloadUrl = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(downloadUrl)
+    } catch (downloadError) {
+      setError(downloadError instanceof Error ? downloadError.message : 'Failed to download file')
     }
   }
 
@@ -429,13 +457,13 @@ export function KnowledgeBase() {
                         </label>
 
                         <div className="flex flex-wrap gap-2">
-                          <a
-                            href={`/api/knowledge?download=${file.id}`}
+                          <button
+                            onClick={() => void downloadFile(file.id)}
                             className="inline-flex items-center gap-2 rounded-xl border border-[var(--glass-border)] bg-white/[0.05] px-3 py-2 text-xs font-medium text-text-primary transition hover:bg-white/[0.1]"
                           >
                             <Download className="h-3.5 w-3.5" />
                             Download
-                          </a>
+                          </button>
                           <button
                             onClick={() => void removeFile(file.id)}
                             disabled={deletingId === file.id}

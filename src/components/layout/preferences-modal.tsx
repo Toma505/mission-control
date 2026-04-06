@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { X, Monitor, Moon, Sun, RotateCcw, Palette, Type, Gauge, Layout, Zap, Plug, CheckCircle2, XCircle, ExternalLink } from 'lucide-react'
 import { useSettings, Theme, AccentColor, FontSize, RefreshInterval, ThemeSchedule } from '@/contexts/settings-context'
+import { apiFetch } from '@/lib/api-client'
 
 interface Props {
   open: boolean
@@ -47,7 +48,7 @@ export function PreferencesModal({ open, onClose }: Props) {
   const loadConnectionInfo = () => {
     setConnectionInfo(null) // Clear stale data so user sees a fresh load
     setConnectionError(false)
-    fetch('/api/connection')
+    apiFetch('/api/connection')
       .then(r => {
         if (!r.ok) throw new Error('API error')
         return r.json()

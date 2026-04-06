@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import {
   applyPortableImport,
   buildPortableBundle,
+  MAX_PORTABLE_BUNDLE_BYTES,
   previewPortableImport,
   type PortableCategory,
 } from '@/lib/portable-bundle'
@@ -74,6 +75,14 @@ export async function POST(request: NextRequest) {
 
     if (!body.bundle) {
       return NextResponse.json({ error: 'A portable bundle is required.' }, { status: 400 })
+    }
+
+    const bundleSize = new TextEncoder().encode(JSON.stringify(body.bundle)).length
+    if (bundleSize > MAX_PORTABLE_BUNDLE_BYTES) {
+      return NextResponse.json(
+        { error: 'Portable bundles must stay below 100 MB.' },
+        { status: 400 },
+      )
     }
 
     const categories = parseCategories(body.categories)

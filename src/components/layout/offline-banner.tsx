@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { WifiOff, RefreshCw } from 'lucide-react'
+import { apiFetch } from '@/lib/api-client'
 
 /**
  * Persistent banner that appears when the browser goes offline.
@@ -31,7 +32,7 @@ export function OfflineBanner() {
     const checkApi = async () => {
       if (!navigator.onLine) return // Already showing offline banner
       try {
-        const res = await fetch('/api/connection', {
+        const res = await apiFetch('/api/connection', {
           cache: 'no-store',
           signal: AbortSignal.timeout(5000),
         })
