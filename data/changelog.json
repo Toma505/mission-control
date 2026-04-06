@@ -1,7 +1,7 @@
 [
   {
-    "version": "v1.3",
-    "date": "2026-04-02",
+    "version": "v1.3.0",
+    "date": "2026-04-05",
     "title": "Mission Control expands into a full operator workspace",
     "summary": "This release rounded out the product with orchestration, a local knowledge base, report generation, and richer extension workflows.",
     "changes": {
