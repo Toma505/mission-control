@@ -122,7 +122,7 @@ export function CostTags() {
               type="text"
               value={formName}
               onChange={e => setFormName(e.target.value)}
-              placeholder="Tag name (e.g., Client: Acme Corp)"
+              placeholder="Tag name (e.g., Project: Website Redesign)"
               className="flex-1 px-3 py-2 rounded-xl bg-white/[0.04] border border-[var(--glass-border)] text-xs text-text-primary placeholder:text-text-muted/50 focus:outline-none"
             />
             <input
@@ -163,7 +163,7 @@ export function CostTags() {
           <Tag className="w-10 h-10 text-text-muted/20 mx-auto mb-3" />
           <p className="text-sm text-text-muted">No cost tags yet</p>
           <p className="text-xs text-text-muted/60 mt-1">
-            Create tags like &ldquo;Project Alpha&rdquo; or &ldquo;Client: Acme&rdquo; to categorize agent spending
+            Create tags like &ldquo;Website Redesign&rdquo; or &ldquo;Support Queue&rdquo; to categorize agent spending
           </p>
         </div>
       ) : (

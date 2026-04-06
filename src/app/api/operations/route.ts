@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { sanitizeError } from '@/lib/sanitize-error'
+import { isLegacyDemoOperations } from '@/lib/legacy-demo-data'
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -122,6 +123,9 @@ async function readLocalOps() {
       costs: { scout: 0, editor: 0, narrator: 0, veo: 0, voiceover: 0, outreach: 0, total: op.cost || 0 },
       status: { step: op.status === 'running' ? 'In Progress' : 'Done', status: op.status, startedAt: op.startedAt, completedSteps: [] },
     }))
+    if (isLegacyDemoOperations(jobs)) {
+      return EMPTY_RESPONSE
+    }
     const totalSpent = jobs.reduce((s: number, j: any) => s + j.costs.total, 0)
     return {
       jobs,

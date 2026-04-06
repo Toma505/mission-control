@@ -14,12 +14,14 @@ export interface ExtensionCatalogEntry {
   npmPackage?: string
 }
 
+const catalogEntries = catalog as ExtensionCatalogEntry[]
+
 export function normalizeExtensionKey(value: string) {
   return value.trim().toLowerCase().replace(/^@/, '').replace(/\s+/g, '-')
 }
 
 export function getExtensionsCatalog(): ExtensionCatalogEntry[] {
-  return [...catalog].sort((a, b) => a.name.localeCompare(b.name))
+  return [...catalogEntries].sort((a, b) => a.name.localeCompare(b.name))
 }
 
 export function findCatalogEntry(entries: ExtensionCatalogEntry[], value: string) {

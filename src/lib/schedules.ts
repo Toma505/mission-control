@@ -6,6 +6,7 @@ import cronstrue from 'cronstrue'
 import { CronExpressionParser } from 'cron-parser'
 
 import { DATA_DIR, getEffectiveConfig } from '@/lib/connection-config'
+import { isLegacyDemoSchedules } from '@/lib/legacy-demo-data'
 import { decryptSecretValue } from '@/lib/secret-encryption'
 
 export const SCHEDULES_FILE = path.join(DATA_DIR, 'schedules.json')
@@ -75,92 +76,9 @@ type StoredInstance = {
   enabled?: boolean
 }
 
-const DEFAULT_TASKS: Omit<ScheduledTask, 'nextRunAt'>[] = [
-  {
-    id: 'sched-daily-brief',
-    name: 'Daily Briefing',
-    cronExpression: '0 8 * * *',
-    targetInstanceId: 'inst-1',
-    command: 'openclaw.prompt.run',
-    prompt: 'Generate a daily briefing with top priorities, alerts, and new agent opportunities.',
-    enabled: true,
-    createdAt: '2026-03-26T08:00:00.000Z',
-    updatedAt: '2026-03-26T08:00:00.000Z',
-    lastRunAt: '2026-03-26T08:00:00.000Z',
-    lastStatus: 'success',
-    lastDurationMs: 4100,
-    lastOutputSummary: 'Daily briefing generated with 5 priorities and 2 alerts.',
-  },
-  {
-    id: 'sched-discord-followups',
-    name: 'Discord Follow-ups',
-    cronExpression: '0 */4 * * *',
-    targetInstanceId: 'inst-1',
-    command: 'openclaw.prompt.run',
-    prompt: 'Review unresolved Discord conversations and draft follow-up responses for the support agent.',
-    enabled: true,
-    createdAt: '2026-03-25T16:00:00.000Z',
-    updatedAt: '2026-03-26T04:00:00.000Z',
-    lastRunAt: '2026-03-26T16:00:00.000Z',
-    lastStatus: 'success',
-    lastDurationMs: 2800,
-    lastOutputSummary: 'Prepared 3 follow-up drafts for support review.',
-  },
-  {
-    id: 'sched-weekly-script-pass',
-    name: 'Weekly Script Polish',
-    cronExpression: '30 9 * * 1',
-    targetInstanceId: 'inst-2',
-    command: 'openclaw.prompt.run',
-    prompt: 'Take the highest-priority draft from the content queue and produce a polished outline with title hooks.',
-    enabled: false,
-    createdAt: '2026-03-24T12:30:00.000Z',
-    updatedAt: '2026-03-24T12:30:00.000Z',
-    lastRunAt: '2026-03-23T09:30:00.000Z',
-    lastStatus: 'success',
-    lastDurationMs: 5300,
-    lastOutputSummary: 'Created an outline for the weekly launch strategy video.',
-  },
-]
+const DEFAULT_TASKS: Omit<ScheduledTask, 'nextRunAt'>[] = []
 
-const DEFAULT_RUNS: ScheduleRun[] = [
-  {
-    id: 'run-001',
-    taskId: 'sched-daily-brief',
-    taskName: 'Daily Briefing',
-    targetInstanceId: 'inst-1',
-    targetInstanceName: 'Production',
-    status: 'success',
-    startedAt: '2026-03-26T08:00:00.000Z',
-    finishedAt: '2026-03-26T08:00:04.100Z',
-    durationMs: 4100,
-    outputSummary: 'Daily briefing generated with 5 priorities and 2 alerts.',
-  },
-  {
-    id: 'run-002',
-    taskId: 'sched-discord-followups',
-    taskName: 'Discord Follow-ups',
-    targetInstanceId: 'inst-1',
-    targetInstanceName: 'Production',
-    status: 'success',
-    startedAt: '2026-03-26T16:00:00.000Z',
-    finishedAt: '2026-03-26T16:00:02.800Z',
-    durationMs: 2800,
-    outputSummary: 'Prepared 3 follow-up drafts for support review.',
-  },
-  {
-    id: 'run-003',
-    taskId: 'sched-discord-followups',
-    taskName: 'Discord Follow-ups',
-    targetInstanceId: 'inst-1',
-    targetInstanceName: 'Production',
-    status: 'error',
-    startedAt: '2026-03-26T12:00:00.000Z',
-    finishedAt: '2026-03-26T12:00:06.300Z',
-    durationMs: 6300,
-    outputSummary: 'Remote OpenClaw command timed out while reviewing active sessions.',
-  },
-]
+const DEFAULT_RUNS: ScheduleRun[] = []
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -239,6 +157,10 @@ export async function readSchedules(): Promise<ScheduleStore> {
           .map((task) => normalizeTask(task as Partial<ScheduledTask>))
           .filter((task): task is ScheduledTask => task !== null)
       : buildDefaultStore().tasks
+
+    if (isLegacyDemoSchedules(tasks)) {
+      return buildDefaultStore()
+    }
 
     return { version: 1, tasks }
   } catch {
@@ -319,15 +241,7 @@ export async function getScheduleInstances(): Promise<ScheduleInstanceOption[]> 
     return instances
   }
 
-  return [
-    {
-      id: 'primary',
-      name: 'Primary Workspace',
-      url: 'http://localhost:3000',
-      enabled: true,
-      source: 'connection',
-    },
-  ]
+  return []
 }
 
 async function getStoredInstanceCredentials(instanceId: string) {

@@ -2,6 +2,7 @@ import { readFile } from 'fs/promises'
 import path from 'path'
 
 import { DATA_DIR } from '@/lib/connection-config'
+import { isLegacyDemoActivitySeed } from '@/lib/legacy-demo-data'
 
 export type ActivityAgent = {
   id: string
@@ -95,6 +96,9 @@ async function readActivitySeed(): Promise<ActivitySeed> {
     try {
       const raw = await readFile(filePath, 'utf-8')
       const parsed = JSON.parse(raw) as ActivitySeed
+      if (isLegacyDemoActivitySeed(parsed)) {
+        return { agents: [], weeks: [] }
+      }
       return {
         agents: Array.isArray(parsed?.agents) ? parsed.agents : [],
         weeks: Array.isArray(parsed?.weeks) ? parsed.weeks : [],

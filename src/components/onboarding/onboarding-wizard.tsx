@@ -454,7 +454,7 @@ export function OnboardingWizard() {
 
             <ProgressBar value={progress} className="max-w-md" showLabel />
 
-            <div className="grid gap-3 md:grid-cols-5">
+            <div className="flex flex-wrap gap-3">
               {STEPS.map((wizardStep, index) => {
                 const Icon = wizardStep.icon
                 const isActive = index === step
@@ -464,7 +464,7 @@ export function OnboardingWizard() {
                   <div
                     key={wizardStep.title}
                     className={classNames(
-                      'rounded-2xl border p-3 transition-all duration-300',
+                      'min-w-[150px] flex-1 rounded-2xl border p-3 transition-all duration-300',
                       isActive
                         ? 'border-[var(--accent-primary)] bg-white/[0.08] shadow-[0_0_0_1px_rgba(255,255,255,0.05)]'
                         : isDone
@@ -489,7 +489,7 @@ export function OnboardingWizard() {
                         <p className="text-[11px] uppercase tracking-[0.18em] text-text-muted">
                           {wizardStep.eyebrow}
                         </p>
-                        <p className="truncate text-sm font-medium text-text-primary">{wizardStep.title}</p>
+                        <p className="text-sm font-medium text-text-primary">{wizardStep.title}</p>
                       </div>
                     </div>
                   </div>

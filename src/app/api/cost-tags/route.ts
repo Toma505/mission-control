@@ -3,6 +3,7 @@ import { readFile, writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { DATA_DIR } from '@/lib/connection-config'
 import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
+import { isLegacyDemoCostTags } from '@/lib/legacy-demo-data'
 
 const TAGS_FILE = path.join(DATA_DIR, 'cost-tags.json')
 
@@ -29,7 +30,15 @@ interface CostTagsData {
 async function readData(): Promise<CostTagsData> {
   try {
     const text = await readFile(TAGS_FILE, 'utf-8')
-    return JSON.parse(text)
+    const parsed = JSON.parse(text) as Partial<CostTagsData> | null
+    const tags = Array.isArray(parsed?.tags) ? parsed.tags : []
+    const assignments = Array.isArray(parsed?.assignments) ? parsed.assignments : []
+
+    if (isLegacyDemoCostTags(tags)) {
+      return { tags: [], assignments: [] }
+    }
+
+    return { tags, assignments }
   } catch {
     return { tags: [], assignments: [] }
   }

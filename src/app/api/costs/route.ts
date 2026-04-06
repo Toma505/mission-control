@@ -86,21 +86,6 @@ function calculateCost(
   return Number((((inputTokens * rate.input) + (outputTokens * rate.output)) / 1_000_000).toFixed(6))
 }
 
-function seedEntry(
-  id: string,
-  hoursAgo: number,
-  base: Omit<CostEntry, 'id' | 'timestamp' | 'cost'>,
-  modelRates: Record<string, ModelRate>
-): CostEntry {
-  const timestamp = new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString()
-  return {
-    ...base,
-    id,
-    timestamp,
-    cost: calculateCost(base.inputTokens, base.outputTokens, base.model, modelRates),
-  }
-}
-
 function createDefaultCostStore(dailyLimit = 25, monthlyLimit = 500): CostStore {
   const settings: CostSettings = {
     budgets: {
@@ -116,152 +101,7 @@ function createDefaultCostStore(dailyLimit = 25, monthlyLimit = 500): CostStore 
   return {
     version: 1,
     settings,
-    entries: [
-      seedEntry('cost-001', 2, {
-        instanceId: 'primary-studio',
-        agentId: 'default',
-        model: 'claude-sonnet-4',
-        inputTokens: 24000,
-        outputTokens: 6200,
-        taskDescription: 'Launch roadmap review',
-      }, settings.modelRates),
-      seedEntry('cost-002', 4, {
-        instanceId: 'primary-studio',
-        agentId: 'scout',
-        model: 'deepseek-chat-v3',
-        inputTokens: 54000,
-        outputTokens: 8500,
-        taskDescription: 'Trend scan for AI launch week',
-      }, settings.modelRates),
-      seedEntry('cost-003', 7, {
-        instanceId: 'primary-studio',
-        agentId: 'editor',
-        model: 'claude-sonnet-4',
-        inputTokens: 18000,
-        outputTokens: 4200,
-        taskDescription: 'Landing page polish pass',
-      }, settings.modelRates),
-      seedEntry('cost-004', 12, {
-        instanceId: 'discord-ops',
-        agentId: 'support',
-        model: 'gpt-4.1-mini',
-        inputTokens: 12000,
-        outputTokens: 3000,
-        taskDescription: 'Discord support triage',
-      }, settings.modelRates),
-      seedEntry('cost-005', 18, {
-        instanceId: 'client-sandbox',
-        agentId: 'planner',
-        model: 'gemini-2.5-flash',
-        inputTokens: 32000,
-        outputTokens: 6400,
-        taskDescription: 'Client brief summarization',
-      }, settings.modelRates),
-      seedEntry('cost-006', 26, {
-        instanceId: 'primary-studio',
-        agentId: 'scout',
-        model: 'deepseek-chat-v3',
-        inputTokens: 41000,
-        outputTokens: 5600,
-        taskDescription: 'Competitor research sweep',
-      }, settings.modelRates),
-      seedEntry('cost-007', 32, {
-        instanceId: 'primary-studio',
-        agentId: 'default',
-        model: 'claude-sonnet-4',
-        inputTokens: 26000,
-        outputTokens: 8000,
-        taskDescription: 'Weekly planning sync',
-      }, settings.modelRates),
-      seedEntry('cost-008', 44, {
-        instanceId: 'discord-ops',
-        agentId: 'support',
-        model: 'gpt-4.1-mini',
-        inputTokens: 8000,
-        outputTokens: 2200,
-        taskDescription: 'Community moderation batch',
-      }, settings.modelRates),
-      seedEntry('cost-009', 58, {
-        instanceId: 'client-sandbox',
-        agentId: 'planner',
-        model: 'gemini-2.5-flash',
-        inputTokens: 18000,
-        outputTokens: 3800,
-        taskDescription: 'Sales call notes recap',
-      }, settings.modelRates),
-      seedEntry('cost-010', 74, {
-        instanceId: 'primary-studio',
-        agentId: 'editor',
-        model: 'claude-sonnet-4',
-        inputTokens: 15000,
-        outputTokens: 2900,
-        taskDescription: 'Long-form script tightening',
-      }, settings.modelRates),
-      seedEntry('cost-011', 96, {
-        instanceId: 'primary-studio',
-        agentId: 'scout',
-        model: 'deepseek-chat-v3',
-        inputTokens: 37000,
-        outputTokens: 4900,
-        taskDescription: 'Model pricing research',
-      }, settings.modelRates),
-      seedEntry('cost-012', 120, {
-        instanceId: 'client-sandbox',
-        agentId: 'default',
-        model: 'gpt-4.1-mini',
-        inputTokens: 22000,
-        outputTokens: 4100,
-        taskDescription: 'Proposal drafting pass',
-      }, settings.modelRates),
-      seedEntry('cost-013', 168, {
-        instanceId: 'primary-studio',
-        agentId: 'default',
-        model: 'claude-sonnet-4',
-        inputTokens: 28000,
-        outputTokens: 7600,
-        taskDescription: 'Channel strategy workshop',
-      }, settings.modelRates),
-      seedEntry('cost-014', 216, {
-        instanceId: 'client-sandbox',
-        agentId: 'planner',
-        model: 'gemini-2.5-flash',
-        inputTokens: 27000,
-        outputTokens: 5200,
-        taskDescription: 'Campaign prep checklist',
-      }, settings.modelRates),
-      seedEntry('cost-015', 264, {
-        instanceId: 'primary-studio',
-        agentId: 'scout',
-        model: 'deepseek-chat-v3',
-        inputTokens: 61000,
-        outputTokens: 9200,
-        taskDescription: 'Outreach list expansion',
-      }, settings.modelRates),
-      seedEntry('cost-016', 336, {
-        instanceId: 'discord-ops',
-        agentId: 'support',
-        model: 'claude-sonnet-4',
-        inputTokens: 11000,
-        outputTokens: 2600,
-        taskDescription: 'Escalation write-up',
-      }, settings.modelRates),
-      seedEntry('cost-017', 480, {
-        instanceId: 'primary-studio',
-        agentId: 'editor',
-        model: 'claude-sonnet-4',
-        inputTokens: 20500,
-        outputTokens: 5400,
-        taskDescription: 'Product Hunt post edit',
-      }, settings.modelRates),
-      seedEntry('cost-018', 640, {
-        instanceId: 'client-sandbox',
-        agentId: 'planner',
-        model: 'deepseek-chat-v3',
-        inputTokens: 45000,
-        outputTokens: 7000,
-        taskDescription: 'Market expansion outline',
-      }, settings.modelRates),
-    ],
+    entries: [],
   }
 }
 
@@ -332,7 +172,7 @@ function normalizeCostStore(raw: unknown, budgetDefaults: { dailyLimit: number; 
     ? candidate.entries
         .map((entry) => normalizeCostEntry(entry, settings.modelRates))
         .filter((entry): entry is CostEntry => entry !== null)
-    : createDefaultCostStore(budgetDefaults.dailyLimit, budgetDefaults.monthlyLimit).entries
+    : []
 
   return {
     version: 1,

@@ -95,7 +95,18 @@ export default async function ApiUsagePage() {
   const openrouter: OpenRouterData | null = data.openrouter
   const anthropicAgg = aggregateTokens(data.anthropicTokens)
 
-  const hasData = anthropicCosts || anthropicAgg || openrouter
+  const hasAnthropicCosts = (anthropicCosts?.days?.length ?? 0) > 0
+  const hasAnthropicTokens = !!anthropicAgg
+  const hasOpenRouterData =
+    !!openrouter &&
+    (
+      openrouter.totalCredits > 0 ||
+      openrouter.totalUsage > 0 ||
+      openrouter.remaining > 0 ||
+      (openrouter.activity?.length ?? 0) > 0
+    )
+
+  const hasData = hasAnthropicCosts || hasAnthropicTokens || hasOpenRouterData
 
   if (!hasData) {
     return (

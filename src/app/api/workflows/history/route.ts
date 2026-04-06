@@ -4,6 +4,7 @@ import path from 'path'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { DATA_DIR } from '@/lib/connection-config'
+import { isLegacyInternalWorkflowExecution } from '@/lib/legacy-demo-data'
 import { sanitizeError } from '@/lib/sanitize-error'
 import type { WorkflowExecutionRecord } from '@/lib/workflow-engine'
 
@@ -17,7 +18,10 @@ async function readHistoryStore(): Promise<WorkflowHistoryStore> {
   try {
     const text = await readFile(WORKFLOW_HISTORY_FILE, 'utf-8')
     const parsed = JSON.parse(text) as { executions?: WorkflowExecutionRecord[] }
-    return { executions: Array.isArray(parsed.executions) ? parsed.executions : [] }
+    const executions = Array.isArray(parsed.executions) ? parsed.executions : []
+    return {
+      executions: executions.filter((execution) => !isLegacyInternalWorkflowExecution(execution)),
+    }
   } catch {
     return { executions: [] }
   }

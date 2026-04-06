@@ -13,7 +13,7 @@ export type OrchestrationExecutionMode = 'same' | 'custom'
 export type OrchestrationAggregateMode = 'merge' | 'compare' | 'vote'
 export type OrchestrationStatus = 'running' | 'completed' | 'partial' | 'failed'
 export type OrchestrationTargetStatus = 'pending' | 'running' | 'success' | 'error'
-export type OrchestrationInstanceSource = 'instances' | 'connection' | 'demo'
+export type OrchestrationInstanceSource = 'instances' | 'connection'
 
 export interface OrchestrationTemplate {
   id: OrchestrationTemplateId
@@ -133,30 +133,6 @@ const DEFAULT_TEMPLATES: OrchestrationTemplate[] = [
   },
 ]
 
-const DEMO_INSTANCES: OrchestrationInstanceOption[] = [
-  {
-    id: 'demo-research',
-    name: 'Research Cluster',
-    url: 'http://localhost:4310',
-    enabled: true,
-    source: 'demo',
-  },
-  {
-    id: 'demo-review',
-    name: 'Code Review Pool',
-    url: 'http://localhost:4311',
-    enabled: true,
-    source: 'demo',
-  },
-  {
-    id: 'demo-consensus',
-    name: 'Consensus Group',
-    url: 'http://localhost:4312',
-    enabled: true,
-    source: 'demo',
-  },
-]
-
 function getRuntimeGlobals() {
   return globalThis as typeof globalThis & QueueGlobals
 }
@@ -186,7 +162,7 @@ function normalizeTarget(input: Partial<OrchestrationTarget>): OrchestrationTarg
 
   const sourceValue = input.source
   const source: OrchestrationInstanceSource =
-    sourceValue === 'instances' || sourceValue === 'connection' || sourceValue === 'demo'
+    sourceValue === 'instances' || sourceValue === 'connection'
       ? sourceValue
       : 'instances'
   const statusValue = input.status
@@ -345,7 +321,7 @@ export async function getOrchestrationInstances(): Promise<OrchestrationInstance
     })
   }
 
-  return instances.length > 0 ? instances : DEMO_INSTANCES
+  return instances
 }
 
 async function getInstanceCredentials(instanceId: string): Promise<InstanceCredentials | null> {
@@ -376,83 +352,10 @@ async function getInstanceCredentials(instanceId: string): Promise<InstanceCrede
       }
     }
   }
-
-  const demo = DEMO_INSTANCES.find((instance) => instance.id === instanceId)
-  if (demo) {
-    return {
-      ...demo,
-      password: '',
-    }
-  }
-
   return null
 }
 
-async function buildDemoResult(
-  orchestration: OrchestrationRecord,
-  target: OrchestrationTarget,
-  index: number,
-) {
-  await new Promise((resolve) => setTimeout(resolve, 900 + index * 350))
-
-  const shortTask = target.task.slice(0, 140)
-
-  if (orchestration.aggregateMode === 'vote') {
-    const vote = ['Option A', 'Option A', 'Option B'][index % 3]
-    const rawOutput = [
-      `Decision: ${vote}`,
-      '',
-      `Reasoning from ${target.instanceName}:`,
-      `- Best fit for the stated goal: ${shortTask || 'the requested task'}`,
-      '- Lower execution risk than the alternatives',
-      '- Clearest path to immediate next steps',
-    ].join('\n')
-
-    return {
-      rawOutput,
-      outputSummary: summarizeText(`Voted for ${vote} because it offers the clearest execution path.`),
-    }
-  }
-
-  if (orchestration.aggregateMode === 'compare') {
-    const rawOutput = [
-      `Review focus from ${target.instanceName}`,
-      '',
-      `Primary finding: tighten validation around "${shortTask || 'the requested change'}".`,
-      'Secondary finding: add a regression test for the unhappy path.',
-      'Recommendation: safe to proceed once the validation and tests are in place.',
-    ].join('\n')
-
-    return {
-      rawOutput,
-      outputSummary: summarizeText(
-        `Flagged validation risk and recommended a focused regression test before rollout.`,
-      ),
-    }
-  }
-
-  const rawOutput = [
-    `Research summary from ${target.instanceName}`,
-    '',
-    `Topic: ${shortTask || 'General orchestration task'}`,
-    '- Key insight: customer demand clusters around speed, proof, and low-friction adoption.',
-    '- Suggested follow-up: compare two concrete execution paths and recommend the fastest one.',
-    '- Output style: executive summary plus action list.',
-  ].join('\n')
-
-  return {
-    rawOutput,
-    outputSummary: summarizeText(
-      'Produced a concise research brief with the strongest findings and suggested next steps.',
-    ),
-  }
-}
-
-async function runInstanceTask(
-  orchestration: OrchestrationRecord,
-  target: OrchestrationTarget,
-  index: number,
-) {
+async function runInstanceTask(target: OrchestrationTarget) {
   const instance = await getInstanceCredentials(target.instanceId)
   if (!instance) {
     throw new Error('Target instance could not be found.')
@@ -460,10 +363,6 @@ async function runInstanceTask(
 
   if (!instance.enabled) {
     throw new Error('Target instance is disabled.')
-  }
-
-  if (instance.source === 'demo') {
-    return buildDemoResult(orchestration, target, index)
   }
 
   const controller = new AbortController()
@@ -634,7 +533,7 @@ async function executeOrchestration(orchestrationId: string) {
     )
 
     await Promise.allSettled(
-      targets.map(async (target, index) => {
+      targets.map(async (target) => {
         const startedAt = nowIso()
         await setTargetStatus(orchestrationId, target.id, {
           status: 'running',
@@ -645,7 +544,7 @@ async function executeOrchestration(orchestrationId: string) {
         })
 
         try {
-          const result = await runInstanceTask(orchestration, target, index)
+          const result = await runInstanceTask(target)
           const finishedAt = nowIso()
           await setTargetStatus(orchestrationId, target.id, {
             status: 'success',

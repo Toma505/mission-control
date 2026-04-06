@@ -1,9 +1,10 @@
-import { Users, Bot, Activity } from 'lucide-react'
-import { getAppBaseUrl } from '@/lib/app-url'
-import { PageEmptyState } from '@/components/layout/page-empty-state'
-import { UptimeTimeline } from '@/components/agents/uptime-timeline'
+import { Activity, Bot, Users } from 'lucide-react'
+
 import { AgentHealthScore } from '@/components/agents/agent-health-score'
+import { UptimeTimeline } from '@/components/agents/uptime-timeline'
 import { ExportButton } from '@/components/export/export-button'
+import { PageEmptyState } from '@/components/layout/page-empty-state'
+import { getAppBaseUrl } from '@/lib/app-url'
 
 interface Agent {
   name: string
@@ -17,23 +18,29 @@ interface Session {
   age: string
 }
 
-async function getAgents(): Promise<{ connected: boolean; demo?: boolean; agents: Agent[]; sessions: Session[]; agentInfo: string; memory: string }> {
+async function getAgents(): Promise<{ connected: boolean; agents: Agent[]; sessions: Session[]; agentInfo: string; memory: string }> {
   const baseUrl = getAppBaseUrl()
   try {
     const res = await fetch(`${baseUrl}/api/agents`, { cache: 'no-store' })
-    if (!res.ok) return { connected: false, demo: false, agents: [], sessions: [], agentInfo: '', memory: '' }
-    return await res.json()
+    if (!res.ok) return { connected: false, agents: [], sessions: [], agentInfo: '', memory: '' }
+    const data = await res.json()
+    return {
+      connected: !!data.connected,
+      agents: Array.isArray(data.agents) ? data.agents : [],
+      sessions: Array.isArray(data.sessions) ? data.sessions : [],
+      agentInfo: typeof data.agentInfo === 'string' ? data.agentInfo : '',
+      memory: typeof data.memory === 'string' ? data.memory : '',
+    }
   } catch {
-    return { connected: false, demo: false, agents: [], sessions: [], agentInfo: '', memory: '' }
+    return { connected: false, agents: [], sessions: [], agentInfo: '', memory: '' }
   }
 }
 
 export default async function AgentsPage() {
-  const { connected, demo, agents, sessions, agentInfo, memory } = await getAgents()
-
+  const { connected, agents, sessions, agentInfo, memory } = await getAgents()
   const hasData = agents.length > 0 || sessions.length > 0
 
-  if (!connected && !demo) {
+  if (!connected) {
     return (
       <div className="space-y-6">
         <div className="flex items-start justify-between gap-3">
@@ -61,30 +68,14 @@ export default async function AgentsPage() {
           <h1 className="text-3xl font-bold text-text-primary mb-2">Agents</h1>
           <p className="text-sm text-text-secondary">
             Manage and monitor your AI agents
-            {connected ? (
-              <span className="ml-2 inline-flex items-center gap-1 text-xs text-status-active">
-                <span className="w-1.5 h-1.5 rounded-full bg-status-active animate-pulse" />
-                OpenClaw connected
-              </span>
-            ) : demo ? (
-              <span className="ml-2 inline-flex items-center gap-1 text-xs text-amber-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-300" />
-                Demo data
-              </span>
-            ) : null}
+            <span className="ml-2 inline-flex items-center gap-1 text-xs text-status-active">
+              <span className="w-1.5 h-1.5 rounded-full bg-status-active animate-pulse" />
+              OpenClaw connected
+            </span>
           </p>
         </div>
         <ExportButton type="usage" />
       </div>
-
-      {demo && (
-        <div className="glass rounded-2xl p-4 border border-amber-400/20 bg-amber-400/5">
-          <p className="text-sm font-medium text-amber-200">Demo data — connect OpenClaw to see live data.</p>
-          <p className="text-xs text-amber-100/70 mt-1">
-            Agent definitions, sessions, and memory stats below are sample data to preview the workspace.
-          </p>
-        </div>
-      )}
 
       {!hasData ? (
         <PageEmptyState
@@ -95,7 +86,6 @@ export default async function AgentsPage() {
         />
       ) : (
         <>
-          {/* Overview */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="glass rounded-2xl p-5">
               <p className="text-xs text-text-muted mb-1">Agents</p>
@@ -117,7 +107,6 @@ export default async function AgentsPage() {
           <UptimeTimeline />
           <AgentHealthScore />
 
-          {/* Agent list */}
           <div className="space-y-3">
             <h2 className="text-lg font-semibold text-text-primary">Agent Definitions</h2>
             {agents.map((agent) => (
@@ -129,11 +118,13 @@ export default async function AgentsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-text-primary">{agent.name}</p>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                        agent.enabled
-                          ? 'bg-status-active/10 text-status-active border border-status-active/20'
-                          : 'bg-white/[0.06] text-text-muted border border-white/[0.06]'
-                      }`}>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                          agent.enabled
+                            ? 'bg-status-active/10 text-status-active border border-status-active/20'
+                            : 'bg-white/[0.06] text-text-muted border border-white/[0.06]'
+                        }`}
+                      >
                         {agent.enabled ? 'Active' : 'Disabled'}
                       </span>
                     </div>
@@ -147,7 +138,6 @@ export default async function AgentsPage() {
             ))}
           </div>
 
-          {/* Active sessions */}
           {sessions.length > 0 && (
             <div className="space-y-3">
               <h2 className="text-lg font-semibold text-text-primary">Active Sessions</h2>

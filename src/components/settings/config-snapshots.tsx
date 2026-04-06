@@ -151,7 +151,7 @@ export function ConfigSnapshots() {
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder='e.g. "Production config" or "Friday night budget"'
+                  placeholder='e.g. "Primary workspace config" or "Friday night budget"'
               className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted/40 focus:outline-none focus:border-accent-primary/50"
               onKeyDown={e => e.key === 'Enter' && createSnapshot()}
             />

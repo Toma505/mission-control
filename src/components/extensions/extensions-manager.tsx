@@ -317,7 +317,7 @@ export function ExtensionsManager() {
               {data?.connected ? 'OpenClaw connected' : 'OpenClaw not connected'}
             </span>
             <span>{installed.length} installed</span>
-            <span>{marketplace.length} catalog entries</span>
+            <span>{marketplace.length} verified catalog entries</span>
           </div>
         </div>
       </div>
@@ -487,7 +487,8 @@ export function ExtensionsManager() {
           {filteredMarketplace.length === 0 ? (
             <div className="glass rounded-2xl p-8 text-center">
               <Search className="mx-auto mb-3 h-8 w-8 text-text-muted" />
-              <p className="text-sm text-text-secondary">No extensions match your current filters.</p>
+              <p className="text-sm text-text-secondary">No verified catalog extensions are available in this build.</p>
+              <p className="mt-1 text-xs text-text-muted">Install from npm or upload a scanned extension bundle instead.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -581,13 +582,13 @@ export function ExtensionsManager() {
                           )}
                         </button>
                       )}
-                      {extension.homepage ? (
+                      {extension.homepage && extension.source !== 'marketplace' ? (
                         <a
                           href={extension.homepage}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="rounded-xl p-2 text-text-muted hover:bg-white/[0.06] hover:text-text-primary"
-                          title="Open source"
+                          title="Extension homepage"
                         >
                           <ExternalLink className="h-3.5 w-3.5" />
                         </a>

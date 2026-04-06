@@ -33,22 +33,9 @@ type AgentChatStore = {
 }
 
 const AGENT_CHATS_FILE = path.join(DATA_DIR, 'agent-chats.json')
-const DEFAULT_AGENT_CHATS_FILE = path.join(process.cwd(), 'data', 'agent-chats.json')
 
 function nowIso() {
   return new Date().toISOString()
-}
-
-async function readSeedStore(): Promise<AgentChatStore> {
-  try {
-    const raw = await readFile(DEFAULT_AGENT_CHATS_FILE, 'utf-8')
-    const parsed = JSON.parse(raw) as AgentChatStore
-    return {
-      conversations: Array.isArray(parsed.conversations) ? parsed.conversations : [],
-    }
-  } catch {
-    return { conversations: [] }
-  }
 }
 
 export async function readAgentChatStore(): Promise<AgentChatStore> {
@@ -59,7 +46,7 @@ export async function readAgentChatStore(): Promise<AgentChatStore> {
       conversations: Array.isArray(parsed.conversations) ? parsed.conversations : [],
     }
   } catch {
-    return readSeedStore()
+    return { conversations: [] }
   }
 }
 

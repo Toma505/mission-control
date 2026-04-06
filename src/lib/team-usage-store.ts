@@ -2,6 +2,7 @@ import { readFile } from 'fs/promises'
 import path from 'path'
 
 import { DATA_DIR } from '@/lib/connection-config'
+import { isLegacyDemoTeamUsageStore } from '@/lib/legacy-demo-data'
 
 export type TeamUsageRange = 'today' | 'week' | 'month' | 'all'
 
@@ -94,6 +95,9 @@ async function readStore(): Promise<TeamUsageStore> {
     try {
       const raw = await readFile(file, 'utf-8')
       const store = JSON.parse(raw) as TeamUsageStore
+      if (isLegacyDemoTeamUsageStore(store)) {
+        return { version: 1, users: [], agents: [], sessions: [] }
+      }
       return {
         version: 1,
         users: Array.isArray(store.users) ? store.users : [],

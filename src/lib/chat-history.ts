@@ -11,31 +11,6 @@ export type ChatHistoryMessage = {
   timestamp?: string
 }
 
-export const DEMO_SESSIONS: SessionInfo[] = [
-  { key: 'agent:default:main', agent: 'default', age: '2h ago', status: 'active' },
-  { key: 'agent:scout:research', agent: 'scout', age: '5h ago', status: 'idle' },
-]
-
-export const DEMO_HISTORY: Record<string, ChatHistoryMessage[]> = {
-  'agent:default:main': [
-    { role: 'user', content: "Research trending AI topics for this week's video" },
-    {
-      role: 'assistant',
-      content: "I found 5 trending topics:\n\n1. **Claude 4 release** - Anthropic's latest model with extended thinking\n2. **OpenAI Codex CLI** - New terminal-based coding agent\n3. **Google Gemini 2.5 Flash** - Fast and cheap multimodal model\n4. **Local LLMs hitting GPT-4 level** - Llama 3.3 benchmarks\n5. **AI agent frameworks** - CrewAI vs LangGraph comparison\n\nShall I draft outlines for any of these?",
-    },
-    { role: 'user', content: 'Draft an outline for topic 1' },
-    {
-      role: 'assistant',
-      content: "Here's a script outline for 'Claude 4 Release':\n\n**Hook:** \"Anthropic just mass-deployed a model that thinks before it speaks\"\n\n**Section 1: What changed**\n- Extended thinking (chain-of-thought visible)\n- 200k context window\n- Tool use improvements\n\n**Section 2: Real-world testing**\n- Coding benchmarks vs GPT-4o\n- Cost comparison ($3/MTok vs $15/MTok)\n- Speed test results\n\n**Section 3: Who should switch**\n- Best for: complex reasoning, long documents\n- Skip if: simple tasks, budget-constrained\n\n**CTA:** Link to OpenRouter for testing",
-    },
-  ],
-}
-
-export const DEMO_SESSION_KEYS = new Set([
-  ...DEMO_SESSIONS.map((session) => session.key),
-  ...Object.keys(DEMO_HISTORY),
-])
-
 export function getAgentIdFromSessionKey(sessionKey: string, fallback = 'default') {
   const match = sessionKey.match(/^agent:([^:]+)/)
   return match?.[1] || fallback

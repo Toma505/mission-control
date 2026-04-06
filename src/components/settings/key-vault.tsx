@@ -164,7 +164,7 @@ export function KeyVault() {
             type="text"
             value={formName}
             onChange={e => setFormName(e.target.value)}
-            placeholder="Key name (e.g., Production OpenRouter)"
+                  placeholder="Key name (e.g., OpenRouter primary)"
             className="w-full px-3 py-2 rounded-xl bg-white/[0.04] border border-[var(--glass-border)] text-xs text-text-primary placeholder:text-text-muted/50 focus:outline-none mb-3"
           />
 

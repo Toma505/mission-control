@@ -5,9 +5,9 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
 import { DATA_DIR } from '@/lib/connection-config'
+import { isLegacyStarterWorkflow } from '@/lib/legacy-demo-data'
 import { sanitizeError } from '@/lib/sanitize-error'
 import {
-  createStarterWorkflowTemplates,
   executeWorkflow,
   normalizeWorkflow,
   type Workflow,
@@ -35,11 +35,13 @@ async function readWorkflowStore(): Promise<WorkflowStore> {
     const parsed = JSON.parse(text) as { workflows?: unknown[] }
     const workflows = Array.isArray(parsed.workflows)
       ? parsed.workflows.map((workflow) => normalizeWorkflow(workflow))
-      : createStarterWorkflowTemplates()
+      : []
 
-    return { workflows }
+    return {
+      workflows: workflows.filter((workflow) => !isLegacyStarterWorkflow(workflow)),
+    }
   } catch {
-    return { workflows: createStarterWorkflowTemplates() }
+    return { workflows: [] }
   }
 }
 

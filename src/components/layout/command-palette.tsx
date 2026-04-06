@@ -7,7 +7,6 @@ import { formatUpdaterMessage } from '@/lib/updater-status'
 import {
   AlertTriangle,
   Bell,
-  Bot,
   GitBranch,
   Search,
   LayoutDashboard,
@@ -64,7 +63,6 @@ const PAGE_ITEMS: SearchItem[] = [
   { id: 'onboarding', title: 'Onboarding Wizard', subtitle: 'First-run setup and guided connection flow', href: '/onboarding', icon: <Rocket className="w-4 h-4" />, category: 'page', keywords: ['onboarding', 'wizard', 'setup', 'first run', 'getting started'] },
   { id: 'operations', title: 'Operations', subtitle: 'Pipeline jobs and automation', href: '/operations', icon: <Clapperboard className="w-4 h-4" />, category: 'page', keywords: ['jobs', 'pipeline', 'real estate', 'video', 'automation'] },
   { id: 'agents', title: 'Agents', subtitle: 'Agent management', href: '/agents', icon: <Users className="w-4 h-4" />, category: 'page', keywords: ['bot', 'agent', 'sessions', 'model'] },
-  { id: 'agent-chat', title: 'Agent-to-Agent Chat', subtitle: 'Let two agents collaborate on a shared goal', href: '/agent-chat', icon: <Bot className="w-4 h-4" />, category: 'page', keywords: ['agent chat', 'agent to agent', 'collaboration', 'conversation', 'multi-agent'] },
   { id: 'replay', title: 'Agent Replay', subtitle: 'Replay completed runs step by step', href: '/replay', icon: <PlayCircle className="w-4 h-4" />, category: 'page', keywords: ['replay', 'session', 'conversation', 'history', 'transcript', 'chat', 'timeline', 'diff'] },
   { id: 'costs', title: 'Cost Dashboard', subtitle: 'Real-time token spend, budgets, and session costs', href: '/costs', icon: <DollarSign className="w-4 h-4" />, category: 'page', keywords: ['cost dashboard', 'money', 'billing', 'railway', 'credits', 'spend', 'budget', 'tokens'] },
   { id: 'analytics', title: 'Usage Analytics', subtitle: 'Token usage, model costs, anomaly detection', href: '/analytics', icon: <BarChart3 className="w-4 h-4" />, category: 'page', keywords: ['analytics', 'tokens', 'model', 'breakdown', 'anomaly', 'usage'] },

@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import path from 'path'
 import { DATA_DIR } from '@/lib/connection-config'
+import { isLegacyDemoPrompts } from '@/lib/legacy-demo-data'
 
 export type PromptVersion = {
   id: string
@@ -101,16 +102,18 @@ export async function readPromptStore(): Promise<PromptStore> {
   try {
     const raw = await readFile(PROMPTS_FILE, 'utf-8')
     const parsed = JSON.parse(raw) as PromptStore
+    const prompts = Array.isArray(parsed.prompts) ? parsed.prompts.map(normalizePrompt) : []
     return {
-      prompts: Array.isArray(parsed.prompts) ? parsed.prompts.map(normalizePrompt) : [],
+      prompts: isLegacyDemoPrompts(prompts) ? [] : prompts,
     }
   } catch {
     if (await fileExists(LEGACY_PROMPTS_FILE)) {
       try {
         const raw = await readFile(LEGACY_PROMPTS_FILE, 'utf-8')
         const legacyPrompts = JSON.parse(raw) as LegacyPrompt[]
+        const prompts = Array.isArray(legacyPrompts) ? legacyPrompts.map(normalizePrompt) : []
         const migrated = {
-          prompts: Array.isArray(legacyPrompts) ? legacyPrompts.map(normalizePrompt) : [],
+          prompts: isLegacyDemoPrompts(prompts) ? [] : prompts,
         }
         await writePromptStore(migrated)
         return migrated

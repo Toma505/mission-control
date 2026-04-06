@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
-import { DEMO_HISTORY, DEMO_SESSION_KEYS, getAgentIdFromSessionKey, parseMessages } from '@/lib/chat-history'
+import { getAgentIdFromSessionKey, parseMessages } from '@/lib/chat-history'
 import { isConfigured, runCommand } from '@/lib/openclaw'
 import { getReplaySession, importReplaySession } from '@/lib/replay-store'
 import {
@@ -14,10 +14,7 @@ import {
 import { sanitizeError } from '@/lib/sanitize-error'
 
 async function getChatMessages(sessionKey: string) {
-  if (!(await isConfigured())) {
-    if (!DEMO_SESSION_KEYS.has(sessionKey)) return null
-    return DEMO_HISTORY[sessionKey] || []
-  }
+  if (!(await isConfigured())) return null
 
   const result = await runCommand('openclaw.sessions.history', sessionKey)
   if (!result.ok) return null

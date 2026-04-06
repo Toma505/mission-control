@@ -131,10 +131,6 @@ export async function getExtensionsPayload() {
     return mergeCatalogEntry(entry, installedPlugin)
   })
 
-  const uncataloguedInstalled = installed
-    .filter((plugin) => !findCatalogEntry(catalog, plugin.id) && !(plugin.npmPackage && findCatalogEntry(catalog, plugin.npmPackage)))
-    .map(buildInstalledFallback)
-
   const installedExtensions = installed.map((plugin) => {
     const match = findCatalogEntry(catalog, plugin.id) || (plugin.npmPackage ? findCatalogEntry(catalog, plugin.npmPackage) : undefined)
     return match ? mergeCatalogEntry(match, plugin) : buildInstalledFallback(plugin)
@@ -143,8 +139,8 @@ export async function getExtensionsPayload() {
   return {
     connected,
     installed: installedExtensions,
-    marketplace: [...marketplace, ...uncataloguedInstalled],
-    categories: [...new Set([...catalog.map((entry) => entry.category), ...uncataloguedInstalled.map((entry) => entry.category)])],
+    marketplace,
+    categories: [...new Set(catalog.map((entry) => entry.category))],
   }
 }
 

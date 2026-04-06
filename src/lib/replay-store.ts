@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'fs/promises'
 import { randomUUID } from 'crypto'
 import path from 'path'
 import { DATA_DIR } from '@/lib/connection-config'
+import { isLegacyDemoReplayStore } from '@/lib/legacy-demo-data'
 
 export type ReplayToolCall = {
   name: string
@@ -62,6 +63,9 @@ export async function readReplayStore(): Promise<ReplayStore> {
     const raw = await readFile(REPLAYS_FILE, 'utf-8')
     const parsed = JSON.parse(raw) as ReplayStore
     if (!Array.isArray(parsed.sessions)) {
+      return fallbackStore()
+    }
+    if (isLegacyDemoReplayStore(parsed)) {
       return fallbackStore()
     }
     return parsed

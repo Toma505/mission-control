@@ -1,23 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { isAuthorized, unauthorizedResponse } from '@/lib/api-auth'
-import { DEMO_HISTORY, DEMO_SESSION_KEYS, DEMO_SESSIONS, parseMessages, parseSessionList } from '@/lib/chat-history'
+import { parseMessages, parseSessionList } from '@/lib/chat-history'
 import { isConfigured, runCommand } from '@/lib/openclaw'
 import { sanitizeError } from '@/lib/sanitize-error'
-
-function demoSessionsResponse() {
-  return NextResponse.json({
-    sessions: DEMO_SESSIONS,
-    demo: true,
-  })
-}
-
-function demoHistoryResponse(sessionKey: string) {
-  return NextResponse.json({
-    messages: DEMO_HISTORY[sessionKey] || [],
-    demo: true,
-  })
-}
 
 export async function GET(request: NextRequest) {
   const action = request.nextUrl.searchParams.get('action') || 'sessions'
@@ -25,8 +11,12 @@ export async function GET(request: NextRequest) {
   const configured = await isConfigured()
 
   if (!configured) {
-    if (action === 'sessions') return demoSessionsResponse()
-    if (action === 'history' && sessionKey) return demoHistoryResponse(sessionKey)
+    if (action === 'sessions') {
+      return NextResponse.json({ sessions: [], demo: false, connected: false })
+    }
+    if (action === 'history' && sessionKey) {
+      return NextResponse.json({ messages: [], demo: false, connected: false })
+    }
     return NextResponse.json({ error: 'Not configured' }, { status: 503 })
   }
 
@@ -34,7 +24,7 @@ export async function GET(request: NextRequest) {
     if (action === 'sessions') {
       const result = await runCommand('openclaw.sessions')
       if (!result.ok) {
-        return demoSessionsResponse()
+        return NextResponse.json({ sessions: [], raw: result.error || '', demo: false })
       }
 
       const sessions = parseSessionList(result.output || '')
@@ -44,9 +34,6 @@ export async function GET(request: NextRequest) {
     if (action === 'history' && sessionKey) {
       const result = await runCommand('openclaw.sessions.history', sessionKey)
       if (!result.ok) {
-        if (DEMO_SESSION_KEYS.has(sessionKey)) {
-          return demoHistoryResponse(sessionKey)
-        }
         return NextResponse.json({ messages: [], raw: result.error || 'Could not fetch history', demo: false })
       }
 

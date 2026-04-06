@@ -10,6 +10,7 @@ import {
   isSecretEncryptionAvailable,
   UNENCRYPTED_STORAGE_WARNING,
 } from '@/lib/secret-encryption'
+import { isLegacyDemoInstances } from '@/lib/legacy-demo-data'
 import { validateManagedInstanceUrl } from '@/lib/url-validator'
 
 const INSTANCES_FILE = path.join(DATA_DIR, 'instances.json')
@@ -49,8 +50,9 @@ async function readInstances(): Promise<InstancesConfig> {
   try {
     const text = await readFile(INSTANCES_FILE, 'utf-8')
     const parsed = JSON.parse(text)
+    const instances = Array.isArray(parsed?.instances) ? parsed.instances : []
     return {
-      instances: Array.isArray(parsed?.instances) ? parsed.instances : [],
+      instances: isLegacyDemoInstances(instances) ? [] : instances,
       _warning: typeof parsed?._warning === 'string' ? parsed._warning : undefined,
     }
   } catch {

@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(normalizeTimeline(range, data))
     }
   } catch {
-    // Fall back to local demo data below.
+    // Fall back to local persisted uptime data below.
   }
 
   return NextResponse.json(await readFallbackTimeline(range))

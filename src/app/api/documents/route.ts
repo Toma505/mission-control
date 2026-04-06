@@ -4,12 +4,14 @@ import path from 'path'
 import { sanitizeError } from '@/lib/sanitize-error'
 import { isConfigured, runCommand } from '@/lib/openclaw'
 import { DATA_DIR } from '@/lib/connection-config'
+import { isLegacyDemoDocuments } from '@/lib/legacy-demo-data'
 
 async function readLocalDocs() {
   try {
     const text = await readFile(path.join(DATA_DIR, 'documents.json'), 'utf-8')
     const data = JSON.parse(text)
-    return Array.isArray(data) ? data : []
+    const documents = Array.isArray(data) ? data : []
+    return isLegacyDemoDocuments(documents) ? [] : documents
   } catch { return [] }
 }
 

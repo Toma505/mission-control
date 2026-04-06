@@ -15,11 +15,11 @@ import {
 } from '@/lib/schedules'
 import { readTemplateStore, type AgentTemplate, writeTemplateStore } from '@/lib/agent-templates-store'
 import {
-  createStarterWorkflowTemplates,
   normalizeWorkflow,
   type Workflow,
   type WorkflowExecutionRecord,
 } from '@/lib/workflow-engine'
+import { isLegacyDemoCostTags, isLegacyInternalWorkflowExecution, isLegacyStarterWorkflow } from '@/lib/legacy-demo-data'
 
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json')
 const DEFAULT_SETTINGS_FILE = path.join(process.cwd(), 'data', 'settings.json')
@@ -290,12 +290,16 @@ async function writeSettingsPayload(settings: PortableSettingsPayload) {
 async function readWorkflowPayload(): Promise<PortableWorkflowPayload> {
   const workflowStore = await readJsonFile<{ workflows?: unknown[] }>(WORKFLOWS_FILE, {})
   const historyStore = await readJsonFile<{ executions?: WorkflowExecutionRecord[] }>(WORKFLOW_HISTORY_FILE, {})
+  const workflows = Array.isArray(workflowStore.workflows)
+    ? workflowStore.workflows.map((workflow) => normalizeWorkflow(workflow)).filter((workflow) => !isLegacyStarterWorkflow(workflow))
+    : []
+  const executions = Array.isArray(historyStore.executions)
+    ? historyStore.executions.filter((execution) => !isLegacyInternalWorkflowExecution(execution))
+    : []
 
   return {
-    workflows: Array.isArray(workflowStore.workflows)
-      ? workflowStore.workflows.map((workflow) => normalizeWorkflow(workflow))
-      : createStarterWorkflowTemplates(),
-    executions: Array.isArray(historyStore.executions) ? historyStore.executions : [],
+    workflows,
+    executions,
   }
 }
 
@@ -310,9 +314,11 @@ async function writeWorkflowPayload(payload: PortableWorkflowPayload) {
 
 async function readCostTagsPayload(): Promise<CostTagsPayload> {
   const parsed = await readJsonFile<Partial<CostTagsPayload>>(COST_TAGS_FILE, {})
+  const tags = Array.isArray(parsed.tags) ? parsed.tags : []
+  const assignments = Array.isArray(parsed.assignments) ? parsed.assignments : []
   return {
-    tags: Array.isArray(parsed.tags) ? parsed.tags : [],
-    assignments: Array.isArray(parsed.assignments) ? parsed.assignments : [],
+    tags: isLegacyDemoCostTags(tags) ? [] : tags,
+    assignments: isLegacyDemoCostTags(tags) ? [] : assignments,
   }
 }
 
