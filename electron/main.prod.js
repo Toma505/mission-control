@@ -871,7 +871,7 @@ function startServer() {
   const appRoot = getAppRoot()
   const dataDir = getDataDir()
 
-  if (app.isPackaged && fs.existsSync(serverPath)) {
+  if (fs.existsSync(serverPath)) {
     // ── Production: run the standalone Next.js server directly ──
     // Uses Electron's bundled Node.js — no system Node needed
     console.log('[mc] Starting standalone server:', serverPath)
